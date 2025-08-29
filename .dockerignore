@@ -1,0 +1,52 @@
+README.md
+docker-compose.yml
+Dockerfile
+
+# Ignore VCS
+.git
+.gitattirbutes
+.gitignore
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pdb
+
+# Virtual envs
+.venv
+venv/
+ENV/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Package manager locks (optional, unless you want them copied in)
+poetry.lock
+Pipfile.lock
+
+# Coverage/test artifacts
+.coverage
+htmlcov/
+.tox/
+.nox/
+.pytest_cache/
+
+# Editors & OS files
+*.swp
+*.swo
+*.DS_Store
+.idea/
+.vscode/
+
+# Logs
+*.log
+
+.nix/
+.nix-channels/
+flake.lock
+uv.lock
