@@ -38,22 +38,15 @@ version = "0.1.0"
 source = { editable = "api" }
 dependencies = [
     { name = "fastapi" },
+    { name = "lib" },
     { name = "uvicorn" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "fastapi", specifier = ">=0.116.1" },
+    { name = "lib", editable = "lib" },
     { name = "uvicorn", specifier = ">=0.35.0" },
-]
-
-[[package]]
-name = "argparse"
-version = "1.4.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/18/dd/e617cfc3f6210ae183374cd9f6a26b20514bbb5a792af97949c5aacddf0f/argparse-1.4.0.tar.gz", hash = "sha256:62b089a55be1d8949cd2bc7e0df0bddb9e028faefc8c32038cc84862aefdd6e4", size = 70508, upload-time = "2015-09-12T20:22:16.217Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/f2/94/3af39d34be01a24a6e65433d19e107099374224905f1e0cc6bbe1fd22a2f/argparse-1.4.0-py2.py3-none-any.whl", hash = "sha256:c31647edb69fd3d465a847ea3157d37bed1f95f19760b11a47aa91c04b666314", size = 23000, upload-time = "2015-09-14T16:03:16.137Z" },
 ]
 
 [[package]]
@@ -61,11 +54,11 @@ name = "cli"
 version = "0.1.0"
 source = { editable = "cli" }
 dependencies = [
-    { name = "argparse" },
+    { name = "lib" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "argparse", specifier = ">=1.4.0" }]
+requires-dist = [{ name = "lib", editable = "lib" }]
 
 [[package]]
 name = "click"
@@ -205,7 +198,20 @@ wheels = [
 [[package]]
 name = "openreferral-transformer"
 version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
+
+[package.optional-dependencies]
+api = [
+    { name = "fastapi" },
+    { name = "uvicorn" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "fastapi", marker = "extra == 'api'" },
+    { name = "uvicorn", marker = "extra == 'api'" },
+]
+provides-extras = ["api"]
 
 [[package]]
 name = "pandas"
