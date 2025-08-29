@@ -8,7 +8,8 @@ authors = [
 ]
 requires-python = ">=3.13"
 dependencies = [
-    "lib"
+    "click>=8.2.1",
+    "lib",
 ]
 
 [project.scripts]

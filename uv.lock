@@ -54,11 +54,15 @@ name = "cli"
 version = "0.1.0"
 source = { editable = "cli" }
 dependencies = [
+    { name = "click" },
     { name = "lib" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "lib", editable = "lib" }]
+requires-dist = [
+    { name = "click", specifier = ">=8.2.1" },
+    { name = "lib", editable = "lib" },
+]
 
 [[package]]
 name = "click"
