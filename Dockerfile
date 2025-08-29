@@ -5,14 +5,14 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-COPY pyproject.toml ./
+RUN useradd -m nonroot && chown -R nonroot /app
+USER nonroot
+
+COPY . .
 RUN pip install --upgrade pip \
  && pip install ".[api]" || pip install "."
 
 COPY . .
-
-RUN useradd -m nonroot && chown -R nonroot /app
-USER nonroot
 
 ENV APP_MODULE=api.main:app \
     PORT=8000
