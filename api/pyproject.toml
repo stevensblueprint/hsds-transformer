@@ -13,7 +13,7 @@ dependencies = [
 ]
 
 [project.scripts]
-api = "api:main"
+api = "api.src:main"
 
 [build-system]
 requires = ["hatchling"]
