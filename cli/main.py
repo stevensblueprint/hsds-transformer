@@ -15,11 +15,19 @@ def main(input_file, mapping_file):
         
         filename = os.path.splitext(input_file)[0]
 
-        result = []
+        input = []
         for row in reader:
-            result.append({filename: dict(row)})
+            input.append({filename: dict(row)})
 
-    print(result[0])
+    mapping = {}
+    with open(mapping_file, 'r', newline='', encoding='utf-8') as file:
+        reader = csv.reader(file)
+        next(reader)
+        for row in reader:
+            mapping[row[0]] = {"path": filename + "." + row[1]}
+
+    print(mapping)
+    print(input[0])
         
     # print(csv_to_key_value_dict(mapping_file))
 

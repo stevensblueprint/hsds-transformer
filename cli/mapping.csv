@@ -1,4 +1,4 @@
 input_files,path
-id,organization/id
-name,organization/name
-description,organization/description
+id,id
+name,name
+description,description
