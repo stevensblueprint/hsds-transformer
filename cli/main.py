@@ -31,18 +31,5 @@ def main(input_file, mapping_file):
         
     # print(csv_to_key_value_dict(mapping_file))
 
-def create_object(column_names, row, file_name):
-    pass
-
-def csv_to_key_value_dict(file_path):
-    """Convert 2-column CSV to key-value dictionary"""
-    result = {}
-    with open(file_path, 'r', newline='', encoding='utf-8') as file:
-        reader = csv.reader(file)
-        for row in reader:
-            if len(row) >= 2:
-                result[row[0]] = row[1]
-    return result
-
 if __name__ == "__main__":
     main()
