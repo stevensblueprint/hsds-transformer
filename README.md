@@ -14,3 +14,8 @@ Install dependencies
 ```bash
 pip3 install -r requirements.txt
 ```
+
+## Running the api
+```bash
+uvicorn api.app:app --app-dir src --reload
+```
