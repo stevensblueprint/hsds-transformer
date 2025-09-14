@@ -62,7 +62,7 @@ class RouterLoggingMiddleware(BaseHTTPMiddleware):
         try:
             body = await request.json()
             request_logging["body"] = body
-        except:
+        except (json.JSONDecodeError, UnicodeDecodeError):
             body = None
 
         return request_logging
