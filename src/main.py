@@ -1,4 +1,5 @@
 from lib.mapper import map
+from lib.parser import parse_input_csv, parse_mapping
 import click
 import csv
 import os
@@ -8,45 +9,22 @@ import os
 @click.argument('mapping_file', type=click.Path(exists=True, file_okay=True, dir_okay=False, readable=True))
 
 def main(input_file, mapping_file):
-    """Reads a CSV file from the given path and prints its content."""
-    """If field is empty don't include it."""
+    """ TO DO: 
+        If field is empty don't include it.
+        Multiple CSVs.
+    """
     
-    with open(input_file, mode='r', newline='', encoding='utf-8') as csv_file:
-        reader = csv.DictReader(csv_file)
-        
-        filename = os.path.splitext(input_file)[0]
+    input_filename = os.path.splitext(os.path.basename(input_file))[0]
 
-        input = []
-        for row in reader:
-            input.append({filename: dict(row)})
+    mapping = parse_mapping(mapping_file, input_filename)
+    src_objects = parse_input_csv(input_file, input_filename)
 
-    mapping = {}
-    with open(mapping_file, 'r', newline='', encoding='utf-8') as file:
-        reader = csv.reader(file)
-        next(reader)
-        for row in reader:
-            mapping[row[0]] = {"path": filename + "." + row[1]}
+    # for testing
+    # print(mapping)
+    # print(src_objects[0])
 
-    print(mapping)
-    print(input[0])
-
-    organization = map(input[0], mapping)
+    organization = map(src_objects[0], mapping)
     print(organization.model_dump_json(indent=2))
 
 if __name__ == "__main__":
     main()
-    src = {
-        "organization": {
-            "entity_id": "org-123",
-            "entity_name": "Acme Corp",
-            "entity_description": "A fictional company",
-        }
-    }
-
-    mapping = {
-        "id": {"path": "organization.entity_id"},
-        "name": {"path": "organization.entity_name"},
-        "description": {"path": "organization.entity_description"},
-    }
-    organization = map(src, mapping)
-    print(organization.model_dump_json(indent=2))
