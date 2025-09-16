@@ -10,12 +10,12 @@ USER nonroot
 
 COPY . .
 RUN pip install --upgrade pip \
- && pip install ".[api]" || pip install "."
+    && pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-ENV APP_MODULE=api.main:app \
+ENV APP_MODULE=api.app:app \
     PORT=8000
 EXPOSE 8000
 
-CMD ["sh", "-c", "python -m uvicorn ${APP_MODULE} --host 0.0.0.0 --port ${PORT}"]
+CMD ["sh", "-c", "python -m uvicorn ${APP_MODULE} --host 0.0.0.0 --port ${PORT} --app-dir src"]

@@ -15,7 +15,7 @@ Install dependencies
 pip3 install -r requirements.txt
 ```
 
-## Run the command line
+## Runing the command line tool
 **Currently works for transforming a csv into an organization object with no nested fields and only outputs the object created from the first row.**
 
 Add the csv file to be transformed into the data folder.
@@ -48,3 +48,8 @@ mapping = {
     }
 ```
 and then call the map() function.
+
+## Running the api
+```bash
+uvicorn api.app:app --app-dir src --reload
+```
