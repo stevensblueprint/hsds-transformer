@@ -1,5 +1,5 @@
-from lib.mapper import map
-from lib.parser import parse_input_csv, parse_mapping
+from ..lib.mapper import map
+from ..lib.parser import parse_input_csv, parse_mapping
 import click
 import os
 

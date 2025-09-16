@@ -22,9 +22,9 @@ Add the csv file to be transformed into the data folder.
 
 Create and add a mapping csv file to the data folder with two columns: the left column with the column names in the file to be transformed and the right column with paths to the associated field in the goal object. See mapping.csv in data for an example.
 
-Run `cd src`.
+Make sure you're in the root folder.
 
-Finally run, `python main.py ..relative\path\to\input.csv ..\relative\path\to\mapping.csv` where the two paths are relative paths to the input file and mapping file respectively. (Using example csvs: `python main.py ..\data\HSD_provider.csv ..\data\mapping.csv`).
+Finally run, `python -m src.cli.main path\to\input.csv path\to\mapping.csv` where the two paths are relative paths to the input file and mapping file respectively. (Using example csvs: `python -m src.cli.main data\HSD_provider.csv data\mapping.csv`).
 
 ## Notes: 
 
