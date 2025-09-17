@@ -35,22 +35,29 @@ def map(source: Any, mapping: Dict[str, Any]) -> Organization:
     out: Dict[str, Any] = {}
     for dest_field, rule in mapping.items():
         if isinstance(rule, str):
+            # Since our rule is a dictionary, not relevant for our parser
             out[dest_field] = glom(source, rule)
         elif isinstance(rule, dict):
             if "literal" in rule:
+                # if "literal" is in the rule output it directly outputs it (not relevant for our parser)
                 out[dest_field] = rule["literal"]
                 continue
             if "paths" in rule:
+                # if there are more than one paths in the dictionary (not relevant for how we parse)
                 spec = Coalesce(*rule["paths"], default=rule.get("default"))
                 val = glom(source, spec)
             else:
+                # !!!! This is largely the only line that matters !!!!, though default doesn't currently do anything since
                 val = glom(source, rule.get("path"), default=rule.get("default"))
+            
+            # potentially useful in the future if we want more rules (potentially splitting stuff?)
             tname = rule.get("transform")
             if tname:
                 fn = TRANSFORMS.get(tname)
                 targs = rule.get("transform_args", []) or []
                 tkwargs = rule.get("transform_kwargs", {}) or {}
                 val = fn(val, *targs, **tkwargs) if fn else val
+                
             out[dest_field] = val
         else:
             raise TypeError(f"Invalid mapping rule for field {dest_field}: {rule}")
