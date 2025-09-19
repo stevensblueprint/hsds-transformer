@@ -85,7 +85,7 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None) -> Organ
     def process_value(value):
         """
         Deals with every individual value in the dictionary
-        Recursive to deal with the cases when the value is an dict or an array
+        Recursive to deal with the cases when the value is an dict or an array and has values inside
         """
         if isinstance(value, dict):
             if "path" in value:
