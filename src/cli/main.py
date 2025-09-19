@@ -1,8 +1,8 @@
 from ..lib.mapper import map, nested_map
-from ..lib.parser import parse_input_csv, parse_mapping, parse_nested_mapping
+from ..lib.parser import parse_input_csv, parse_mapping
+# from ..lib.parser import parse_nested_mapping
 import click
 import os
-from glom import glom
 
 @click.command()
 @click.argument('input_file', type=click.Path(exists=True, file_okay=True, dir_okay=False, readable=True))
@@ -12,6 +12,7 @@ def main(input_file, mapping_file):
     """ TO DO: 
         If field is empty don't include it.
         Multiple CSVs.
+        More thorough error handling.
     """
     
     input_filename = os.path.splitext(os.path.basename(input_file))[0]
@@ -20,7 +21,7 @@ def main(input_file, mapping_file):
     src_objects = parse_input_csv(input_file, input_filename)
 
     # for testing parse_nested_mapping function, uncomment underneath and comment out the mapping above
-    mapping = parse_mapping(mapping_file, input_filename)
+    # mapping = parse_nested_mapping(mapping_file, input_filename)
 
 
     # for testing
