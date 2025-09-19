@@ -62,3 +62,46 @@ def map(source: Any, mapping: Dict[str, Any]) -> Organization:
         else:
             raise TypeError(f"Invalid mapping rule for field {dest_field}: {rule}")
     return Organization.model_validate(out)
+
+def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None) -> Organization:
+    """
+    Process a mapping specification and transform data using glom
+    Fixed to always use the root data for path resolution - so the path doesn't get lost during 
+    """
+    if not isinstance(data, (dict, list, tuple)):
+        """
+        Checking to ensure data is the correct type
+        """
+        try:
+            data = vars(data)
+        except TypeError:
+            raise ValueError(
+                "source must be a dict, list, tuple, or object with __dict__"
+            )
+
+    if root_data is None:
+        root_data = data
+        
+    def process_value(value):
+        """
+        Deals with every individual value in the dictionary
+        Recursive to deal with the cases when the value is an dict or an array
+        """
+        if isinstance(value, dict):
+            if "path" in value:
+                # This is a path specification - extract the value using ROOT data
+                return glom(root_data, value["path"])
+            else:
+                # This is a nested object - process recursively
+                return {k: process_value(v) for k, v in value.items()}
+        elif isinstance(value, list):
+            # Process each item in the list
+            return [process_value(item) for item in value]
+        else:
+            # Return the value as-is
+            return value
+    
+    out = process_value(mapping_spec)
+
+    return Organization.model_validate(out)
+    
