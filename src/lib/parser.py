@@ -31,4 +31,13 @@ def parse_mapping(mapping_file, filename) -> dict:
         for row in reader:
             mapping[row[1]] = {"path": filename + "." + row[0]}
 
-    return mapping    
+    return mapping
+
+def parse_nested_mapping(mapping_file, filename) -> dict:
+    """
+    Takes a mapping csv file with paths as keys and returns a dictionary.
+    """
+    mapping = {}
+
+    return mapping
+
