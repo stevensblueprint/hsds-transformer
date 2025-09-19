@@ -35,7 +35,7 @@ def parse_mapping(mapping_file, filename) -> dict:
 
 def parse_nested_mapping(mapping_file, filename) -> dict:
     """
-    Takes a mapping csv file with paths as keys and returns a dictionary. See
+    Takes a mapping csv file with paths as keys and returns a dictionary.
     """
     mapping = {}
 
