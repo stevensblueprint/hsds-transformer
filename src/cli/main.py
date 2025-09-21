@@ -34,7 +34,7 @@ def main(input_file, mapping_file):
 if __name__ == "__main__":
 
     src = {
-        "organization": {
+        "filename": {
             "entity_id": "org-123",
             "entity_name": "Acme Corp",
             "entity_description": "A fictional company",
@@ -43,11 +43,11 @@ if __name__ == "__main__":
     }
 
     mapping = {
-        "id": {"path": "organization.entity_id"},
-        "name": {"path": "organization.entity_name"},
-        "description": {"path": "organization.entity_description"},
-        "locations": [{"address": {"path": "organization.address"}}],
-        "location": {"address": {"path": "organization.address"}}
+        "id": {"path": "filename.entity_id"},
+        "name": {"path": "filename.entity_name"},
+        "description": {"path": "filename.entity_description"},
+        "locations": [{"address": {"path": "filename.address"}}],
+        "location": {"address": {"path": "filename.address"}}
     }
 
     organization = nested_map(src, mapping)
