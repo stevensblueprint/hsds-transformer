@@ -103,9 +103,10 @@ def map(source: Any, mapping: Dict[str, Any]) -> Organization:
                 spec = Coalesce(*rule["paths"], default=rule.get("default"))
                 val = glom(source, spec)
             else:
-                # !!!! This is largely the only line that matters !!!!, though default doesn't currently do anything since
+                # !!!! This is largely the only line that matters !!!!, though default doesn't currently do anything
+                # since there's currently no "default" set in our parsing (we would likely need to change the format to
+                # { "path" : "filename.path", "default": "something"})
                 val = glom(source, rule.get("path"), default=rule.get("default"))
-            
             # potentially useful in the future if we want more rules (potentially splitting stuff?)
             tname = rule.get("transform")
             if tname:
@@ -113,7 +114,6 @@ def map(source: Any, mapping: Dict[str, Any]) -> Organization:
                 targs = rule.get("transform_args", []) or []
                 tkwargs = rule.get("transform_kwargs", {}) or {}
                 val = fn(val, *targs, **tkwargs) if fn else val
-                
             out[dest_field] = val
         else:
             raise TypeError(f"Invalid mapping rule for field {dest_field}: {rule}")
