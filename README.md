@@ -15,7 +15,7 @@ Install dependencies
 pip3 install -r requirements.txt
 ```
 
-## Runing the command line tool
+## Running the command line tool
 **Currently works for transforming a csv into an organization object with no nested fields and only outputs the object created from the first row.**
 
 Add the csv file to be transformed into the data folder.
