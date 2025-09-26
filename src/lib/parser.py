@@ -39,5 +39,37 @@ def parse_nested_mapping(mapping_file, filename) -> dict:
     """
     mapping = {}
 
+    with open(mapping_file, 'r', newline='', encoding='utf-8') as file:
+        reader = csv.reader(file)
+        next(reader)
+
+        for row in reader:
+            path = row[0]
+            input_field = row[1]
+
+            if not input_field:
+                continue
+
+            parts = path.split('.')
+            current_level = mapping
+
+            for i, part in enumerate(parts):
+                is_last = (i == len(parts) - 1)
+
+                if part.endswith('[]'):
+                    key = part[:-2]
+
+                    if not key in current_level:
+                        current_level[key] = [{}]
+                    current_level = current_level[key][0]
+
+                else:
+                    key = part
+                    if is_last:
+                        current_level[key] = {"path": f"{filename}.{input_field}"}
+                    
+                    else:
+                        current_level = current_level.setdefault(key, {})
+                        
     return mapping
 
