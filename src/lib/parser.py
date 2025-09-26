@@ -59,7 +59,7 @@ def parse_nested_mapping(mapping_file, filename) -> dict:
                 if part.endswith('[]'):
                     key = part[:-2]
 
-                    if not key in current_level:
+                    if key not in current_level:
                         current_level[key] = [{}]
                     current_level = current_level[key][0]
 
