@@ -49,7 +49,7 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None) -> Organ
     
     out = process_value(mapping_spec)
 
-    return Organization.model_validate(out)
+    return out
 
 """
 TRANSFORMS: Currently not using, but certainly may be useful in the future.
