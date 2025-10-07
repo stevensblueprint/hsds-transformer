@@ -1,4 +1,4 @@
-from ..lib.mapper import map, nested_map
+from ..lib.mapper import map, nested_map, get_process_order
 from ..lib.parser import parse_input_csv, parse_mapping
 # from ..lib.parser import parse_nested_mapping
 import click
@@ -53,5 +53,29 @@ if __name__ == "__main__":
     organization = nested_map(src, mapping)
     # organization = map(src, mapping)
     print(organization.model_dump_json(indent=2))
+
+    # Testing for get_process_order
+    """
+    print(get_process_order([
+        ("organization", []),
+        ("service", []),
+        ("address", []),
+        ("service_at_location", []),
+        ("location", []),
+        ("metadata", []),
+        ("service_capacity", [])
+    ]))
+
+    print(get_process_order([
+        ("langauge", []),
+        ("organization", []),
+        ("phone", []),
+        ("location", []),
+        ("program", []),
+        ("service_at_location", []),
+        ("schedule", []),
+        ("service", []),
+    ]))
+    """
 
     # main()
