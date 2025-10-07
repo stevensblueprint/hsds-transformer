@@ -1,8 +1,9 @@
 from __future__ import annotations
-from typing import Any, Callable, Dict
+from typing import Any, Callable, Dict, List
 from datetime import date
 from glom import glom, Coalesce
 from .models import Organization
+from .relations import HSDS_RELATIONS
 
 """
 NESTED_MAP: deals with layer 1 - essentially moving from a flat spreadsheet/csv into a nested format with potentially
@@ -118,3 +119,33 @@ def map(source: Any, mapping: Dict[str, Any]) -> Organization:
         else:
             raise TypeError(f"Invalid mapping rule for field {dest_field}: {rule}")
     return Organization.model_validate(out)
+
+"""
+GET_PROCESS_ORDER: Returns the order in which the inputted mapped HSDS entities should be processed with 
+the first index representing the first entity to be processed. 
+"""
+
+def get_process_order(groups: List[(str, List[Dict[str, Any]])]) -> List[str]:
+    keys = [k for (k, _) in groups]
+    order = []
+
+    if(len(keys) > 0):
+        order.append(keys[0])
+
+    for k in keys[1::]:
+        idx = len(order)
+
+        # Perform BFS through relationship DAG
+        edges = HSDS_RELATIONS[k]
+        while(len(edges) > 0):
+            ent = edges[0]
+
+            # Postition entity at an index that is before all its ancestors.
+            if(ent in order):
+                idx = min(idx, order.index(ent))
+
+            edges = edges[1::] + HSDS_RELATIONS[ent]
+
+        order.insert(idx, k)
+
+    return order
