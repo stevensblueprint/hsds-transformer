@@ -1,12 +1,25 @@
 """
 DAG model of HSDS 3.1.2 entity relationships.
 Source: https://docs.openreferral.org/en/v3.1.2/hsds/schema_reference.html#
-"""
 
-# TODO: Resolve cycles:
-# organization <=> service <=> program
-# unit <=> service_capacity
-# taxonomy <=> taxonomy_term
+Notes about certain entity relationships:
+
+Service has ids that relate to Organization and Program, which causes
+a cyclic dependency.
+- RESOLUTION: Service is made to be a root entity (with no outgoing edges)
+  and an outgoing edge to Service was made for Organization and Program.
+
+Service Capacity has both an id for and field for Unit.
+- RESOLUTION: Unit now has an outgoing edge to Service Capacity as a
+  defined Unit entity must exist first.
+
+Regarding Taxonomy Term and Taxonomy entities
+- Despite the names, both can be processed independently as neither have
+  fields that directly reference each other. At most Taxonomy Term has
+  an id for a Taxonomy entity, but not a field that references an actual
+  Taxonomy.
+
+"""
 
 HSDS_RELATIONS = {
     # Core
@@ -14,10 +27,7 @@ HSDS_RELATIONS = {
         "service"
     ],
 
-    "service": [
-        "organization",
-        "program",
-    ],
+    "service": [],
     
     "location": [
         "organization"
@@ -72,7 +82,8 @@ HSDS_RELATIONS = {
     ],
     
     "program": [
-        "organization"
+        "organization",
+        "service"
     ],
     
     "required_document": [
@@ -90,11 +101,12 @@ HSDS_RELATIONS = {
         "organization"
     ],
 
-    "unit": [],
+    "unit": [
+        "service_capacity"
+    ],
     
     "service_capacity": [
         "service"
-        "unit"
     ],
 
     "attribute": [
