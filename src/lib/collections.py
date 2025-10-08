@@ -1,7 +1,7 @@
 from pathlib import Path
 import re
-from parser import parse_input_csv, parse_nested_mapping
-from mapper import nested_map
+from .parser import parse_input_csv, parse_nested_mapping
+from .mapper import nested_map
 
 def build_collections(data_directory: str):
     """
