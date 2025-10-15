@@ -46,7 +46,7 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None) -> Organ
                 # This is a nested object - process recursively
                 items = list(value.items())
 
-                if not "id" in value:
+                if "id" not in value:
                     # TODO: create the proper identifier string for entity
                     uid = uuid5(NAMESPACE, "some-identifier-string")
                     items.insert(0, ("id", str(uid)))
