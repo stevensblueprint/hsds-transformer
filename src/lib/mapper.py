@@ -44,14 +44,14 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None) -> Organ
                 return glom(root_data, value["path"])
             else:
                 # This is a nested object - process recursively
-                ent = {k: process_value(v) for k, v in value.items()}
+                items = list(value.items())
 
-                if not "id" in ent:
-                    # TODO: create the proper identifier string for $ent
+                if not "id" in value:
+                    # TODO: create the proper identifier string for entity
                     uid = uuid5(NAMESPACE, "some-identifier-string")
-                    ent["id"] = str(uid)
-
-                return ent
+                    items.insert(0, ("id", str(uid)))
+                
+                return {k: process_value(v) for k, v in items}
         elif isinstance(value, list):
             # Process each item in the list
             return [process_value(item) for item in value]
