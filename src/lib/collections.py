@@ -2,6 +2,7 @@ from pathlib import Path
 import re
 from .parser import parse_input_csv, parse_nested_mapping
 from .mapper import nested_map
+from typing import Dict, List, Tuple, Any, Optional
 
 def build_collections(data_directory: str):
     """
@@ -43,3 +44,21 @@ def build_collections(data_directory: str):
         results.append((object_type, objects)) # Adds tuple of object type and list of dictionaries. For example: ("organization", [{x}, {y}, ...])
 
     return results
+
+
+CHILD_CASES = {("service", "organization")}
+
+def find_in_collection(collection_map: Dict[str, List[Dict[str, Any]]], collection_name: str, target_id: str, id_field: str) -> Optional[Dict[str, Any]]:
+    """
+    Searches for the dictionary in the given collection where id == target_id
+    Returns found dictionary or None.
+    """
+    items = collection_map.get(collection_name)
+    if not items:
+        return None
+    
+    for x in items:
+        if id_field not in x: # Missing ID
+            continue
+        if isinstance(x[id_field], str) and x[id_field] == target_id:
+            return x
