@@ -2,8 +2,12 @@ from __future__ import annotations
 from typing import Any, Callable, Dict, List
 from datetime import date
 from glom import glom, Coalesce
+from uuid import UUID, uuid5
 from .models import Organization
 from .relations import HSDS_RELATIONS
+
+# TODO: Initialize UUID with a proper fixed value
+NAMESPACE = UUID("{12345678-1234-5678-1234-567812345678}")
 
 """
 NESTED_MAP: deals with layer 1 - essentially moving from a flat spreadsheet/csv into a nested format with potentially
@@ -40,7 +44,14 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None) -> Organ
                 return glom(root_data, value["path"])
             else:
                 # This is a nested object - process recursively
-                return {k: process_value(v) for k, v in value.items()}
+                ent = {k: process_value(v) for k, v in value.items()}
+
+                if not "id" in ent:
+                    # TODO: create the proper identifier string for $ent
+                    uid = uuid5(NAMESPACE, "some-identifier-string")
+                    ent["id"] = str(uid)
+
+                return ent
         elif isinstance(value, list):
             # Process each item in the list
             return [process_value(item) for item in value]
