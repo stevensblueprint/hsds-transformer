@@ -1,23 +1,8 @@
 # from ..lib.mapper import get_process_order
 from ..lib.collections import build_collections
+from ..lib.outputs import save_objects_to_json
 import json
 import click
-import os
-
-def save_objects_to_json(objects_data, output_dir):
-    """Save each object dictionary as a separate JSON file."""
-    os.makedirs(output_dir, exist_ok=True)
-    
-    for object_type, objects_list in objects_data:
-        for obj_dict in objects_list:
-            # Extract the id from the object
-            obj_id = obj_dict.get('id')
-            if obj_id:
-                filename = f"{object_type}_{obj_id}.json"
-                filepath = os.path.join(output_dir, filename)
-                
-                with open(filepath, 'w', encoding='utf-8') as f:
-                    json.dump(obj_dict, f, indent=2, ensure_ascii=False)
 
 @click.command()
 @click.argument('data_dictionary', type=click.Path(exists=True, file_okay=False, dir_okay=True, readable=True))
