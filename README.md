@@ -26,6 +26,13 @@ Make sure you're in the root folder.
 
 Finally run, `python -m src.cli.main path\to\input.csv path\to\mapping.csv` where the two paths are relative paths to the input file and mapping file respectively. (Using example csvs: `python -m src.cli.main data\HSD_provider.csv data\mapping.csv`).
 
+## Generating IDs
+We can also generate IDs (specifically UUID-5) for objects without IDs.
+1. Make a copy of the `.env.example` file in the root directory and rename your copy `.env`.
+2. Replace the fixed-value and the identifier string with your own.
+3. Run the transformer as normal.
+Without the `.env` file, the transformer will not run ID generation.
+
 ## Notes: 
 
 We parse the input file into the form:

@@ -4,3 +4,4 @@ pydantic_core==2.33.2
 fastapi==0.116.1
 uvicorn==0.35.0
 python-json-logger==3.3.0
+python-dotenv==1.1.1
