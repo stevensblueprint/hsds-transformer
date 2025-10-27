@@ -52,7 +52,7 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None) -> Organ
 
                 if "id" not in value:
                     # TODO: create the proper identifier string for entity
-                    uid = uuid5(NAMESPACE, "some-identifier-string")
+                    uid = uuid5(NAMESPACE, os.getenv("UUID_IDENTIFIER_STRING"))
                     items.insert(0, ("id", str(uid)))
                 
                 return {k: process_value(v) for k, v in items}
