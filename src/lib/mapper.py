@@ -1,5 +1,7 @@
 from __future__ import annotations
 from typing import Any, Callable, Dict, List
+import os
+from dotenv import load_dotenv 
 from datetime import date
 from glom import glom, Coalesce
 from uuid import UUID, uuid5
@@ -7,7 +9,9 @@ from .models import Organization
 from .relations import HSDS_RELATIONS
 
 # TODO: Initialize UUID with a proper fixed value
-NAMESPACE = UUID("{12345678-1234-5678-1234-567812345678}")
+load_dotenv() # load environment vars
+if "UUID_FIXED_VALUE" in os.environ:
+    NAMESPACE = UUID(os.getenv("UUID_FIXED_VALUE"))
 
 """
 NESTED_MAP: deals with layer 1 - essentially moving from a flat spreadsheet/csv into a nested format with potentially
