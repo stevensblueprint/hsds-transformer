@@ -46,19 +46,228 @@ def build_collections(data_directory: str):
     return results
 
 
-CHILD_CASES = {("service", "organization")}
+SINGULAR_CHILD_CASES = {
+    ("service", "organization"),  # (target_collection, original_type)
+}
 
-def find_in_collection(collection_map: Dict[str, List[Dict[str, Any]]], collection_name: str, target_id: str, id_field: str) -> Optional[Dict[str, Any]]:
+
+def find_in_collection(
+    collection_map: Dict[str, List[Dict[str, Any]]],
+    collection_name: str,
+    target_id: str,
+    id_field: str,
+) -> Optional[Dict[str, Any]]:
     """
-    Searches for the dictionary in the given collection where id == target_id
-    Returns found dictionary or None.
+    Linear search for the dict in the given collection that has id == target_id
+    Skips dictionaries with no id key
+    Returns the found dict or None
     """
     items = collection_map.get(collection_name)
     if not items:
         return None
-    
-    for x in items:
-        if id_field not in x: # Missing ID
+
+    for d in items:
+        if id_field not in d:
+            # Missing id: skip (move on to next dict)
             continue
-        if isinstance(x[id_field], str) and x[id_field] == target_id:
-            return x
+        if isinstance(d[id_field], str) and d[id_field] == target_id:
+            return d
+
+    return None
+
+
+def append_to_list_field(
+    target: Dict[str, Any],
+    key: str,
+    value: Dict[str, Any],
+) -> None:
+    """
+    Append value to target[key] if it exists and is a list
+    Otherwise create target[key] as a new list containing value
+    """
+    existing = target.get(key)
+    if isinstance(existing, list):
+        existing.append(value)
+    else:
+        target[key] = [value]
+
+
+def attach_original_to_targets(
+    collections: List[Tuple[str, List[Dict[str, Any]]]],
+    original_type: str,
+    original: Dict[str, Any],
+    relations: List[Tuple[str, str]],
+    *,
+    id_field: str = "id",
+) -> None:
+    """
+    Attaches "original" to matching targets in collections based on relations
+    Params: 
+    collections -> list[(str, [dict])] 
+    original_type -> str
+    original -> dict (the dictionary to embed into matching targets)
+    relations -> list[(str, str)] (tuples of (collection_name, id) to search for. If empty: skip)
+    id_field -> str (field used as identifier)
+
+    Looks through the specified collections for objects with the given IDs and attaches the original dictionary to them
+    Most links are stored as lists, except for the special case where a service has one Organization
+    Skips anything missing an ID or a match
+    """
+
+    # If there are no relations to process, return
+    if not relations:
+        return
+
+    # Lookup from a collection name to a list of dictionaries
+    collection_map: Dict[str, List[Dict[str, Any]]] = {
+        name: items for name, items in collections
+    }
+
+    for target_collection, target_id in relations:
+        # Skips empty/invalid ids
+        if not target_id:
+            continue
+
+        target = find_in_collection(
+            collection_map=collection_map,
+            collection_name=target_collection,
+            target_id=target_id,
+            id_field=id_field,
+        )
+        if target is None:
+            # Skips if no corresponding dict
+            continue
+
+        # SINGULAR EMBED CASE (HARD CODED)
+        if (target_collection, original_type) in SINGULAR_CHILD_CASES:
+            target[original_type] = original
+            continue
+
+        # By default we link using a list
+        # First check if theres already a list under the singular key (e.g. "location")
+        # If not try the plural form (+s)
+        # If not, creates a new list
+        list_key_candidates = [original_type, f"{original_type}s"]
+
+        appended = False
+        for candidate_key in list_key_candidates:
+            if isinstance(target.get(candidate_key), list):
+                append_to_list_field(target, candidate_key, original)
+                appended = True
+                break
+
+        if not appended:
+            plural_key = f"{original_type}s"
+            append_to_list_field(target, plural_key, original)
+
+
+# if __name__ == "__main__":
+#     from pprint import pprint
+#     from pathlib import Path
+
+#     # Builds collections
+#     data_dir = Path(__file__).resolve().parents[2] / "data" / "collections"
+#     print(f"Loading collections from: {data_dir}")
+
+#     collections = build_collections(str(data_dir))
+#     print("\nCollections successfully built\n")
+
+#     for name, objs in collections:
+#         print(f"{name}: {len(objs)} object(s)")
+
+#     # picks an example object to test the linking
+#     organization_collection = next(
+#         (objs for name, objs in collections if name == "organization"), []
+#     )
+#     location_collection = next(
+#         (objs for name, objs in collections if name == "location"), []
+#     )
+
+#     if not organization_collection or not location_collection:
+#         print("\nNot enough data to demonstrate linking.")
+#         exit(0)
+
+#     sample_org = organization_collection[0]
+#     sample_loc = location_collection[0]
+
+#     print("\nBEFORE LINKING:")
+#     print("Organization:")
+#     pprint(sample_org)
+#     print("\nLocation:")
+#     pprint(sample_loc)
+
+#     # attach the location to the organization
+#     relations = [("organization", sample_org.get("id", ""))]
+
+#     print("\nLinking location to organization:")
+#     attach_original_to_targets(
+#         collections,
+#         original_type="location",
+#         original=sample_loc,
+#         relations=relations,
+#     )
+
+#     print("\nAFTER LINKING:")
+#     pprint(sample_org)
+
+if __name__ == "__main__":
+    from pprint import pprint
+    from pathlib import Path
+
+    print("Building collections from data/collections")
+
+    data_dir = Path(__file__).resolve().parents[2] / "data" / "collections"
+    print(f"Loading from: {data_dir}")
+
+    collections = build_collections(str(data_dir))
+    print("\nCollections successfully built\n")
+
+    for name, objs in collections:
+        print(f"{name}: {len(objs)} object(s)")
+
+    organization_collection = next(
+        (objs for name, objs in collections if name == "organization"), []
+    )
+    location_collection = next(
+        (objs for name, objs in collections if name == "location"), []
+    )
+
+    if not organization_collection or not location_collection:
+        print("Not enough data to demonstrate linking.")
+        exit(0)
+
+    print("BEFORE LINKING")
+
+    sample_org = organization_collection[0]
+    pprint(sample_org)
+
+
+    print("\nChecking how many locations belong to each organization:\n")
+
+    for org in organization_collection:
+        org_id = org.get("id")
+        count = sum(1 for loc in location_collection if loc.get("organization_id") == org_id)
+        if count > 0:
+            print(f"{org['name']}: {count} location(s)")
+
+
+    print("\nLinking all locations → their organizations")
+
+    for loc in location_collection:
+        org_id = loc.get("organization_id")
+        if not org_id:
+            continue
+        relations = [("organization", org_id)]
+        attach_original_to_targets(
+            collections,
+            original_type="location",
+            original=loc,
+            relations=relations,
+        )
+
+    print("Linking complete.\n")
+    print("AFTER LINKING (first organization shown)")
+    pprint(organization_collection[0])
+
+    print("Finished linking process successfully")
+
