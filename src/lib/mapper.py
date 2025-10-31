@@ -33,28 +33,138 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None) -> Organ
     if root_data is None:
         root_data = data
         
-    def process_value(value):
+    def process_value(value, array_context=False):
         """
         Deals with every individual value in the dictionary
         Recursive to deal with the cases when the value is an dict or an array and has values inside
+        
+        Args:
+            value: The value to process
+            array_context: Whether we're inside an array context (for aligning multiple fields)
         """
         if isinstance(value, dict):
             if "path" in value:
                 # This is a path specification - extract the value using ROOT data
-                return glom(root_data, value["path"])
+                path = value["path"]
+                
+                # Check if path is a list (multiple input fields)
+                if isinstance(path, list):
+                    # Extract values from all paths
+                    extracted_values = []
+                    for p in path:
+                        try:
+                            val = glom(root_data, p, default=None)
+                            # Convert empty strings to None for filtering
+                            if val == "" or val is None:
+                                val = None
+                            extracted_values.append(val)
+                        except Exception:
+                            extracted_values.append(None)
+                    
+                    # If we're in an array context, return all values (including None) for proper alignment
+                    # Filtering happens at the alignment stage
+                    if array_context:
+                        return extracted_values
+                    else:
+                        # Not in array context - filter None and return appropriately
+                        filtered = [v for v in extracted_values if v is not None]
+                        return filtered if len(filtered) > 1 else (filtered[0] if filtered else None)
+                else:
+                    # Single path (existing behavior)
+                    val = glom(root_data, path, default=None)
+                    return val if val != "" else None
             else:
                 # This is a nested object - process recursively
                 items = list(value.items())
-
+                
+                # Track which items have path arrays
+                path_array_items = {}
+                regular_items = {}
+                
+                for k, v in items:
+                    if isinstance(v, dict) and "path" in v and isinstance(v.get("path"), list):
+                        path_array_items[k] = v
+                    else:
+                        regular_items[k] = v
+                
+                # If we have path arrays, handle alignment
+                if path_array_items:
+                    all_paths = {k: v["path"] for k, v in path_array_items.items()}
+                    max_len = max(len(paths) for paths in all_paths.values())
+                    
+                    # Extract all values from path arrays
+                    aligned_values = {}
+                    for k, paths in all_paths.items():
+                        aligned_values[k] = []
+                        for p in paths:
+                            try:
+                                val = glom(root_data, p, default=None)
+                                aligned_values[k].append(val if val != "" else None)
+                            except Exception:
+                                aligned_values[k].append(None)
+                    
+                    # If we're in array context, create multiple aligned items
+                    if array_context:
+                        aligned_result = []
+                        for i in range(max_len):
+                            item = {}
+                            # Add all aligned path array values at this index
+                            for k in all_paths.keys():
+                                if i < len(aligned_values[k]) and aligned_values[k][i] is not None:
+                                    item[k] = aligned_values[k][i]
+                            # Add regular items (processed normally) to each aligned item
+                            if regular_items:
+                                for k, v in regular_items.items():
+                                    processed_val = process_value(v, array_context=False)
+                                    if processed_val is not None:
+                                        item[k] = processed_val
+                            if item:  # Only add non-empty items
+                                aligned_result.append(item)
+                        return aligned_result if aligned_result else []
+                    
+                    # Not in array context - process first values from path arrays
+                    result = {}
+                    for k in all_paths.keys():
+                        if aligned_values[k] and aligned_values[k][0] is not None:
+                            result[k] = aligned_values[k][0]
+                    # Add regular items
+                    for k, v in regular_items.items():
+                        processed_val = process_value(v, array_context=False)
+                        if processed_val is not None:
+                            result[k] = processed_val
+                    return result
+                
+                # Special case: single field with path array that returned a list in array context
+                # This happens when processing like phones[].number with multiple paths
+                # We need to expand the dict into multiple items
+                if array_context and len(items) == 1:
+                    k, v = items[0]
+                    processed = process_value(v, array_context=True)
+                    if isinstance(processed, list) and len(processed) > 1:
+                        # Expand into multiple items
+                        return [{k: val} for val in processed if val is not None]
+                
+                # No path arrays - process normally
                 if "id" not in value:
                     # TODO: create the proper identifier string for entity
                     uid = uuid5(NAMESPACE, "some-identifier-string")
                     items.insert(0, ("id", str(uid)))
                 
-                return {k: process_value(v) for k, v in items}
+                # Determine if we're entering an array context
+                in_array = any(isinstance(v, list) for v in value.values())
+                
+                return {k: process_value(v, array_context=in_array) for k, v in items}
         elif isinstance(value, list):
-            # Process each item in the list
-            return [process_value(item) for item in value]
+            # Process each item in the list - array context is True here
+            processed = [process_value(item, array_context=True) for item in value]
+            # Flatten if any items returned lists (from aligned path arrays)
+            flattened = []
+            for item in processed:
+                if isinstance(item, list):
+                    flattened.extend(item)
+                elif item:  # Skip None/empty items
+                    flattened.append(item)
+            return flattened if flattened else []
         else:
             # Return the value as-is
             return value

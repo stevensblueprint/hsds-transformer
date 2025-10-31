@@ -55,6 +55,18 @@ def parse_nested_mapping(mapping_file, filename) -> dict:
             if not input_field:
                 continue
 
+            # Check if input_field contains multiple fields separated by semicolons
+            input_fields = [field.strip() for field in input_field.split(';') if field.strip()]
+            
+            # Create path(s) - list if multiple fields, single string if one field
+            if len(input_fields) > 1:
+                # Multiple fields: create list of paths
+                paths = [f"{filename}.{field}" for field in input_fields]
+                path_value = {"path": paths}
+            else:
+                # Single field: keep as string path (backward compatible)
+                path_value = {"path": f"{filename}.{input_fields[0]}"}
+
             # Split the path into parts
             parts = path.split('.')
             current_level = mapping # Start with top level of output dictionary
@@ -79,7 +91,7 @@ def parse_nested_mapping(mapping_file, filename) -> dict:
                     key = part
                     # Set the final value if it's the last part of the path
                     if is_last:
-                        current_level[key] = {"path": f"{filename}.{input_field}"}
+                        current_level[key] = path_value
                     
                     # Go one level deepder if it's not the last part of the path
                     else:
