@@ -33,7 +33,7 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None) -> Organ
     if root_data is None:
         root_data = data
         
-    def process_value(value):
+    def process_value(value, template=None):
         """
         Deals with every individual value in the dictionary
         Recursive to deal with the cases when the value is an dict or an array and has values inside
@@ -41,7 +41,23 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None) -> Organ
         if isinstance(value, dict):
             if "path" in value:
                 # This is a path specification - extract the value using ROOT data
-                return glom(root_data, value["path"])
+                extracted_val = glom(root_data, value["path"])
+                
+                if "split" in value and value["split"]:
+                    # If a split is specified and the extracted value is a string, split it into a list
+                    split_char = value["split"]
+                    if isinstance(extracted_val, str):
+                        parts = [part.strip() for part in extracted_val.split(split_char) if part.strip()]
+                        # Remove leading/trailing curly braces
+                        parts = [part.strip('{}') for part in parts]
+
+                        # Create objects using the template if provided
+                        # If template exists, create list of objects with template as key
+                        if template:
+                            return [{template: part} for part in parts]
+                        else:
+                            return parts
+                return extracted_val
             else:
                 # This is a nested object - process recursively
                 items = list(value.items())
@@ -51,9 +67,20 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None) -> Organ
                     uid = uuid5(NAMESPACE, "some-identifier-string")
                     items.insert(0, ("id", str(uid)))
                 
-                return {k: process_value(v) for k, v in items}
+                # When processing dict items, pass template only if the value is a leaf path spec with split
+                return {k: process_value(v, k) if isinstance(v, dict) and "split" in v and "path" in v else process_value(v) for k, v in items}
         elif isinstance(value, list):
             # Process each item in the list
+            # If the list contains a single dict with nested structure where a key has a split path
+            if (len(value) == 1 and isinstance(value[0], dict) and 
+                len(value[0]) == 1):  # Single key in the dict
+                key, val = list(value[0].items())[0]
+                # Check if this value is a path spec with split - if so, flatten the results
+                if isinstance(val, dict) and "path" in val and "split" in val:
+                    processed = process_value(val, key)
+                    return processed if isinstance(processed, list) else [processed]
+            
+            # Otherwise process each item normally
             return [process_value(item) for item in value]
         else:
             # Return the value as-is
