@@ -13,7 +13,9 @@ def parse_input_csv(input_file, filename) -> list:
 
         input = []
         for row in reader:
-            input.append({filename: dict(row)})
+            # Normalize header keys by trimming whitespace
+            normalized = { (k.strip() if isinstance(k, str) else k): v for k, v in row.items() }
+            input.append({filename: normalized})
 
     return input
 
@@ -33,57 +35,68 @@ def parse_mapping(mapping_file, filename) -> dict:
 
     return mapping
 
-def parse_nested_mapping(mapping_file, filename) -> dict:
+def parse_nested_mapping(mapping_file, filename):
     """
-    Takes a mapping csv file with paths as keys and returns a dictionary.
+    Takes a mapping CSV file with the following structure and returns a tuple
+    of (mapping_dict, filter_spec or None):
+
+    - Row 1: Column headers (ignored by position-based parsing)
+    - Row 2: Optional filter row: [column_name_to_check, value_to_match]
+             If empty, no filter is applied (returns None for filter)
+    - Row 3+: Mapping rows: [output_path, input_field]
     """
     mapping = {}
+    filter_spec = None
 
-    # Open and read CSV file
     with open(mapping_file, 'r', newline='', encoding='utf-8') as file:
         reader = csv.reader(file)
-        next(reader) # Skip header row
 
-        # Process each row of the CSV file
+        # Row 1: header
+        try:
+            next(reader)
+        except StopIteration:
+            return mapping, None
+
+        # Row 2: optional filter row
+        try:
+            filter_row = next(reader)
+        except StopIteration:
+            filter_row = None
+
+        if filter_row and len(filter_row) >= 2:
+            filter_column = (filter_row[0] or '').strip()
+            filter_value = (filter_row[1] or '').strip()
+            if filter_column and filter_value:
+                filter_spec = {"column": filter_column, "value": filter_value}
+
+        # Row 3+: mapping rows
         for row in reader:
-            # First column is the desired output path, e.g. "locations[].address"
-            path = row[0]
-            # Second column is the field from the input file, e.g. "address"
-            input_field = row[1]
-
-            # Skip the row if the input field is empty
-            if not input_field:
+            if not row or len(row) < 2:
                 continue
 
-            # Split the path into parts
-            parts = path.split('.')
-            current_level = mapping # Start with top level of output dictionary
+            path = (row[0] or '').strip()
+            input_field = (row[1] or '').strip()
 
-            # Loop through each part of the path to create the nested structure
+            if not path or not input_field:
+                continue
+
+            parts = path.split('.')
+            current_level = mapping
+
             for i, part in enumerate(parts):
                 is_last = (i == len(parts) - 1)
 
-                # Case A: The path part indicates a list through "[]"
                 if part.endswith('[]'):
-                    key = part[:-2] # Remove the "[]" to get the key name
-
-                    # Initialize the list if it doesn't exist
+                    key = part[:-2]
                     if key not in current_level:
                         current_level[key] = [{}]
-
-                    # Move the pointer of the dictionary inside the list
                     current_level = current_level[key][0]
-
-                # Case B: The path part is a standard dictionary key
                 else:
                     key = part
-                    # Set the final value if it's the last part of the path
                     if is_last:
                         current_level[key] = {"path": f"{filename}.{input_field}"}
-                    
-                    # Go one level deepder if it's not the last part of the path
                     else:
                         current_level = current_level.setdefault(key, {})
-                        
-    return mapping
+
+    return mapping, filter_spec
 

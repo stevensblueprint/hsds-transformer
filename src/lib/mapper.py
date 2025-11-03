@@ -14,7 +14,7 @@ NESTED_MAP: deals with layer 1 - essentially moving from a flat spreadsheet/csv 
 different column/field names.
 """
 
-def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None) -> Organization:
+def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None, filter_spec=None) -> Organization | None:
     """
     Process a mapping specification and transform data using glom
     Fixed to always use the root data for path resolution - so the path doesn't get lost during 
@@ -32,6 +32,18 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None) -> Organ
 
     if root_data is None:
         root_data = data
+
+    # If a filter is provided, ensure this row matches before processing
+    if filter_spec is not None:
+        try:
+            filter_path = filter_spec.get("path")
+            filter_value = filter_spec.get("value")
+            if filter_path is not None:
+                actual_value = glom(root_data, filter_path)
+                if actual_value != filter_value:
+                    return None
+        except Exception:
+            return None
         
     def process_value(value):
         """
@@ -41,9 +53,9 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None) -> Organ
         if isinstance(value, dict):
             if "path" in value:
                 # This is a path specification - extract the value using ROOT data
-                return glom(root_data, value["path"])
+                return glom(root_data, value["path"], default=None)
             else:
-                # This is a nested object - process recursively
+                # Process nested object recursively
                 items = list(value.items())
 
                 if "id" not in value:
