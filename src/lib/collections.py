@@ -123,10 +123,6 @@ def attach_original_to_targets(
     if not relations:
         return
 
-    # NOTE:
-    # collection_map is now passed in directly instead of rebuilt every time.
-    # This avoids unnecessary recomputation for each object.
-
     for target_collection, target_id in relations:
         # Skips empty/invalid ids
         if not target_id:
@@ -148,7 +144,7 @@ def attach_original_to_targets(
             continue
 
         # By default we link using a list
-        # First check if there's already a list under the singular key (e.g. "location")
+        # First check if theres already a list under the singular key (e.g. "location")
         # If not try the plural form (+s)
         # If not, creates a new list
         list_key_candidates = [original_type, f"{original_type}s"]
@@ -171,46 +167,55 @@ def searching_and_assigning(collections: List[Tuple[str, List[Dict[str, Any]]]])
         return collections
 
     # Build collection_map once and reuse it everywhere
+    # Converts the list of tuples into a dict for faster lookup (AI cooked on this one)
     collection_map = {}
     for name, objs in collections:
-        collection_map[name] = objs
+        collection_map[name] = objs # Tuple structure: ("organization", [dicts]) is now a key value pair
 
+    # Correct order to process object types
     process_order = get_process_order(collections)
 
+    # Creates a list to track which objects should be deleted
     to_delete = {}
     for name, _ in collections:
-        to_delete[name] = []
+        to_delete[name] = [] # Each collection starts with a empty list
 
+    # Iterates through each object type in the correct order
     for obj_type in process_order:
-        objects = collection_map.get(obj_type)
-        if not objects:
+        objects = collection_map.get(obj_type) # Retrieves all objs (dicts) of this type from the mapping
+        if not objects: # If no objects, skip to next
             continue
-
+        
+        # Loops through each object in collection
         for original in list(objects):
-            relations = original.get("_relations", [])
-            if not relations:
+            relations = original.get("_relations", []) # Gets the relations list from this object
+            if not relations: # If object has no relation, skip it
                 continue
 
             # Pass collection_map directly instead of the full collections list
             attach_original_to_targets(collection_map, obj_type, original, relations)
 
+            # Checks to see if object was linked after attached
             for target_collection, target_id in relations:
-                found = find_in_collection(collection_map, target_collection, target_id, "id")
-                if found:
-                    to_delete[obj_type].append(original)
+                found = find_in_collection(collection_map, target_collection, target_id, "id") # Looks for target in collection
+                if found: # Once confirmed attached, stops checking relations
+                    to_delete[obj_type].append(original) # Adds to be deleted later
                     break
-
+    
+    # Goes through each collection type and removes objs that were attached
     for c_name, objs_to_remove in to_delete.items():
-        updated_objects = []
+        updated_objects = [] # New list exluding deleted items
         for o in collection_map[c_name]:
             if o not in objs_to_remove:
                 updated_objects.append(o)
-        collection_map[c_name] = updated_objects
+        collection_map[c_name] = updated_objects # Replaces old list with updated list
 
+    # Rebuilds the final result as a list of tuples to match the original format returned in build_collections
     final_result = []
     for name in process_order:
+        # Only includes collection in map
         if name in collection_map:
-            objects = collection_map.get(name, [])
-            final_result.append((name, objects))
+            objects = collection_map.get(name, []) # Gets cleaned list of objects
+            final_result.append((name, objects)) # Adds it back as (name, objects) tuple
 
     return final_result
