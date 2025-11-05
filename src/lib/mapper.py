@@ -39,10 +39,18 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None, filter_s
             filter_path = filter_spec.get("path")
             filter_value = filter_spec.get("value")
             if filter_path is not None:
-                actual_value = glom(root_data, filter_path)
-                if actual_value != filter_value:
+                actual_value = glom(root_data, filter_path, default=None)
+                # If path doesn't exist, warn that the filter column might not exist/names might mismatch
+                if actual_value is None:
+                    print(f"WARNING: Filter path '{filter_path}' returned None. Column may not exist in CSV data or has no value.")
+                # Normalize comparison - strip whitespace and convert to string
+                actual_str = str(actual_value).strip() if actual_value is not None else ""
+                filter_str = str(filter_value).strip() if filter_value is not None else ""
+                if actual_str != filter_str:
                     return None
-        except Exception:
+        except Exception as e:
+            # If path doesn't exist or glom fails, skip this row and log the error
+            print(f"WARNING: Filter failed for path '{filter_path}' with value '{filter_value}': {e}")
             return None
         
     def process_value(value):

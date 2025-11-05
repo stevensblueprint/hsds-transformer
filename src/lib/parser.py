@@ -22,7 +22,7 @@ def parse_input_csv(input_file, filename) -> list:
 def parse_mapping(mapping_file, filename) -> dict:
     """
     Takes a mapping csv file and return a dictionary of the form: 
-    [{"output_field": {"path": "filename.orginal_field}}]
+    [{"output_field": {"path": "filename.original_field}}]
     """
     with open(mapping_file, 'r', newline='', encoding='utf-8') as file:
         reader = csv.reader(file)
