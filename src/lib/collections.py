@@ -1,7 +1,7 @@
 from pathlib import Path
 import re
 from .parser import parse_input_csv, parse_nested_mapping
-from .mapper import nested_map
+from .mapper import nested_map, get_process_order
 from typing import Dict, List, Tuple, Any, Optional
 
 def build_collections(data_directory: str):
@@ -46,9 +46,14 @@ def build_collections(data_directory: str):
     return results
 
 
-SINGULAR_CHILD_CASES = {
-    ("service", "organization"),  # (target_collection, original_type)
+SINGULAR_CHILD_CASES = { # (target_collection, original_type)
+    ("service", "organization"),
+    ("service", "program"),
+    ("service_at_location", "location"),
+    ("attribute", "taxonomy_term"),
+    ("taxonomy_term", "taxonomy_detail"),
 }
+
 
 
 def find_in_collection(
@@ -93,7 +98,7 @@ def append_to_list_field(
 
 
 def attach_original_to_targets(
-    collections: List[Tuple[str, List[Dict[str, Any]]]],
+    collection_map: Dict[str, List[Dict[str, Any]]],
     original_type: str,
     original: Dict[str, Any],
     relations: List[Tuple[str, str]],
@@ -101,9 +106,9 @@ def attach_original_to_targets(
     id_field: str = "id",
 ) -> None:
     """
-    Attaches "original" to matching targets in collections based on relations
+    Attaches "original" to matching targets in collection_map based on relations
     Params: 
-    collections -> list[(str, [dict])] 
+    collection_map -> dict[str, [dict]]
     original_type -> str
     original -> dict (the dictionary to embed into matching targets)
     relations -> list[(str, str)] (tuples of (collection_name, id) to search for. If empty: skip)
@@ -118,10 +123,9 @@ def attach_original_to_targets(
     if not relations:
         return
 
-    # Lookup from a collection name to a list of dictionaries
-    collection_map: Dict[str, List[Dict[str, Any]]] = {
-        name: items for name, items in collections
-    }
+    # NOTE:
+    # collection_map is now passed in directly instead of rebuilt every time.
+    # This avoids unnecessary recomputation for each object.
 
     for target_collection, target_id in relations:
         # Skips empty/invalid ids
@@ -144,7 +148,7 @@ def attach_original_to_targets(
             continue
 
         # By default we link using a list
-        # First check if theres already a list under the singular key (e.g. "location")
+        # First check if there's already a list under the singular key (e.g. "location")
         # If not try the plural form (+s)
         # If not, creates a new list
         list_key_candidates = [original_type, f"{original_type}s"]
@@ -159,3 +163,54 @@ def attach_original_to_targets(
         if not appended:
             plural_key = f"{original_type}s"
             append_to_list_field(target, plural_key, original)
+
+
+
+def searching_and_assigning(collections: List[Tuple[str, List[Dict[str, Any]]]]) -> List[Tuple[str, List[Dict[str, Any]]]]:
+    if not collections:
+        return collections
+
+    # Build collection_map once and reuse it everywhere
+    collection_map = {}
+    for name, objs in collections:
+        collection_map[name] = objs
+
+    process_order = get_process_order(collections)
+
+    to_delete = {}
+    for name, _ in collections:
+        to_delete[name] = []
+
+    for obj_type in process_order:
+        objects = collection_map.get(obj_type)
+        if not objects:
+            continue
+
+        for original in list(objects):
+            relations = original.get("_relations", [])
+            if not relations:
+                continue
+
+            # Pass collection_map directly instead of the full collections list
+            attach_original_to_targets(collection_map, obj_type, original, relations)
+
+            for target_collection, target_id in relations:
+                found = find_in_collection(collection_map, target_collection, target_id, "id")
+                if found:
+                    to_delete[obj_type].append(original)
+                    break
+
+    for c_name, objs_to_remove in to_delete.items():
+        updated_objects = []
+        for o in collection_map[c_name]:
+            if o not in objs_to_remove:
+                updated_objects.append(o)
+        collection_map[c_name] = updated_objects
+
+    final_result = []
+    for name in process_order:
+        if name in collection_map:
+            objects = collection_map.get(name, [])
+            final_result.append((name, objects))
+
+    return final_result

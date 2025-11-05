@@ -1,4 +1,4 @@
-from ..lib.collections import build_collections
+from ..lib.collections import build_collections, searching_and_assigning
 import json
 import click
 
@@ -13,6 +13,7 @@ def main(data_dictionary):
     """
 
     results = build_collections(data_dictionary) # Builds collections
+    results = searching_and_assigning(results) # Links and cleans up
 
     output_json = json.dumps(results, indent=2, ensure_ascii=False) # Convert to json string
 
