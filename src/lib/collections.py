@@ -2,6 +2,7 @@ from pathlib import Path
 import re
 from .parser import parse_input_csv, parse_nested_mapping
 from .mapper import nested_map, get_process_order
+from .relationships import identify_parent_relationships
 from typing import Dict, List, Tuple, Any, Optional
 
 def build_collections(data_directory: str):
@@ -188,7 +189,7 @@ def searching_and_assigning(collections: List[Tuple[str, List[Dict[str, Any]]]])
         
         # Loops through each object in collection
         for original in list(objects):
-            relations = original.get("_relations", []) # Gets the relations list from this object
+            relations = identify_parent_relationships(original) # Dynamically infers relations from *_id fields
             if not relations: # If object has no relation, skip it
                 continue
 
