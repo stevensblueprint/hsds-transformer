@@ -35,55 +35,60 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None) -> Organ
         
     def process_value(value, template=None):
         """
-        Deals with every individual value in the dictionary
-        Recursive to deal with the cases when the value is an dict or an array and has values inside
+        Recursively processes mapping values to transform flat CSV data into nested structures.
+        Handles three main cases: path specs (leaf data extraction), nested objects, and arrays.
+        
+        Args:
+            value: The mapping spec or data value to process (dict, list, or scalar).
+            template: The parent key name when processing a leaf path spec with split.
+                      Used to wrap split parts in objects (e.g., {name: "part"}).
         """
         if isinstance(value, dict):
             if "path" in value:
-                # This is a path specification - extract the value using ROOT data
+                # Extract the value from the root data using the glom path.
                 extracted_val = glom(root_data, value["path"])
                 
+                # SUBCASE 1a: Path spec with split directive (comma-separated or other delimiter).
                 if "split" in value and value["split"]:
-                    # If a split is specified and the extracted value is a string, split it into a list
                     split_char = value["split"]
                     if isinstance(extracted_val, str):
+                        # Split on delimiter and strips brackets and whitespace
                         parts = [part.strip() for part in extracted_val.split(split_char) if part.strip()]
-                        # Remove leading/trailing curly braces
                         parts = [part.strip('{}') for part in parts]
 
-                        # Create objects using the template if provided
-                        # If template exists, create list of objects with template as key
+                        # If template is provided, wrap each part with that key (e.g., [{"name": "English"}, {"name": "Spanish"}])
                         if template:
                             return [{template: part} for part in parts]
                         else:
+                            # Otherwise return flat list of strings
                             return parts
+                # No split, return as is
                 return extracted_val
             else:
-                # This is a nested object - process recursively
+                # CASE 2: Handle nested objects without path
                 items = list(value.items())
 
                 if "id" not in value:
-                    # TODO: create the proper identifier string for entity
+                    # TODO: create the proper identifier string for entity (currently using placeholder)
                     uid = uuid5(NAMESPACE, "some-identifier-string")
                     items.insert(0, ("id", str(uid)))
                 
-                # When processing dict items, pass template only if the value is a leaf path spec with split
+                # Process each key-value pair in the nested object and template is given to wrap split results
                 return {k: process_value(v, k) if isinstance(v, dict) and "split" in v and "path" in v else process_value(v) for k, v in items}
+        # CASE 3: Handle array values
         elif isinstance(value, list):
-            # Process each item in the list
-            # If the list contains a single dict with nested structure where a key has a split path
-            if (len(value) == 1 and isinstance(value[0], dict) and 
-                len(value[0]) == 1):  # Single key in the dict
+            # Create array of objects if split and path are present
+            if (len(value) == 1 and isinstance(value[0], dict) and len(value[0]) == 1):
                 key, val = list(value[0].items())[0]
-                # Check if this value is a path spec with split - if so, flatten the results
                 if isinstance(val, dict) and "path" in val and "split" in val:
+                    # Process the path spec with split, passing the key as template to wrap results.
                     processed = process_value(val, key)
                     return processed if isinstance(processed, list) else [processed]
-            
-            # Otherwise process each item normally
+
+            # Process each item if regular array
             return [process_value(item) for item in value]
         else:
-            # Return the value as-is
+            # Return scalar
             return value
     
     out = process_value(mapping_spec)
