@@ -159,7 +159,12 @@ def attach_original_to_targets(
 
         if not appended:
             plural_key = f"{original_type}s"
-            append_to_list_field(target, plural_key, original)
+
+            # Reverse relationship where parent holds child ID check
+            if (target_collection, original_type) in SINGULAR_CHILD_CASES:
+                append_to_list_field(original, target_collection, target)
+            else:
+                append_to_list_field(target, plural_key, original)
 
 
 
