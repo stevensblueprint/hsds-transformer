@@ -14,7 +14,7 @@ NESTED_MAP: deals with layer 1 - essentially moving from a flat spreadsheet/csv 
 different column/field names.
 """
 
-def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None, filter_spec=None) -> Organization | None:
+def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None, filter_spec=None) -> dict | list | None:
     """
     Process a mapping specification and transform data using glom
     Fixed to always use the root data for path resolution - so the path doesn't get lost during 

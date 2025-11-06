@@ -53,7 +53,7 @@ def parse_nested_mapping(mapping_file, filename):
 
         # Row 1: header
         try:
-            next(reader)
+            next(reader) # Skip header row
         except StopIteration:
             return mapping, None
 
@@ -67,6 +67,7 @@ def parse_nested_mapping(mapping_file, filename):
             filter_column = (filter_row[0] or '').strip()
             filter_value = (filter_row[1] or '').strip()
             if filter_column and filter_value:
+                # organize filter column and value into dictionary
                 filter_spec = {"column": filter_column, "value": filter_value}
 
         # Row 3+: mapping rows
@@ -74,27 +75,43 @@ def parse_nested_mapping(mapping_file, filename):
             if not row or len(row) < 2:
                 continue
 
+            # First column is the desired output path, e.g. "locations[].address"
             path = (row[0] or '').strip()
+            # Second column is the field from the input file, e.g. "address"
             input_field = (row[1] or '').strip()
 
-            if not path or not input_field:
+            # Skip the row if the path or input field is empty
+            if not path or not input_field: 
                 continue
 
+            # Split the path into parts
             parts = path.split('.')
-            current_level = mapping
+            current_level = mapping # Start with top level of output dictionary
 
+            # Loop through each part of the path to create the nested structure
             for i, part in enumerate(parts):
                 is_last = (i == len(parts) - 1)
 
+                # Case A: The path part indicates a list through "[]"
                 if part.endswith('[]'):
-                    key = part[:-2]
+                    key = part[:-2] # Remove the "[]" to get the key name
+
+                    # Initialize the list if it doesn't exist
                     if key not in current_level:
                         current_level[key] = [{}]
+
+                    # Move the pointer of the dictionary inside the list
                     current_level = current_level[key][0]
+                
+                # Case B: The path part is a standard dictionary key
                 else:
                     key = part
+
+                    # Set the final value if it's the last part of the path
                     if is_last:
                         current_level[key] = {"path": f"{filename}.{input_field}"}
+
+                    # Go one level deeper if it's not the last part of the path
                     else:
                         current_level = current_level.setdefault(key, {})
 
