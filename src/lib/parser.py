@@ -86,6 +86,11 @@ def parse_nested_mapping(mapping_file, filename):
             # Skip the row if the path or input field is empty
             if not path or not input_field: 
                 continue
+
+            # Build the mapping object we'll attach at the leaf
+            map_obj = {"path": f"{filename}.{input_field}"}
+            if split_val:
+                map_obj["split"] = split_val
         
             # Split the path into parts
             parts = path.split('.')
