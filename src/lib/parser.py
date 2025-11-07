@@ -31,7 +31,10 @@ def parse_mapping(mapping_file, filename) -> dict:
         
         mapping = {}
         for row in reader:
-            mapping[row[1]] = {"path": filename + "." + row[0]}
+            if row[2]:
+                mapping[row[1]] = {"path": filename + "." + row[0], "split": row[2]}
+            else:
+                mapping[row[1]] = {"path": filename + "." + row[0]}
 
     return mapping
 
@@ -83,7 +86,7 @@ def parse_nested_mapping(mapping_file, filename):
             # Skip the row if the path or input field is empty
             if not path or not input_field: 
                 continue
-
+        
             # Split the path into parts
             parts = path.split('.')
             current_level = mapping # Start with top level of output dictionary
@@ -95,6 +98,14 @@ def parse_nested_mapping(mapping_file, filename):
                 # Case A: The path part indicates a list through "[]"
                 if part.endswith('[]'):
                     key = part[:-2] # Remove the "[]" to get the key name
+                    
+                    # If this is the last part, store a list whose single element is the leaf mapping
+                    if is_last:
+                        current_level[key] = [map_obj]
+                    else:
+                        # Initialize the list if it doesn't exist
+                        if key not in current_level:
+                            current_level[key] = [{}]
 
                     # Initialize the list if it doesn't exist
                     if key not in current_level:
