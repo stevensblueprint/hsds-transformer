@@ -31,14 +31,23 @@ def build_collections(data_directory: str):
         # Parses through input CSV rows and returns something like [{"organizations": {"id": "1", "name": "Blueprint"}}, ...]
         input_rows = parse_input_csv(str(input_file), input_name)
 
-        # Parses the mapping file into a nested structure 
-        mapping = parse_nested_mapping(str(mapping_file), input_name)
+        # Parses the mapping file into a nested structure and optional filter
+        mapping, filter_spec = parse_nested_mapping(str(mapping_file), input_name)
 
         objects = [] # Converted object list
 
+        # Build a glom path-based filter for nested_map, if it was provided
+        nested_map_filter = None
+        if filter_spec is not None:
+            column_name = filter_spec.get("column")
+            match_value = filter_spec.get("value")
+            if column_name and match_value is not None:
+                nested_map_filter = {"path": f"{input_name}.{column_name}", "value": match_value}
+
         for row in input_rows:
-            mapped_dictionary = nested_map(row, mapping) # Maps to transform flat CSV into nested dictionary
-            objects.append(mapped_dictionary)
+            mapped_dictionary = nested_map(row, mapping, filter_spec=nested_map_filter)
+            if mapped_dictionary is not None:
+                objects.append(mapped_dictionary)
 
         results.append((object_type, objects)) # Adds tuple of object type and list of dictionaries. For example: ("organization", [{x}, {y}, ...])
 

@@ -13,14 +13,16 @@ def parse_input_csv(input_file, filename) -> list:
 
         input = []
         for row in reader:
-            input.append({filename: dict(row)})
+            # Normalize header keys by trimming whitespace
+            normalized = { (k.strip() if isinstance(k, str) else k): v for k, v in row.items() }
+            input.append({filename: normalized})
 
     return input
 
 def parse_mapping(mapping_file, filename) -> dict:
     """
     Takes a mapping csv file and return a dictionary of the form: 
-    [{"output_field": {"path": "filename.orginal_field}}]
+    [{"output_field": {"path": "filename.original_field}}]
     """
     with open(mapping_file, 'r', newline='', encoding='utf-8') as file:
         reader = csv.reader(file)
@@ -36,34 +38,61 @@ def parse_mapping(mapping_file, filename) -> dict:
 
     return mapping
 
-def parse_nested_mapping(mapping_file, filename) -> dict:
+def parse_nested_mapping(mapping_file, filename):
     """
-    Takes a mapping csv file with paths as keys and returns a dictionary.
+    Takes a mapping CSV file with the following structure and returns a tuple
+    of (mapping_dict, filter_spec or None):
+
+    - Row 1: Column headers (ignored by position-based parsing)
+    - Row 2: Optional filter row: [column_name_to_check, value_to_match]
+             If empty, no filter is applied (returns None for filter)
+    - Row 3+: Mapping rows: [output_path, input_field]
     """
     mapping = {}
+    filter_spec = None
 
-    # Open and read CSV file
     with open(mapping_file, 'r', newline='', encoding='utf-8') as file:
         reader = csv.reader(file)
-        next(reader) # Skip header row
 
-        # Process each row of the CSV file
+        # Row 1: header
+        try:
+            next(reader) # Skip header row
+        except StopIteration:
+            return mapping, None
+
+        # Row 2: optional filter row
+        try:
+            filter_row = next(reader)
+        except StopIteration:
+            filter_row = None
+
+        if filter_row and len(filter_row) >= 2:
+            filter_column = (filter_row[0] or '').strip()
+            filter_value = (filter_row[1] or '').strip()
+            if filter_column and filter_value:
+                # organize filter column and value into dictionary
+                filter_spec = {"column": filter_column, "value": filter_value}
+
+        # Row 3+: mapping rows
         for row in reader:
+            if not row or len(row) < 2:
+                continue
+
             # First column is the desired output path, e.g. "locations[].address"
-            path = row[0]
+            path = (row[0] or '').strip()
             # Second column is the field from the input file, e.g. "address"
-            input_field = row[1]
+            input_field = (row[1] or '').strip()
             split_val = row[2].strip() if len(row) > 2 else ""
 
-            # Skip the row if the input field is empty
-            if not input_field:
+            # Skip the row if the path or input field is empty
+            if not path or not input_field: 
                 continue
 
             # Build the mapping object we'll attach at the leaf
             map_obj = {"path": f"{filename}.{input_field}"}
             if split_val:
                 map_obj["split"] = split_val
-            
+        
             # Split the path into parts
             parts = path.split('.')
             current_level = mapping # Start with top level of output dictionary
@@ -84,19 +113,24 @@ def parse_nested_mapping(mapping_file, filename) -> dict:
                         if key not in current_level:
                             current_level[key] = [{}]
 
-                        # Move the pointer of the dictionary inside the list
-                        current_level = current_level[key][0]
+                    # Initialize the list if it doesn't exist
+                    if key not in current_level:
+                        current_level[key] = [{}]
 
+                    # Move the pointer of the dictionary inside the list
+                    current_level = current_level[key][0]
+                
                 # Case B: The path part is a standard dictionary key
                 else:
                     key = part
+
                     # Set the final value if it's the last part of the path
                     if is_last:
-                        current_level[key] = map_obj
-                    
-                    # Go one level deepder if it's not the last part of the path
+                        current_level[key] = {"path": f"{filename}.{input_field}"}
+
+                    # Go one level deeper if it's not the last part of the path
                     else:
                         current_level = current_level.setdefault(key, {})
-    print(mapping)
-    return mapping
+
+    return mapping, filter_spec
 
