@@ -82,6 +82,7 @@ def parse_nested_mapping(mapping_file, filename):
             path = (row[0] or '').strip()
             # Second column is the field from the input file, e.g. "address"
             input_field = (row[1] or '').strip()
+            split_val = row[2].strip() if len(row) > 2 else ""
 
             # Skip the row if the path or input field is empty
             if not path or not input_field: 
