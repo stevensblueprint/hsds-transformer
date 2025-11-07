@@ -29,7 +29,10 @@ def parse_mapping(mapping_file, filename) -> dict:
         
         mapping = {}
         for row in reader:
-            mapping[row[1]] = {"path": filename + "." + row[0]}
+            if row[2]:
+                mapping[row[1]] = {"path": filename + "." + row[0], "split": row[2]}
+            else:
+                mapping[row[1]] = {"path": filename + "." + row[0]}
 
     return mapping
 
@@ -50,11 +53,17 @@ def parse_nested_mapping(mapping_file, filename) -> dict:
             path = row[0]
             # Second column is the field from the input file, e.g. "address"
             input_field = row[1]
+            split_val = row[2].strip() if len(row) > 2 else ""
 
             # Skip the row if the input field is empty
             if not input_field:
                 continue
 
+            # Build the mapping object we'll attach at the leaf
+            map_obj = {"path": f"{filename}.{input_field}"}
+            if split_val:
+                map_obj["split"] = split_val
+            
             # Split the path into parts
             parts = path.split('.')
             current_level = mapping # Start with top level of output dictionary
@@ -66,24 +75,28 @@ def parse_nested_mapping(mapping_file, filename) -> dict:
                 # Case A: The path part indicates a list through "[]"
                 if part.endswith('[]'):
                     key = part[:-2] # Remove the "[]" to get the key name
+                    
+                    # If this is the last part, store a list whose single element is the leaf mapping
+                    if is_last:
+                        current_level[key] = [map_obj]
+                    else:
+                        # Initialize the list if it doesn't exist
+                        if key not in current_level:
+                            current_level[key] = [{}]
 
-                    # Initialize the list if it doesn't exist
-                    if key not in current_level:
-                        current_level[key] = [{}]
-
-                    # Move the pointer of the dictionary inside the list
-                    current_level = current_level[key][0]
+                        # Move the pointer of the dictionary inside the list
+                        current_level = current_level[key][0]
 
                 # Case B: The path part is a standard dictionary key
                 else:
                     key = part
                     # Set the final value if it's the last part of the path
                     if is_last:
-                        current_level[key] = {"path": f"{filename}.{input_field}"}
+                        current_level[key] = map_obj
                     
                     # Go one level deepder if it's not the last part of the path
                     else:
                         current_level = current_level.setdefault(key, {})
-                        
+    print(mapping)
     return mapping
 
