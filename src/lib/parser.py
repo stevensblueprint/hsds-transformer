@@ -126,7 +126,7 @@ def parse_nested_mapping(mapping_file, filename):
 
                     # Set the final value if it's the last part of the path
                     if is_last:
-                        current_level[key] = {"path": f"{filename}.{input_field}"}
+                        current_level[key] = map_obj
 
                     # Go one level deeper if it's not the last part of the path
                     else:
