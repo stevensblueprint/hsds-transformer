@@ -1,6 +1,6 @@
 # from ..lib.mapper import get_process_order
-from ..lib.collections import build_collections
 from ..lib.outputs import save_objects_to_json
+from ..lib.collections import build_collections, searching_and_assigning
 import json
 import click
 
@@ -16,9 +16,12 @@ def main(data_dictionary, output_dir):
     """
 
     results = build_collections(data_dictionary) # Builds collections
-
+    results = searching_and_assigning(results) # Links and cleans up
+    
+    
     # Save individual JSON files
     save_objects_to_json(results, output_dir)
+    
 
     output_json = json.dumps(results, indent=2, ensure_ascii=False) # Convert to json string
 

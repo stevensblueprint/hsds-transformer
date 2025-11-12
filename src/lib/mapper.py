@@ -14,7 +14,7 @@ NESTED_MAP: deals with layer 1 - essentially moving from a flat spreadsheet/csv 
 different column/field names.
 """
 
-def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None) -> Organization:
+def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None, filter_spec=None) -> dict | list | None:
     """
     Process a mapping specification and transform data using glom
     Fixed to always use the root data for path resolution - so the path doesn't get lost during 
@@ -32,17 +32,41 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None) -> Organ
 
     if root_data is None:
         root_data = data
+
+    # If a filter is provided, ensure this row matches before processing
+    if filter_spec is not None:
+        try:
+            filter_path = filter_spec.get("path")
+            filter_value = filter_spec.get("value")
+            if filter_path is not None:
+                actual_value = glom(root_data, filter_path, default=None)
+                # If path doesn't exist, warn that the filter column might not exist/names might mismatch
+                if actual_value is None:
+                    print(f"WARNING: Filter path '{filter_path}' returned None. Column may not exist in CSV data or has no value.")
+                # Normalize comparison - strip whitespace and convert to string
+                actual_str = str(actual_value).strip() if actual_value is not None else ""
+                filter_str = str(filter_value).strip() if filter_value is not None else ""
+                if actual_str != filter_str:
+                    return None
+        except Exception as e:
+            # If path doesn't exist or glom fails, skip this row and log the error
+            print(f"WARNING: Filter failed for path '{filter_path}' with value '{filter_value}': {e}")
+            return None
         
-    def process_value(value, array_context=False):
+    def process_value(value, array_context=False, template=None):
         """
-        Deals with every individual value in the dictionary
-        Recursive to deal with the cases when the value is an dict or an array and has values inside
+        Recursively processes mapping values to transform flat CSV data into nested structures.
+        Handles three main cases: path specs (leaf data extraction), nested objects, and arrays.
         
         Args:
-            value: The value to process            
-            array_context: Boolean flag indicating whether we're currently processing inside an array structure (ex. phones[]),
-            supports correct output of multiple path arrays (ex. phones[].number and phones[].name)
+            value: The mapping spec or data value to process (dict, list, or scalar).
+            template: The parent key name when processing a leaf path spec with split.
+                      Used to wrap split parts in objects (e.g., {name: "part"}).
+            array_context: Boolean flag indicating when currently processing inside an 
+                           array structure (ex. phones[]), handling multiple path arrays 
+                           (ex. phones[].number, phones[].name) by aligning indicies.
         """
+ 
         # Case 1: Value is a dictionary - could be a path specification or nested object
         if isinstance(value, dict):
             # Case 1A: Dictionary contains a "path" key - this is a path specification for data extraction
@@ -79,9 +103,31 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None) -> Organ
                 # Case 1A-2: Path is a string - single input field (existing behavior, backward compatible)
                 # Example: {"path": "organizations.organization_name"}
                 else:
-                    val = glom(root_data, path, default=None)
+                    # Extract the value from the root data using the glom path
+                    extracted_val = glom(root_data, path, default=None)
+                    
                     # Return None for empty strings to maintain consistency with path array handling
-                    return val if val != "" else None
+                    if extracted_val == "" or extracted_val is None:
+                        return None
+                    
+                    # Sub-Case 1A-2a: Path spec with split directive (comma-separated or other delimiter)
+                    # Example: {"path": "organizations.languages", "split": ","}
+                    if "split" in value and value["split"]:
+                        split_char = value["split"]
+                        if isinstance(extracted_val, str):
+                            # Split on delimiter and strip brackets and whitespace
+                            parts = [part.strip() for part in extracted_val.split(split_char) if part.strip()]
+                            parts = [part.strip('{}') for part in parts]
+                            
+                            # If template is provided, wrap each part with that key (e.g., [{"name": "English"}, {"name": "Spanish"}])
+                            if template:
+                                return [{template: part} for part in parts]
+                            else:
+                                # Otherwise return flat list of strings
+                                return parts
+                    
+                    # Sub-Case 1A-2b: No split directive - return value as-is
+                    return extracted_val
             # Case 1B: Dictionary does NOT contain "path" key - this is a nested object structure
             # Example: {"phones": [{"number": {"path": ...}, "name": {"path": ...}}]}
             else:
@@ -158,7 +204,8 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None) -> Organ
                 
                 # Case 1B-2: Single field with path array in array context - expansion case
                 # Example: phones[].number with paths ["Phone1Number", "Phone2Number"]
-                # The path array returns a list, and we need to expand the single-item dict into multiple items                if array_context and len(items) == 1:
+                # The path array returns a list, and we need to expand the single-item dict into multiple items
+                if array_context and len(items) == 1:
                     k, v = items[0]
                     # Process the value - if it's a path array, this will return a list
                     processed = process_value(v, array_context=True)
@@ -168,7 +215,7 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None) -> Organ
                 
                 # No path arrays - process normally
                 if "id" not in value:
-                    # TODO: create the proper identifier string for entity
+                    # TODO: create the proper identifier string for entity (currently using placeholder)
                     uid = uuid5(NAMESPACE, "some-identifier-string")
                     items.insert(0, ("id", str(uid)))
                 
@@ -176,13 +223,27 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None) -> Organ
                 in_array = any(isinstance(v, list) for v in value.values())
                 
                 # Recursively process all items in the nested object
-                return {k: process_value(v, array_context=in_array) for k, v in items}
+                # Pass template=k when there's a split and array_context always
+                return {k: process_value(v, array_context=in_array, template=k) 
+                if isinstance(v, dict) and "split" in v and "path" in v 
+                else process_value(v, array_context=in_array)
+                for k, v in items}
         # Case 2: Value is a list - processing an array structure (e.g., phones[])
         # When we encounter a list, we're definitely in an array context
         elif isinstance(value, list):
-            # Process each item in the list with array_context=True
-            # This ensures path arrays within array items are handled correctly
+            # Sub-Case 2a: Special handling for split in arrays
+            # Create array of objects if split and path are present
+            if (len(value) == 1 and isinstance(value[0], dict) and len(value[0]) == 1):
+                key, val = list(value[0].items())[0]
+                if isinstance(val, dict) and "path" in val and "split" in val:
+                    # Process the path spec with split, passing the key as template to wrap results.
+                    processed = process_value(val, array_context=True, template=key)
+                    return processed if isinstance(processed, list) else [processed]
+            
+            # Sub-Case 2b: Process items with array_context=True, 
+            # This ensures that path arrays within array items are handled correctly
             processed = [process_value(item, array_context=True) for item in value]
+
             # Flatten if any items returned lists (from aligned path arrays)
             flattened = []
             for item in processed:
@@ -192,10 +253,11 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None) -> Organ
                 elif item:  # Skip None/empty items
                     flattened.append(item)
             return flattened if flattened else []
-        
+
         # Case 3: Value is a primitive (string, number, bool, None, etc.)
         # Return the value as-is - no processing needed
         else:
+            # Return scalar
             return value
     
     out = process_value(mapping_spec)
