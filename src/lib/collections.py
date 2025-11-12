@@ -182,7 +182,7 @@ def searching_and_assigning(collections: List[Tuple[str, List[Dict[str, Any]]]])
         return collections
 
     # Build collection_map once and reuse it everywhere
-    # Converts the list of tuples into a dict for faster lookup (AI cooked on this one)
+    # Converts the list of tuples into a dict for faster lookup
     collection_map = {}
     for name, objs in collections:
         collection_map[name] = objs # Tuple structure: ("organization", [dicts]) is now a key value pair
