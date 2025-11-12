@@ -1,0 +1,93 @@
+{
+  "id": "3721",
+  "name": "A Better Therapy Inc",
+  "alternate_name": "",
+  "description": "Mental program for children and their families.",
+  "email": "shelly@abettertherapyinc.com",
+  "website": "http://www.abettertherapyinc.com",
+  "tax_id": "364559112",
+  "year_incorporated": "2004",
+  "legal_status": "Commercial (for-profit)",
+  "locations": [
+    {
+      "id": "3722",
+      "url": "http://www.abettertherapyinc.com",
+      "organization_id": "3721",
+      "name": "A Better Therapy - Wickham Office",
+      "alternate_name": "",
+      "description": "Mental Health program for children and their families.",
+      "transportation": "",
+      "latitude": "28.081374",
+      "longitude": "-80.672155",
+      "schedules": [
+        {
+          "id": "a195945f-678c-5ca4-86bc-e7812c215716",
+          "description": "Office and Home: By Appointment"
+        }
+      ],
+      "phones": [
+        {
+          "id": "6179",
+          "location_id": "3722",
+          "number": "321-503-1277",
+          "description": "Administration"
+        },
+        {
+          "id": "6180",
+          "location_id": "3722",
+          "number": "321-505-1981",
+          "description": "Hotline"
+        }
+      ],
+      "addresss": [
+        {
+          "id": "4891",
+          "location_id": "3722",
+          "attention": "",
+          "address_1": "1589 South Wickham Road",
+          "address_2": "",
+          "city": "Melbourne",
+          "region": "Brevard",
+          "state_province": "FL",
+          "postal_code": "32904",
+          "country": ""
+        }
+      ]
+    }
+  ],
+  "services": [
+    {
+      "id": [
+        {
+          "id": "3247"
+        }
+      ],
+      "organization_id": "3721",
+      "name": "RP-6400.8000-600",
+      "alternate_name": "Psychiatric Case Management",
+      "description": "Program offers a wide variety of Mental Health & Wellness services to meet the ever-changing needs of today's family. Specializes in providing services to K-12 at-risk children and their families in need of therapeutic and emotional support for a wide range of issues.",
+      "email": "",
+      "application_process": "Call",
+      "fees_description": "Sliding fee scale",
+      "eligibility_description": "K-12 at-risk children and their families in need of therapeutic and emotional support for a wide range of issues.",
+      "last_modified": "2024-01-02 20:43:31",
+      "languages": [
+        {
+          "name": "English"
+        }
+      ],
+      "required_documents": [
+        {
+          "id": "a195945f-678c-5ca4-86bc-e7812c215716",
+          "document": "Social Security Card, Insurance Card"
+        }
+      ],
+      "schedules": [
+        {
+          "id": "a195945f-678c-5ca4-86bc-e7812c215716",
+          "description": "Times vary upon appointment"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "id": "4063",
+  "name": "Advent Lutheran Church Food Pantry",
+  "alternate_name": "",
+  "description": "Food Pantry.",
+  "email": "cpowilson@gmail.com",
+  "website": "www.adventbrevard.org",
+  "tax_id": "",
+  "year_incorporated": "",
+  "legal_status": "Faith-based",
+  "locations": [
+    {
+      "id": "4063",
+      "url": "www.adventbrevard.org",
+      "organization_id": "4063",
+      "name": "Advent Lutheran Church - Food Pantry",
+      "alternate_name": "",
+      "description": "Food Pantry.",
+      "transportation": "",
+      "latitude": "28.230817",
+      "longitude": "-80.69278",
+      "schedules": [
+        {
+          "id": "a195945f-678c-5ca4-86bc-e7812c215716",
+          "description": "Thursdays, 5:30 p.m. - 6:30 p.m."
+        }
+      ],
+      "phones": [
+        {
+          "id": "6777",
+          "location_id": "4063",
+          "number": "321-259-8515",
+          "description": "Administration"
+        }
+      ],
+      "addresss": [
+        {
+          "id": "5233",
+          "location_id": "4063",
+          "attention": "",
+          "address_1": "7550 North Wickham Road",
+          "address_2": "",
+          "city": "Melbourne",
+          "region": "Brevard",
+          "state_province": "FL",
+          "postal_code": "32940",
+          "country": ""
+        }
+      ]
+    }
+  ],
+  "services": [
+    {
+      "id": [
+        {
+          "id": "19"
+        }
+      ],
+      "organization_id": "4063",
+      "name": "BD-1800.2000",
+      "alternate_name": "Food Pantries",
+      "description": "Food pantry.",
+      "email": "",
+      "application_process": "Walk-in",
+      "fees_description": "None",
+      "eligibility_description": "Anyone",
+      "last_modified": "2024-11-12 21:40:29",
+      "languages": [
+        {
+          "name": "English"
+        }
+      ],
+      "required_documents": [
+        {
+          "id": "a195945f-678c-5ca4-86bc-e7812c215716",
+          "document": "None"
+        }
+      ],
+      "schedules": [
+        {
+          "id": "a195945f-678c-5ca4-86bc-e7812c215716",
+          "description": "Thursdays, 5:30 p.m. - 6:30 p.m."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,132 @@
+{
+  "id": "1",
+  "name": "211 Brevard",
+  "alternate_name": "",
+  "description": "",
+  "email": "",
+  "website": "",
+  "tax_id": "",
+  "year_incorporated": "",
+  "legal_status": "",
+  "locations": [
+    {
+      "id": "3861",
+      "url": "http://www.raseproject.org",
+      "organization_id": "1",
+      "name": "Substance Abuse Services, Inc.",
+      "alternate_name": "The RASE Project",
+      "description": "Program assists all individuals affected by substance use issues, problems and concerns by fostering progress, enriching lives and ultimately enhancing the recovery process.",
+      "transportation": "",
+      "latitude": "28.283189",
+      "longitude": "-80.765212",
+      "schedules": [
+        {
+          "id": "a195945f-678c-5ca4-86bc-e7812c215716",
+          "description": "Monday - Friday, 9:00 a.m. - 5:00 p.m."
+        }
+      ],
+      "phones": [
+        {
+          "id": "6436",
+          "location_id": "3861",
+          "number": "321-305-4397",
+          "description": "Administration"
+        },
+        {
+          "id": "6437",
+          "location_id": "3861",
+          "number": "321-806-3507",
+          "description": "Fax"
+        }
+      ],
+      "addresss": [
+        {
+          "id": "5035",
+          "location_id": "3861",
+          "attention": "",
+          "address_1": "1260 U.S. Highway 1",
+          "address_2": "Suite 202",
+          "city": "Rockledge",
+          "region": "Brevard",
+          "state_province": "FL",
+          "postal_code": "32955",
+          "country": ""
+        }
+      ]
+    },
+    {
+      "id": "3962",
+      "url": "www.facebook.com/LifePointeMinistries/",
+      "organization_id": "1",
+      "name": "Lifepointe Ministries, Inc.",
+      "alternate_name": "",
+      "description": "Cold/Night Shelter.",
+      "transportation": "",
+      "latitude": "28.563772",
+      "longitude": "-80.802402",
+      "schedules": [
+        {
+          "id": "a195945f-678c-5ca4-86bc-e7812c215716",
+          "description": ""
+        }
+      ],
+      "phones": [
+        {
+          "id": "6620",
+          "location_id": "3962",
+          "number": "321-301-5832",
+          "description": "Administration"
+        }
+      ],
+      "addresss": [
+        {
+          "id": "5141",
+          "location_id": "3962",
+          "attention": "",
+          "address_1": "4220 South Hopkins Avenue",
+          "address_2": "",
+          "city": "Titusville",
+          "region": "Brevard",
+          "state_province": "FL",
+          "postal_code": "32780",
+          "country": ""
+        }
+      ]
+    }
+  ],
+  "services": [
+    {
+      "id": [
+        {
+          "id": "2152"
+        }
+      ],
+      "organization_id": "1",
+      "name": "RX-8450.5000",
+      "alternate_name": "Medication Assisted Maintenance Treatment for Substance Use Disorders",
+      "description": "The RASE MARS program is designed to assist individuals  with Opioid Use Disorder (OUD), and who are being prescribed Buprenorphine/Suboxone or Vivitrol.",
+      "email": "",
+      "application_process": "Call",
+      "fees_description": "Call",
+      "eligibility_description": "Anyone with substance use disorder",
+      "last_modified": "2024-06-17 12:33:10",
+      "languages": [
+        {
+          "name": "English"
+        }
+      ],
+      "required_documents": [
+        {
+          "id": "a195945f-678c-5ca4-86bc-e7812c215716",
+          "document": "ID"
+        }
+      ],
+      "schedules": [
+        {
+          "id": "a195945f-678c-5ca4-86bc-e7812c215716",
+          "description": "Monday - Friday, 9:00 a.m. - 5:00 p.m."
+        }
+      ]
+    }
+  ]
+}

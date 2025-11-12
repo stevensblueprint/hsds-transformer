@@ -1,0 +1,96 @@
+{
+  "id": "4137",
+  "name": "AARP Inc",
+  "alternate_name": "",
+  "description": "AARP is an interest group in the United States focusing on issues affecting those over the age of fifty.",
+  "email": "",
+  "website": "www.aarp.org",
+  "tax_id": "942312368",
+  "year_incorporated": "1958",
+  "legal_status": "Nonprofit - Incorporated",
+  "locations": [
+    {
+      "id": "4138",
+      "url": "http://states.aarp.org/florida/caregiver-resources",
+      "organization_id": "4137",
+      "name": "AARP - Family Caregiver Resource Guide",
+      "alternate_name": "",
+      "description": "Provides a family caregiver resource guide to use as a starting point to help caregivers find the services and support they might need.",
+      "transportation": "",
+      "latitude": "38.895",
+      "longitude": "-77.0367",
+      "schedules": [
+        {
+          "id": "a195945f-678c-5ca4-86bc-e7812c215716",
+          "description": "Monday - Friday, 8:00 a.m. - 5:00 p.m."
+        }
+      ],
+      "phones": [
+        {
+          "id": "6888",
+          "location_id": "4138",
+          "number": "877-333-5885",
+          "description": "AARP Family Caregiving Resource Line"
+        },
+        {
+          "id": "6889",
+          "location_id": "4138",
+          "number": "877-342-2277",
+          "description": "Spanish"
+        }
+      ],
+      "addresss": [
+        {
+          "id": "5311",
+          "location_id": "4138",
+          "attention": "",
+          "address_1": "601 East Street",
+          "address_2": "",
+          "city": "Washington",
+          "region": "District of Columbia",
+          "state_province": "DC",
+          "postal_code": "20049",
+          "country": ""
+        }
+      ]
+    }
+  ],
+  "services": [
+    {
+      "id": [
+        {
+          "id": "233665"
+        }
+      ],
+      "organization_id": "4137",
+      "name": "PH-0780",
+      "alternate_name": "Caregiver Consultation and Support",
+      "description": "Family caregiver resources.",
+      "email": "",
+      "application_process": "Call AARP at 877-333-5885 and select option 1",
+      "fees_description": "Free",
+      "eligibility_description": "Family Caregivers",
+      "last_modified": "2024-01-22 23:01:07",
+      "languages": [
+        {
+          "name": "English"
+        },
+        {
+          "name": "Spanish"
+        }
+      ],
+      "required_documents": [
+        {
+          "id": "a195945f-678c-5ca4-86bc-e7812c215716",
+          "document": "ID"
+        }
+      ],
+      "schedules": [
+        {
+          "id": "a195945f-678c-5ca4-86bc-e7812c215716",
+          "description": "Monday - Friday, 8:00 a.m. - 5:00 p.m."
+        }
+      ]
+    }
+  ]
+}
