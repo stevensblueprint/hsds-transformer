@@ -66,7 +66,20 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None, filter_s
         if isinstance(value, dict):
             if "path" in value:
                 # Extract the value from the root data using the glom path.
-                extracted_val = glom(root_data, value["path"])
+                extracted_val = glom(root_data, value["path"], default=None)
+                
+                # Apply strip if specified (before split)
+                if "strip" in value and value["strip"] and isinstance(extracted_val, str):
+                    # Parse comma-separated list of characters/strings to strip
+                    strip_val = value["strip"]
+                    if isinstance(strip_val, str):
+                        strip_chars = [char.strip() for char in strip_val.split(',') if char.strip()]
+                    else:
+                        # Already a list
+                        strip_chars = strip_val
+                    
+                    for char_to_strip in strip_chars:
+                        extracted_val = extracted_val.replace(char_to_strip, "")
                 
                 # SUBCASE 1a: Path spec with split directive (comma-separated or other delimiter).
                 if "split" in value and value["split"]:
@@ -82,7 +95,8 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None, filter_s
                         else:
                             # Otherwise return flat list of strings
                             return parts
-                # No split, return as is
+
+                # No split, return as is (may have been stripped)
                 return extracted_val
             else:
                 # CASE 2: Handle nested objects without path
