@@ -66,7 +66,44 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None, filter_s
         if isinstance(value, dict):
             if "path" in value:
                 # Extract the value from the root data using the glom path.
-                extracted_val = glom(root_data, value["path"])
+                extracted_val = glom(root_data, value["path"], default=None)
+                
+                # Apply strip if specified (before split)
+                if "strip" in value and value["strip"] and isinstance(extracted_val, str):
+                    # Parse comma-separated list of characters/strings to strip
+                    strip_val = value["strip"]
+                    if isinstance(strip_val, str):
+                        def decode_escape_sequences(s):
+                            """
+                            Helper to decode common escape sequences from CSV string representations.
+                                Args: s: input string containing escape sequence
+                            """
+                            escape_map = {
+                                '\\n': '\n',      # newline
+                                '\\t': '\t',      # tab
+                                '\\r': '\r',      # carriage return
+                                '\\"': '"',       # double quote
+                                "\\'": "'",       # single quote
+                                '\\\\': '\\',     # backslash
+                            }
+                            for escaped, actual in escape_map.items():
+                                s = s.replace(escaped, actual)
+                            return s
+
+                        strip_chars = []
+                        # Split by comma
+                        for char in strip_val.split(','):
+                            cleaned_char = char.strip(' ')  # Only strip spaces, preserving newlines and tabs
+                            if cleaned_char:
+                                # Decode common escape sequences
+                                cleaned_char = decode_escape_sequences(cleaned_char)
+                                strip_chars.append(cleaned_char)
+                    else:
+                        # Already a list
+                        strip_chars = strip_val
+                    
+                    for char_to_strip in strip_chars:
+                        extracted_val = extracted_val.replace(char_to_strip, "")
                 
                 # SUBCASE 1a: Path spec with split directive (comma-separated or other delimiter).
                 if "split" in value and value["split"]:
@@ -82,7 +119,8 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None, filter_s
                         else:
                             # Otherwise return flat list of strings
                             return parts
-                # No split, return as is
+
+                # No split, return as is (may have been stripped)
                 return extracted_val
             else:
                 # CASE 2: Handle nested objects without path
