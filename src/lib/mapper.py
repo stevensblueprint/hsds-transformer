@@ -3,7 +3,6 @@ from typing import Any, Callable, Dict, List
 from datetime import date
 from glom import glom, Coalesce
 from uuid import UUID, uuid5
-from .models import Organization
 from .relations import HSDS_RELATIONS
 
 # TODO: Initialize UUID with a proper fixed value
