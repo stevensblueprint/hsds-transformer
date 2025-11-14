@@ -73,7 +73,31 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None, filter_s
                     # Parse comma-separated list of characters/strings to strip
                     strip_val = value["strip"]
                     if isinstance(strip_val, str):
-                        strip_chars = [char.strip() for char in strip_val.split(',') if char.strip()]
+                        def decode_escape_sequences(s):
+                            """
+                            Helper to decode common escape sequences from CSV string representations.
+                                Args: s: input string containing escape sequence
+                            """
+                            escape_map = {
+                                '\\n': '\n',      # newline
+                                '\\t': '\t',      # tab
+                                '\\r': '\r',      # carriage return
+                                '\\"': '"',       # double quote
+                                "\\'": "'",       # single quote
+                                '\\\\': '\\',     # backslash
+                            }
+                            for escaped, actual in escape_map.items():
+                                s = s.replace(escaped, actual)
+                            return s
+
+                        strip_chars = []
+                        # Split by comma
+                        for char in strip_val.split(','):
+                            cleaned_char = char.strip(' ')  # Only strip spaces, preserving newlines and tabs
+                            if cleaned_char:
+                                # Decode common escape sequences
+                                cleaned_char = decode_escape_sequences(cleaned_char)
+                                strip_chars.append(cleaned_char)
                     else:
                         # Already a list
                         strip_chars = strip_val
