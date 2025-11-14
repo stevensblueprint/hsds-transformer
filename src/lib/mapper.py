@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Any, Callable, Dict, List
 from datetime import date
-from glom import glom, Coalesce
+from glom import glom
 from uuid import UUID, uuid5
 from .relations import HSDS_RELATIONS
 
