@@ -65,6 +65,13 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None, filter_s
         """
         if isinstance(value, dict):
             if "path" in value:
+                # Before extracting data, make sure the mapped input colum exists
+                input_field = value["path"].split(".", 1)[1] # Extract the part after the first dot: "filename.column" -> column
+                csv_row = list(root_data.values())[0] # Get the CSV row dict stored inside of root_data
+
+                if input_field not in csv_row: # Check if column exists in the CSV row dictionary, if it doesn't throw error
+                    raise KeyError(f"Input field '{input_field}' from mapping does not exist in the CSV data")
+                
                 # Extract the value from the root data using the glom path.
                 extracted_val = glom(root_data, value["path"])
                 
