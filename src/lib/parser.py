@@ -38,7 +38,7 @@ def parse_mapping(mapping_file, filename) -> dict:
 
     return mapping
 
-def parse_nested_mapping(mapping_file, filename):
+def parse_nested_mapping(mapping_file, filename) -> dict:
     """
     Takes a mapping CSV file with the following structure and returns a tuple
     of (mapping_dict, filter_spec or None):
