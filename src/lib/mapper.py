@@ -66,7 +66,43 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None, filter_s
                            array structure (ex. phones[]), handling multiple path arrays 
                            (ex. phones[].number, phones[].name) by aligning indicies.
         """
- 
+
+        def decode_escape_sequences(s):
+            """
+            Helper to decode common escape sequences from CSV string representations.
+                Args: s: input string containing escape sequence
+            """
+            escape_map = {
+                '\\n': '\n',      # newline
+                '\\t': '\t',      # tab
+                '\\r': '\r',      # carriage return
+                '\\"': '"',       # double quote
+                "\\'": "'",       # single quote
+                '\\\\': '\\',     # backslash
+            }
+            for escaped, actual in escape_map.items():
+                s = s.replace(escaped, actual)
+            return s
+
+        def apply_strip(extracted_val, value):
+            """Apply strip characters to a single extracted value if specified."""
+            if "strip" in value and value["strip"] and isinstance(extracted_val, str):
+                strip_val = value["strip"]
+                if isinstance(strip_val, str):
+                    strip_chars = []
+                    for char in strip_val.split(','):
+                        cleaned_char = char.strip(' ')
+                        if cleaned_char:
+                            cleaned_char = decode_escape_sequences(cleaned_char)
+                            strip_chars.append(cleaned_char)
+                else:
+                    strip_chars = strip_val
+                
+                for char_to_strip in strip_chars:
+                    extracted_val = extracted_val.replace(char_to_strip, "")
+            
+            return extracted_val
+
         # Case 1: Value is a dictionary - could be a path specification or nested object
         if isinstance(value, dict):
             # Case 1A: Dictionary contains a "path" key - this is a path specification for data extraction
@@ -81,6 +117,8 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None, filter_s
                     for p in path:
                         try:
                             val = glom(root_data, p, default=None)
+                            # Strip characters if specified
+                            val = apply_strip(val, value)
                             # Convert empty strings to None for consistent filtering later
                             if val == "" or val is None:
                                 val = None
@@ -105,6 +143,9 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None, filter_s
                 else:
                     # Extract the value from the root data using the glom path
                     extracted_val = glom(root_data, path, default=None)
+
+                    # Strip characters if specified
+                    extracted_val = apply_strip(extracted_val, value)
                     
                     # Return None for empty strings to maintain consistency with path array handling
                     if extracted_val == "" or extracted_val is None:

@@ -31,10 +31,11 @@ def parse_mapping(mapping_file, filename) -> dict:
         
         mapping = {}
         for row in reader:
+            mapping[row[1]] = {"path": filename + "." + row[0]}
             if row[2]:
-                mapping[row[1]] = {"path": filename + "." + row[0], "split": row[2]}
-            else:
-                mapping[row[1]] = {"path": filename + "." + row[0]}
+                mapping[row[1]]["split"] = row[2]
+            if row[3]:
+                mapping[row[1]]["strip"] = row[3]
 
     return mapping
 
@@ -82,7 +83,8 @@ def parse_nested_mapping(mapping_file, filename):
             path = (row[0] or '').strip()
             # Second column is the field from the input file, e.g. "address"
             input_field = (row[1] or '').strip()
-            split_val = row[2].strip() if len(row) > 2 else ""
+            split_val = (row[2] or '').strip() if len(row) > 2 else ""
+            strip_val = (row[3] or '').strip() if len(row) > 3 else ""
 
             # Skip the row if the path or input field is empty
             if not path or not input_field: 
@@ -104,6 +106,8 @@ def parse_nested_mapping(mapping_file, filename):
             map_obj = path_value.copy()
             if split_val:
                 map_obj["split"] = split_val
+            if strip_val:
+                map_obj["strip"] = strip_val
 
             # Split the path into parts
             parts = path.split('.')
