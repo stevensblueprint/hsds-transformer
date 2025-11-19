@@ -13,10 +13,23 @@ def build_collections(data_directory: str):
     """
     
     data_directory = Path(data_directory) # Converts provided folder path into a Path object
+    
+    if not any(data_directory.iterdir()):
+        raise ValueError(f"Input directory '{data_directory}' is empty.")
+
     results = [] # List of tuples like ("organization", [dict_list])
+    
+    mapping_files = list(data_directory.glob("*_mapping.csv"))
+    if not mapping_files:
+        # Check if there are any CSVs at all to give a better error message
+        csv_files = list(data_directory.glob("*.csv"))
+        if not csv_files:
+             raise ValueError(f"No CSV files found in '{data_directory}'.")
+        else:
+             raise ValueError(f"No mapping files (*_mapping.csv) found in '{data_directory}'.")
 
     # Goes through every CSV file in the folder that ends with "_mapping.csv"
-    for mapping_file in data_directory.glob("*_mapping.csv"):
+    for mapping_file in mapping_files:
         match = re.match(r"(.+)_([A-Za-z0-9]+)_mapping\.csv", mapping_file.name) # Parses and extracts name before "_mapping" using regex
         
         # Skips files with no _mapping ending
@@ -32,6 +45,10 @@ def build_collections(data_directory: str):
         
         # Parses through input CSV rows and returns something like [{"organizations": {"id": "1", "name": "Blueprint"}}, ...]
         input_rows = parse_input_csv(str(input_file), input_name)
+        
+        if not input_rows:
+            print(f"Warning: Input file '{input_file.name}' is empty or has no valid rows. Skipping.")
+            continue
 
         # Parses the mapping file into a nested structure and optional filter
         mapping, filter_spec = parse_nested_mapping(str(mapping_file), input_name)
