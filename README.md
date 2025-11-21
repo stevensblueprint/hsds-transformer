@@ -25,7 +25,7 @@ Move the csv files to be transformed with their associated mapping (csv) files i
 
 Make sure you're in the root folder.
 
-Finally run, `python -m src.cli.main path\to\datadir` (powershell) or `python -m src.cli.main path/to/datadir` (bash) where the two paths are relative paths to the directory with the input and mapping files. (Using example csvs: `python -m src.cli.main data\deprecated_hsds`).
+Finally run, `python -m src.cli.main path\to\datadir` (powershell) or `python3 -m src.cli.main path/to/datadir` (bash) where the two paths are relative paths to the directory with the input and mapping files. (Using example csvs: `python -m src.cli.main data\deprecated_hsds`).
 
 You can also specify an output directory with `python -m src.cli.main path\to\datadir path\to\outputdir` (windows). Without specifying an output directory, the transformer will create one in your root directory or add the files to `output` if it already exists.
 
@@ -61,7 +61,7 @@ mapping = {
 
 and then calling the nested_map function.
 
-Once the collections have been created, we search through each collection, linking objects together by ID, before outputting the final HSDS objects as JSON files.
+Once the collections have been created, we search through each collection, linking parent and child objects together by ID and removing linked child objects from the collection, before outputting the final HSDS objects as JSON files.
 
 
 ## Running the api
