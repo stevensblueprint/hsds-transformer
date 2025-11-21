@@ -31,10 +31,11 @@ def parse_mapping(mapping_file, filename) -> dict:
         
         mapping = {}
         for row in reader:
+            mapping[row[1]] = {"path": filename + "." + row[0]}
             if row[2]:
-                mapping[row[1]] = {"path": filename + "." + row[0], "split": row[2]}
-            else:
-                mapping[row[1]] = {"path": filename + "." + row[0]}
+                mapping[row[1]]["split"] = row[2]
+            if row[3]:
+                mapping[row[1]]["strip"] = row[3]
 
     return mapping
 
@@ -82,17 +83,32 @@ def parse_nested_mapping(mapping_file, filename):
             path = (row[0] or '').strip()
             # Second column is the field from the input file, e.g. "address"
             input_field = (row[1] or '').strip()
-            split_val = row[2].strip() if len(row) > 2 else ""
+            split_val = (row[2] or '').strip() if len(row) > 2 else ""
+            strip_val = (row[3] or '').strip() if len(row) > 3 else ""
 
             # Skip the row if the path or input field is empty
             if not path or not input_field: 
                 continue
+        
+            # Check if input_field contains multiple fields separated by semicolons
+            input_fields = [field.strip() for field in input_field.split(';') if field.strip()]
+            
+            # Create path(s) - list if multiple fields, single string if one field
+            if len(input_fields) > 1:
+                # Multiple fields: create list of paths
+                paths = [f"{filename}.{field}" for field in input_fields]
+                path_value = {"path": paths}
+            else:
+                # Single field: keep as string path (backward compatible)
+                path_value = {"path": f"{filename}.{input_fields[0]}"}
 
             # Build the mapping object we'll attach at the leaf
-            map_obj = {"path": f"{filename}.{input_field}"}
+            map_obj = path_value.copy()
             if split_val:
                 map_obj["split"] = split_val
-        
+            if strip_val:
+                map_obj["strip"] = strip_val
+
             # Split the path into parts
             parts = path.split('.')
             current_level = mapping # Start with top level of output dictionary
@@ -112,10 +128,6 @@ def parse_nested_mapping(mapping_file, filename):
                         # Initialize the list if it doesn't exist
                         if key not in current_level:
                             current_level[key] = [{}]
-
-                    # Initialize the list if it doesn't exist
-                    if key not in current_level:
-                        current_level[key] = [{}]
 
                     # Move the pointer of the dictionary inside the list
                     current_level = current_level[key][0]
