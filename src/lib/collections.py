@@ -53,6 +53,10 @@ def build_collections(data_directory: str):
         # Parses the mapping file into a nested structure and optional filter
         mapping, filter_spec = parse_nested_mapping(str(mapping_file), input_name)
 
+        if not mapping:
+            print(f"Warning: Mapping file '{mapping_file.name}' is empty or invalid. Skipping.")
+            continue
+
         objects = [] # Converted object list
 
         # Build a glom path-based filter for nested_map, if it was provided
