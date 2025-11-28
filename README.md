@@ -1,6 +1,7 @@
 # HSDS Transformer
 ## Setup
 
+(bash)
 ```bash
 python3 -m venv .venv # Create a virtualenv
 
@@ -9,6 +10,7 @@ source .venv/bin/activate # Activate the virtualenv
 pip3 install -r requirements.txt # Install dependencies
 ```
 
+(powershell)
 ```powershell
 python -m venv .venv # Create a virtualenv
 
@@ -25,7 +27,7 @@ Move the csv files to be transformed with their associated mapping (csv) files i
 
 Make sure you're in the root folder.
 
-Finally run, `python -m src.cli.main path\to\datadir` (powershell) or `python3 -m src.cli.main path/to/datadir` (bash) where the two paths are relative paths to the directory with the input and mapping files. (Using example csvs: `python -m src.cli.main data\deprecated_hsds`).
+Finally run, `python -m src.cli.main path\to\datadir` (powershell) or `python3 -m src.cli.main path/to/datadir` (bash) where the two paths are relative paths to the directory with the input and mapping files. (Using example csvs with powershell): `python -m src.cli.main data\deprecated_hsds`).
 
 You can also specify an output directory with `python -m src.cli.main path\to\datadir path\to\outputdir` (windows). Without specifying an output directory, the transformer will create one in your root directory or add the files to `output` if it already exists.
 

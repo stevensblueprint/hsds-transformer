@@ -19,7 +19,7 @@ def parse_input_csv(input_file, filename) -> list:
 
     return input
 
-def parse_nested_mapping(mapping_file, filename) -> dict:
+def parse_nested_mapping(mapping_file, filename) -> tuple[dict, dict | None]:
     """
     Takes a mapping CSV file with the following structure and returns a tuple
     of (mapping_dict, filter_spec or None):
