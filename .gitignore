@@ -8,3 +8,7 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Output folder
+output/
+json_schema/
