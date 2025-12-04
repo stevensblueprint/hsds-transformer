@@ -237,7 +237,7 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None, filter_s
                             item = {}
                             # Add all path array values at this index (aligned by index)
                             for k in all_paths.keys():
-                                if i < len(aligned_values[k]) and aligned_values[k][i] is not None:
+                                if i < len(aligned_values[k]) and not is_blank(aligned_values[k][i]):
                                     # Special handling for attributes[].value: merge value and label directly into item
                                     # Instead of creating nested structure, set both fields at the same level
                                     if attributes_context and k == "value" and k in labels:
@@ -252,7 +252,7 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None, filter_s
                             if regular_items:
                                 for k, v in regular_items.items():
                                     processed_val = process_value(v, array_context=False, attributes_context=attributes_context)
-                                    if processed_val is not None:
+                                    if not is_blank(processed_val):
                                         item[k] = processed_val
                             # Only add items that have at least one non-None value
                             if item:
@@ -267,7 +267,7 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None, filter_s
                     # Add regular items normally
                     for k, v in regular_items.items():
                         processed_val = process_value(v, array_context=False, attributes_context=attributes_context)
-                        if processed_val is not None:
+                        if not is_blank(processed_val):
                             result[k] = processed_val
                     return result
                 
@@ -286,10 +286,10 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None, filter_s
                             paths = v["path"]
                             labels = [p.split('.')[-1] if '.' in p else p for p in paths]
                             # Create attribute objects with both value and label
-                            return [{"value": val, "label": labels[i]} for i, val in enumerate(processed) if val is not None and i < len(labels)]
+                            return [{"value": val, "label": labels[i]} for i, val in enumerate(processed) if not is_blank(val) and i < len(labels)]
                         else:
                             # Regular expansion - just create dicts with the field and value
-                            return [{k: val} for val in processed if val is not None]
+                            return [{k: val} for val in processed if not is_blank(val)]
                 
                 # No path arrays - process normally
                 if "id" not in value:
@@ -303,17 +303,20 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None, filter_s
                 # Recursively process all items in the nested object
                 # Pass template=k when there's a split, array_context, and attributes_context
                 # Special handling: when key is "attributes" and value is a list, we're entering attributes context
+                # Filter out blank values - only include non-blank fields
                 result_dict = {}
                 for k, v in items:
                     # Check if this key-value pair represents attributes[] (key is "attributes" and value is a list)
                     # When processing the list value, we should be in attributes context
                     is_attributes_key = (k == "attributes" and isinstance(v, list))
-                    result_dict[k] = process_value(
+                    processed_val = process_value(
                         v,
                         array_context=in_array,
                         template=k if isinstance(v, dict) and "split" in v and "path" in v else None,
                         attributes_context=is_attributes_key or attributes_context
                     )
+                    if not is_blank(processed_val):
+                        result_dict[k] = processed_val
                 return result_dict
         # Case 2: Value is a list - processing an array structure (e.g., phones[])
         # When we encounter a list, we're definitely in an array context
