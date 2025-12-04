@@ -89,7 +89,7 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None, filter_s
                 strip_val = value["strip"]
                 if isinstance(strip_val, str):
                     strip_chars = []
-                    for char in strip_val.split(','):
+                    for char in strip_val.split(';'):
                         cleaned_char = char.strip(' ')
                         if cleaned_char:
                             cleaned_char = decode_escape_sequences(cleaned_char)
