@@ -1,9 +1,8 @@
 from __future__ import annotations
 from typing import Any, Callable, Dict, List
 from datetime import date
-from glom import glom, Coalesce
+from glom import glom
 from uuid import UUID, uuid5
-from .models import Organization
 from .relations import HSDS_RELATIONS
 
 # TODO: Initialize UUID with a proper fixed value
@@ -107,40 +106,70 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None, filter_s
         if isinstance(value, dict):
             # Case 1A: Dictionary contains a "path" key - this is a path specification for data extraction
             if "path" in value:
-                # Before extracting data, make sure the mapped input colum exists
-                input_field = value["path"].split(".", 1)[1] # Extract the part after the first dot: "filename.column" -> column
+                path = value["path"]
                 
-                parts = input_field.split(";") # Splits the multi column mapping on semicolons (e.g. "x1;x2;x3" -> ["x1", "x2", "x3"])
-                input_fields = []
-                for p in parts: # Trims whitespace and puts them into a list
-                    trimmed = p.strip()
-                    input_fields.append(trimmed)
-
-                csv_row = list(root_data.values())[0] # Get the CSV row dict stored inside of root_data
-
-                for field in input_fields:
-                    if field not in csv_row: # Check if column exists in the CSV row dictionary, if it doesn't throw error
-                        raise KeyError(f"Input field '{field}' from mapping does not exist in the CSV data (from mapping expression '{input_field}')")
+                # Case 1A-1: Path is a list - multiple input fields (semicolon-separated in mapping file)
+                # Example: {"path": ["organizations.Phone1Number", "organizations.Phone2Number"]}
+                if isinstance(path, list):
+                    # Extract values from all paths in the list, preserving None values for alignment logic
+                    extracted_values = []
+                    for p in path:
+                        try:
+                            val = glom(root_data, p, default=None)
+                            # Strip characters if specified
+                            val = apply_strip(val, value)
+                            # Convert empty strings to None for consistent filtering later
+                            if val == "" or val is None:
+                                val = None
+                            extracted_values.append(val)
+                        except Exception:
+                            # If path extraction fails, store None to maintain index alignment
+                            extracted_values.append(None)
+                    
+                    # Sub-Case 1A-1a: In array context (e.g., processing phones[].number)
+                    # Return all values including None to allow proper index-based alignment with other fields
+                    # Example: phones[].number and phones[].name need to align by index (0 with 0, 1 with 1)
+                    if array_context:
+                        return extracted_values
+                    # Sub-Case 1A-1b: Not in array context (e.g., processing a regular field with multiple sources)
+                    # Filter out None values and return single value if only one exists, list if multiple
+                    else:
+                        filtered = [v for v in extracted_values if v is not None]
+                        return filtered if len(filtered) > 1 else (filtered[0] if filtered else None)
                 
-                # Extract the value from the root data using the glom path.
-                extracted_val = glom(root_data, value["path"])
-                
-                # SUBCASE 1a: Path spec with split directive (comma-separated or other delimiter).
-                if "split" in value and value["split"]:
-                    split_char = value["split"]
-                    if isinstance(extracted_val, str):
-                        # Split on delimiter and strips brackets and whitespace
-                        parts = [part.strip() for part in extracted_val.split(split_char) if part.strip()]
-                        parts = [part.strip('{}') for part in parts]
+                # Case 1A-2: Path is a string - single input field (existing behavior, backward compatible)
+                # Example: {"path": "organizations.organization_name"}
+                else:
+                    # Extract the value from the root data using the glom path
+                    extracted_val = glom(root_data, path, default=None)
 
-                        # If template is provided, wrap each part with that key (e.g., [{"name": "English"}, {"name": "Spanish"}])
-                        if template:
-                            return [{template: part} for part in parts]
-                        else:
-                            # Otherwise return flat list of strings
-                            return parts
-                # No split, return as is
-                return extracted_val
+                    # Strip characters if specified
+                    extracted_val = apply_strip(extracted_val, value)
+                    
+                    # Return None for empty strings to maintain consistency with path array handling
+                    if extracted_val == "" or extracted_val is None:
+                        return None
+                    
+                    # Sub-Case 1A-2a: Path spec with split directive (comma-separated or other delimiter)
+                    # Example: {"path": "organizations.languages", "split": ","}
+                    if "split" in value and value["split"]:
+                        split_char = value["split"]
+                        if isinstance(extracted_val, str):
+                            # Split on delimiter and strip brackets and whitespace
+                            parts = [part.strip() for part in extracted_val.split(split_char) if part.strip()]
+                            parts = [part.strip('{}') for part in parts]
+                            
+                            # If template is provided, wrap each part with that key (e.g., [{"name": "English"}, {"name": "Spanish"}])
+                            if template:
+                                return [{template: part} for part in parts]
+                            else:
+                                # Otherwise return flat list of strings
+                                return parts
+                    
+                    # Sub-Case 1A-2b: No split directive - return value as-is
+                    return extracted_val
+            # Case 1B: Dictionary does NOT contain "path" key - this is a nested object structure
+            # Example: {"phones": [{"number": {"path": ...}, "name": {"path": ...}}]}
             else:
                 items = list(value.items())
                 
@@ -276,74 +305,6 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None, filter_s
     return out
 
 """
-TRANSFORMS: Currently not using, but certainly may be useful in the future.
-"""
-
-Transform = Callable[[Any], Any]
-TRANSFORMS: Dict[str, Transform] = {
-    "int": int,
-    "float": float,
-    "str": str,
-    "lower": lambda s: s.lower() if isinstance(s, str) else s,
-    "upper": lambda s: s.upper() if isinstance(s, str) else s,
-    "bool": bool,
-    "date_from_iso": lambda s: date.fromisoformat(s) if isinstance(s, str) else s,
-}
-
-
-def register_transform(name: str, fn: Transform) -> None:
-    TRANSFORMS[name] = fn
-
-"""
-MAP: Deals with the unnested case of layer 1. Essentially moving from a CSV with columns to a dictionary with fields.
-Only a couple lines of this mapping function are actually being used (see comments) given how we currently parse our 
-mapping and data csvs but the transforms especially may be useful later if we want to (for instance) split data.
-"""
-
-def map(source: Any, mapping: Dict[str, Any]) -> Organization:
-    """
-    source: arbitrary object/dict with unknown shape until runtime
-    mapping: rules describing how to build Organization fields from source
-    """
-    if not isinstance(source, (dict, list, tuple)):
-        try:
-            source = vars(source)
-        except TypeError:
-            raise ValueError(
-                "source must be a dict, list, tuple, or object with __dict__"
-            )
-    out: Dict[str, Any] = {}
-    for dest_field, rule in mapping.items():
-        if isinstance(rule, str):
-            # Since our rule is a dictionary, not relevant for our parser
-            out[dest_field] = glom(source, rule)
-        elif isinstance(rule, dict):
-            if "literal" in rule:
-                # if "literal" is in the rule output it directly outputs it (not relevant for our parser)
-                out[dest_field] = rule["literal"]
-                continue
-            if "paths" in rule:
-                # if there are more than one paths in the dictionary (not relevant for how we parse)
-                spec = Coalesce(*rule["paths"], default=rule.get("default"))
-                val = glom(source, spec)
-            else:
-                # !!!! This is largely the only line that matters !!!!, though default doesn't currently do anything
-                # since there's currently no "default" set in our parsing (we would likely need to change the format to
-                # { "path" : "filename.path", "default": "something"})
-                val = glom(source, rule.get("path"), default=rule.get("default"))
-            # potentially useful in the future if we want more rules (potentially splitting stuff?)
-            tname = rule.get("transform")
-            if tname:
-                fn = TRANSFORMS.get(tname)
-                targs = rule.get("transform_args", []) or []
-                tkwargs = rule.get("transform_kwargs", {}) or {}
-                val = fn(val, *targs, **tkwargs) if fn else val
-            out[dest_field] = val
-        else:
-            raise TypeError(f"Invalid mapping rule for field {dest_field}: {rule}")
-    return Organization.model_validate(out)
-
-"""
 GET_PROCESS_ORDER: Returns the order in which the inputted mapped HSDS entities should be processed with 
 the first index representing the first entity to be processed. 
 """
@@ -372,3 +333,71 @@ def get_process_order(groups: List[(str, List[Dict[str, Any]])]) -> List[str]:
         order.insert(idx, k)
 
     return order
+
+"""
+TRANSFORMS: Currently not using, but certainly may be useful in the future.
+"""
+
+Transform = Callable[[Any], Any]
+TRANSFORMS: Dict[str, Transform] = {
+    "int": int,
+    "float": float,
+    "str": str,
+    "lower": lambda s: s.lower() if isinstance(s, str) else s,
+    "upper": lambda s: s.upper() if isinstance(s, str) else s,
+    "bool": bool,
+    "date_from_iso": lambda s: date.fromisoformat(s) if isinstance(s, str) else s,
+}
+
+
+def register_transform(name: str, fn: Transform) -> None:
+    TRANSFORMS[name] = fn
+
+"""
+MAP: Deals with the unnested case of layer 1. Essentially moving from a CSV with columns to a dictionary with fields.
+Only a couple lines of this mapping function are actually being used (see comments) given how we currently parse our 
+mapping and data csvs but the transforms especially may be useful later if we want to (for instance) split data.
+"""
+
+# def map(source: Any, mapping: Dict[str, Any]) -> Organization:
+#     """
+#     source: arbitrary object/dict with unknown shape until runtime
+#     mapping: rules describing how to build Organization fields from source
+#     """
+#     if not isinstance(source, (dict, list, tuple)):
+#         try:
+#             source = vars(source)
+#         except TypeError:
+#             raise ValueError(
+#                 "source must be a dict, list, tuple, or object with __dict__"
+#             )
+#     out: Dict[str, Any] = {}
+#     for dest_field, rule in mapping.items():
+#         if isinstance(rule, str):
+#             # Since our rule is a dictionary, not relevant for our parser
+#             out[dest_field] = glom(source, rule)
+#         elif isinstance(rule, dict):
+#             if "literal" in rule:
+#                 # if "literal" is in the rule output it directly outputs it (not relevant for our parser)
+#                 out[dest_field] = rule["literal"]
+#                 continue
+#             if "paths" in rule:
+#                 # if there are more than one paths in the dictionary (not relevant for how we parse)
+#                 spec = Coalesce(*rule["paths"], default=rule.get("default"))
+#                 val = glom(source, spec)
+#             else:
+#                 # !!!! This is largely the only line that matters !!!!, though default doesn't currently do anything
+#                 # since there's currently no "default" set in our parsing (we would likely need to change the format to
+#                 # { "path" : "filename.path", "default": "something"})
+#                 val = glom(source, rule.get("path"), default=rule.get("default"))
+#             # potentially useful in the future if we want more rules (potentially splitting stuff?)
+#             tname = rule.get("transform")
+#             if tname:
+#                 fn = TRANSFORMS.get(tname)
+#                 targs = rule.get("transform_args", []) or []
+#                 tkwargs = rule.get("transform_kwargs", {}) or {}
+#                 val = fn(val, *targs, **tkwargs) if fn else val
+#             out[dest_field] = val
+#         else:
+#             raise TypeError(f"Invalid mapping rule for field {dest_field}: {rule}")
+#     return Organization.model_validate(out)
