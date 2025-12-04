@@ -1,40 +1,50 @@
 # HSDS Transformer
 ## Setup
-Create a virtualenv
+
+(bash)
 ```bash
-python3 -m venv .venv
+python3 -m venv .venv # Create a virtualenv
+
+source .venv/bin/activate # Activate the virtualenv
+
+pip3 install -r requirements.txt # Install dependencies
 ```
 
-Activate the virtualenv
-```bash
-source .venv/bin/activate
+(powershell)
+```powershell
+python -m venv .venv # Create a virtualenv
+
+.venv\Scripts\activate # Activate virtualenv
+
+pip install -r requirements.txt # Install dependencies
 ```
 
-Install dependencies
-```bash
-pip3 install -r requirements.txt
-```
 
 ## Running the command line tool
-**Currently works for transforming a csv into an organization object with no nested fields and only outputs the object created from the first row.**
+**Transforms CSVs into HSDS-compliant objects given proper associated mapping.**
 
-Add the csv file to be transformed into the data folder.
-
-Create and add a mapping csv file to the data folder with two columns: the left column with the column names in the file to be transformed and the right column with paths to the associated field in the goal object. See mapping.csv in data for an example.
+Move the csv files to be transformed with their associated mapping (csv) files into a directory (if you're testing in this repository, create a folder for your files in the data folder). See the current `data` folder for examples.
 
 Make sure you're in the root folder.
 
-Finally run, `python -m src.cli.main path\to\input.csv path\to\mapping.csv` where the two paths are relative paths to the input file and mapping file respectively. (Using example csvs: `python -m src.cli.main data\HSD_provider.csv data\mapping.csv`).
+Finally run, `python -m src.cli.main path\to\datadir` (powershell) or `python3 -m src.cli.main path/to/datadir` (bash) where the two paths are relative paths to the directory with the input and mapping files. (Using example csvs with powershell): `python -m src.cli.main data\deprecated_hsds`).
 
-## Notes: 
+You can also specify an output directory with `python -m src.cli.main path\to\datadir path\to\outputdir` (windows). Without specifying an output directory, the transformer will create one in your root directory or add the files to `output` if it already exists.
 
-We parse the input file into the form:
+
+## BRIEF PROCESS EXPLANATION: 
+
+We create a collection of each of the HSDS files by going through each input file and doing the following:
+
+parse the input file into a dictionary such as:
 ```
 src = {
-        "organization": {
+        "input_filename": {
             "entity_id": "org-123",
             "entity_name": "Acme Corp",
             "entity_description": "A fictional company",
+            "Phone1Number": "123-456-8910",
+            "Phone2Number": "098-765-4321"
         }
     }
 ```
@@ -43,11 +53,18 @@ and the mapping file into the form:
 ```
 mapping = {
         "id": {"path": "organization.entity_id"},
-        "name": {"path": "organization.entity_name"},
-        "description": {"path": "organization.entity_description"},
+        "name": {"path": "organization.entity_name", "strip": ["<p>","[","]"]}, # removes these sets of characters
+        "description": {"path": "organization.entity_description", "split": ","}, # split into multiple objects
+        "phones": [
+            {'number': {'path': ['organizations.Phone1Number', 'organizations.Phone2Number']}} # nested, multiple objects in original input file map to one field in HSDS
+        ]
     }
 ```
-and then call the map() function.
+
+and then calling the nested_map function.
+
+Once the collections have been created, we search through each collection, linking parent and child objects together by ID and removing linked child objects from the collection, before outputting the final HSDS objects as JSON files.
+
 
 ## Running the api
 ```bash

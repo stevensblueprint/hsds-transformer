@@ -69,27 +69,7 @@ def parse_input_csv(input_file, filename) -> list:
 
     return input
 
-def parse_mapping(mapping_file, filename) -> dict:
-    """
-    Takes a mapping csv file and return a dictionary of the form: 
-    [{"output_field": {"path": "filename.original_field}}]
-    """
-    with open(mapping_file, 'r', newline='', encoding='utf-8') as file:
-        reader = csv.reader(file)
-
-        next(reader)
-        
-        mapping = {}
-        for row in reader:
-            mapping[row[1]] = {"path": filename + "." + row[0]}
-            if row[2]:
-                mapping[row[1]]["split"] = row[2]
-            if row[3]:
-                mapping[row[1]]["strip"] = row[3]
-
-    return mapping
-
-def parse_nested_mapping(mapping_file, filename):
+def parse_nested_mapping(mapping_file, filename) -> tuple[dict, dict | None]:
     """
     Takes a mapping CSV file with the following structure and returns a tuple
     of (mapping_dict, filter_spec or None):
@@ -198,3 +178,23 @@ def parse_nested_mapping(mapping_file, filename):
 
     return mapping, filter_spec
 
+
+def parse_mapping(mapping_file, filename) -> dict:
+    """
+    Parses a flat mapping. Not currently used in the transformer.
+    Takes a mapping csv file and return a dictionary of the form: 
+    [{"output_field": {"path": "filename.original_field}}]
+    """
+    with open(mapping_file, 'r', newline='', encoding='utf-8') as file:
+        reader = csv.reader(file)
+
+        next(reader)
+        
+        mapping = {}
+        for row in reader:
+            if row[2]:
+                mapping[row[1]] = {"path": filename + "." + row[0], "split": row[2]}
+            else:
+                mapping[row[1]] = {"path": filename + "." + row[0]}
+
+    return mapping
