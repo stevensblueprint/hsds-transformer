@@ -22,7 +22,6 @@ def validate_mapping_input_fields(mapping_file: str, filename: str) -> None:
             continue
 
         raw = (row.get("input_files_field") or "").strip()
-        path_val = (row.get("path") or "").strip()
 
         if not raw:
             continue
