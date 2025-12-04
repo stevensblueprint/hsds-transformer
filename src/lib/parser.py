@@ -1,5 +1,56 @@
 import csv
 import os
+from pathlib import Path
+from typing import Set
+
+def validate_mapping_input_fields(mapping_file: str, filename: str) -> None:
+    """
+    Ensure every input_files_field referenced in mapping_file exists as a column in the corresponding input CSV.
+    NOTE: Skips row 1 and 2
+    """
+
+    # Read mapping rows with column names
+    with open(mapping_file, newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        rows = list(reader)
+
+    # Collect distinct input_files_field names (; counts as a list)
+    referenced: Set[str] = set()
+
+    for row in rows[2:]:
+        if len(row) < 2:
+            continue
+
+        raw = (row.get("input_files_field") or "").strip()
+        path_val = (row.get("path") or "").strip()
+
+        if not raw:
+            continue
+
+        for piece in raw.split(";"):
+            piece = piece.strip()
+            if piece:
+                referenced.add(piece)
+
+    # Figure out the original CSV path: same directory as mapping, name = filename + ".csv"
+    original_csv = Path(mapping_file).parent / f"{filename}.csv"
+
+    # Read first header row of data CSV
+    with open(original_csv, newline="", encoding="utf-8") as f_in:
+        header = next(csv.reader(f_in), [])
+
+    original_fields = {h.strip() for h in header if h.strip()}
+
+    # Find fields referenced in mapping but not present in the original file
+    missing = sorted(field for field in referenced if field not in original_fields)
+
+    if missing:
+        missing_str = ", ".join(missing)
+        raise ValueError(
+            "Invalid mapping: the following input_files_field values are referenced in "
+            f"'{Path(mapping_file).name}' but do not exist in the input file "
+            f"'{original_csv.name}': {missing_str}"
+        )
 
 def parse_input_csv(input_file, filename) -> list:
     """
@@ -49,8 +100,10 @@ def parse_nested_mapping(mapping_file, filename):
              If empty, no filter is applied (returns None for filter)
     - Row 3+: Mapping rows: [output_path, input_field]
     """
-    mapping = {}
-    filter_spec = None
+    validate_mapping_input_fields(mapping_file, filename)
+
+    mapping: dict = {}
+    filter_spec: dict | None = None
 
     with open(mapping_file, 'r', newline='', encoding='utf-8') as file:
         reader = csv.reader(file)
