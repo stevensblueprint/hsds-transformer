@@ -2,11 +2,8 @@ from __future__ import annotations
 from typing import Any, Callable, Dict, List
 from datetime import date
 from glom import glom
-from uuid import UUID, uuid5
-from .relations import HSDS_RELATIONS
 
-# TODO: Initialize UUID with a proper fixed value
-NAMESPACE = UUID("{12345678-1234-5678-1234-567812345678}")
+from .relations import HSDS_RELATIONS
 
 """
 NESTED_MAP: deals with layer 1 - essentially moving from a flat spreadsheet/csv into a nested format with potentially
@@ -282,10 +279,6 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None, filter_s
                             return [{k: val} for val in processed if val is not None]
                 
                 # No path arrays - process normally
-                if "id" not in value:
-                    # TODO: create the proper identifier string for entity (currently using placeholder)
-                    uid = uuid5(NAMESPACE, "some-identifier-string")
-                    items.insert(0, ("id", str(uid)))
                 
                 # Determine if we're entering an array context by checking if any child is a list
                 in_array = any(isinstance(v, list) for v in value.values())
