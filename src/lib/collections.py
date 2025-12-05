@@ -178,7 +178,10 @@ def attach_original_to_targets(
         # First check if theres already a list under the singular key (e.g. "location")
         # If not try the plural form (+s)
         # If not, creates a new list
-        list_key_candidates = [original_type, f"{original_type}s"]
+        if original_type.endswith(("s", "sh", "ch", "x", "z")):
+            list_key_candidates = [original_type, f"{original_type}es"]
+        else:
+            list_key_candidates = [original_type, f"{original_type}s"]
 
         appended = False
         for candidate_key in list_key_candidates:
@@ -188,7 +191,12 @@ def attach_original_to_targets(
                 break
 
         if not appended:
-            plural_key = f"{original_type}s"
+            plural_key = original_type # Adds base word
+            # Adds s or es based on english plural ending rules
+            if original_type.endswith(("s", "sh", "ch", "x", "z")):
+                plural_key += "es"
+            else:
+                plural_key += "s"
 
             # Reverse relationship where parent holds child ID check
             if (target_collection, original_type) in SINGULAR_CHILD_CASES:
