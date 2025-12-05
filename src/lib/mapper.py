@@ -439,4 +439,3 @@ mapping and data csvs but the transforms especially may be useful later if we wa
 #         else:
 #             raise TypeError(f"Invalid mapping rule for field {dest_field}: {rule}")
 #     return Organization.model_validate(out)
-
