@@ -4,6 +4,10 @@ from .parser import parse_input_csv, parse_nested_mapping
 from .mapper import nested_map, get_process_order
 from .relationships import identify_parent_relationships
 from typing import Dict, List, Tuple, Any, Optional
+from uuid import UUID, uuid5
+
+# TODO: Initialize UUID with a proper fixed value
+NAMESPACE = UUID("{12345678-1234-5678-1234-567812345678}")
 
 def build_collections(data_directory: str):
     """
@@ -195,11 +199,6 @@ def attach_original_to_targets(
                 append_to_list_field(original, target_collection, target)
             else:
                 append_to_list_field(target, plural_key, original)
-
-from uuid import UUID, uuid5
-
-# TODO: Initialize UUID with a proper fixed value
-NAMESPACE = UUID("{12345678-1234-5678-1234-567812345678}")
 
 def generate_ids(data: Any) -> None:
     """
