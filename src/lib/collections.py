@@ -196,6 +196,61 @@ def attach_original_to_targets(
             else:
                 append_to_list_field(target, plural_key, original)
 
+from uuid import UUID, uuid5
+
+# TODO: Initialize UUID with a proper fixed value
+NAMESPACE = UUID("{12345678-1234-5678-1234-567812345678}")
+
+def generate_ids(data: Any) -> None:
+    """
+    Recursively traverses the data structure (list or dict) to generate IDs for objects.
+    
+    If an object (dict) doesn't have an ID, it generates one using UUID-5.
+    If an object already has an ID, it moves the old ID to a child attribute object 
+    with label "Previous ID" and generates a new ID.
+    
+    Args:
+        data: The data structure to process (list of dicts, or a single dict).
+    """
+    if isinstance(data, list):
+        for item in data:
+            generate_ids(item)
+    elif isinstance(data, dict):
+        # Recursively process all values in the dictionary FIRST
+        for key, value in list(data.items()):
+            # Skip processing the 'id' field itself
+            if key != "id":
+                generate_ids(value)
+
+        # Process this object's ID
+        # Check if ID exists
+        if "id" in data:
+            old_id = data["id"]
+            
+            # Create the attribute object for the old ID
+            attribute_obj = {
+                "value": old_id,
+                "label": "Previous ID"
+            }
+            
+            # Generate ID for the new attribute object itself
+            # Using a placeholder string for now as requested
+            attribute_obj["id"] = str(uuid5(NAMESPACE, f"attribute-{old_id}"))
+            
+            # Add to attributes list
+            if "attributes" in data and isinstance(data["attributes"], list):
+                data["attributes"].append(attribute_obj)
+            else:
+                data["attributes"] = [attribute_obj]
+            
+            # Generate new ID for the current object
+            # Using placeholder identifier string as requested
+            data["id"] = str(uuid5(NAMESPACE, "some-identifier-string"))
+            
+        else:
+            # No ID exists, generate one
+            # Using placeholder identifier string as requested
+            data["id"] = str(uuid5(NAMESPACE, "some-identifier-string"))
 
 
 def searching_and_assigning(collections: List[Tuple[str, List[Dict[str, Any]]]]) -> List[Tuple[str, List[Dict[str, Any]]]]:
@@ -245,6 +300,11 @@ def searching_and_assigning(collections: List[Tuple[str, List[Dict[str, Any]]]])
             if o not in objs_to_remove:
                 updated_objects.append(o)
         collection_map[c_name] = updated_objects # Replaces old list with updated list
+
+    # Generate IDs for all objects in the collection map
+    # This iterates through every single object in our collection (including the nested ones)
+    for name, objects in collection_map.items():
+        generate_ids(objects)
 
     # Rebuilds the final result as a list of tuples to match the original format returned in build_collections
     final_result = []
