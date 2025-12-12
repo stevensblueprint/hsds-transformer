@@ -51,7 +51,7 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None, filter_s
             print(f"WARNING: Filter failed for path '{filter_path}' with value '{filter_value}': {e}")
             return None
         
-    def process_value(value, array_context=False, template=None, attributes_context=False):
+    def process_value(value, array_context=False, template=None, attributes_context=False, parent_index=None):
         """
         Recursively processes mapping values to transform flat CSV data into nested structures.
         Handles three main cases: path specs (leaf data extraction), nested objects, and arrays.
@@ -66,6 +66,9 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None, filter_s
             attributes_context: Boolean flag indicating when currently processing 
                                 inside an attributes[] structure. Creates attribute 
                                 objects with both value and label (column name) fields.
+            parent_index: Integer index that signifies nested path arrays should only 
+                          use the path at this index over expanding all paths. 
+                          Ensures child objects align with their respective parents.
         """
         
         def is_blank(val):
@@ -123,6 +126,18 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None, filter_s
                 # Case 1A-1: Path is a list - multiple input fields (semicolon-separated in mapping file)
                 # Example: {"path": ["organizations.Phone1Number", "organizations.Phone2Number"]}
                 if isinstance(path, list):
+                    # Sub-Case 1A-1-parent: When parent_index is set, only use path at that index
+                    if parent_index is not None and parent_index < len(path):
+                        p = path[parent_index]
+                        try:
+                            val = glom(root_data, p, default=None)
+                            val = apply_strip(val, value)
+                            if val == "" or val is None:
+                                return None
+                            return val
+                        except Exception:
+                            return None
+                    
                     # Extract values from all paths in the list, preserving None values for alignment logic
                     extracted_values = []
                     for p in path:
@@ -206,6 +221,26 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None, filter_s
                     all_paths = {k: v["path"] for k, v in path_array_items.items()}
                     max_len = max(len(paths) for paths in all_paths.values())
                     
+                    # Sub-Case 1B-1-parent: When parent_index is set, only use values at that index
+                    if parent_index is not None:
+                        item = {}
+                        for k, paths in all_paths.items():
+                            if parent_index < len(paths):
+                                p = paths[parent_index]
+                                try:
+                                    val = glom(root_data, p, default=None)
+                                    if val != "" and val is not None:
+                                        item[k] = val
+                                except Exception:
+                                    pass
+                        # Process regular items with the same parent_index
+                        for k, v in regular_items.items():
+                            processed_val = process_value(v, array_context=False, attributes_context=attributes_context, parent_index=parent_index)
+                            if not is_blank(processed_val):
+                                item[k] = processed_val
+                        # Return as single-item list since we're likely in array context
+                        return [item] if item else []
+                    
                     # Extract all values from all path arrays, preserving index positions
                     # aligned_values[k][i] = value at index i for field k
                     aligned_values = {}
@@ -250,7 +285,7 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None, filter_s
                             # These are processed once and added to all items (e.g., a shared "type" field)
                             if regular_items:
                                 for k, v in regular_items.items():
-                                    processed_val = process_value(v, array_context=False, attributes_context=attributes_context)
+                                    processed_val = process_value(v, array_context=False, attributes_context=attributes_context, parent_index=i)
                                     if not is_blank(processed_val):
                                         item[k] = processed_val
                             # Only add items that have at least one non-None value
@@ -265,7 +300,7 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None, filter_s
                             result[k] = aligned_values[k][0]
                     # Add regular items normally
                     for k, v in regular_items.items():
-                        processed_val = process_value(v, array_context=False, attributes_context=attributes_context)
+                        processed_val = process_value(v, array_context=False, attributes_context=attributes_context, parent_index=parent_index)
                         if not is_blank(processed_val):
                             result[k] = processed_val
                     return result
@@ -276,7 +311,7 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None, filter_s
                 if array_context and len(items) == 1:
                     k, v = items[0]
                     # Process the value - if it's a path array, this will return a list
-                    processed = process_value(v, array_context=True, attributes_context=attributes_context)
+                    processed = process_value(v, array_context=True, attributes_context=attributes_context, parent_index=parent_index)
                     # If we got a list with multiple items, expand the dict into multiple dicts
                     if isinstance(processed, list) and len(processed) > 1:
                         # Special handling for attributes[].value: create objects with value and label
@@ -300,7 +335,7 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None, filter_s
                 in_array = any(isinstance(v, list) for v in value.values())
                 
                 # Recursively process all items in the nested object
-                # Pass template=k when there's a split, array_context, and attributes_context
+                # Pass template=k when there's a split, array_context, attributes_context, and parent_index
                 # Special handling: when key is "attributes" and value is a list, we're entering attributes context
                 # Filter out blank values - only include non-blank fields
                 result_dict = {}
@@ -312,7 +347,8 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None, filter_s
                         v,
                         array_context=in_array,
                         template=k if isinstance(v, dict) and "split" in v and "path" in v else None,
-                        attributes_context=is_attributes_key or attributes_context
+                        attributes_context=is_attributes_key or attributes_context,
+                        parent_index=parent_index
                     )
                     if not is_blank(processed_val):
                         result_dict[k] = processed_val
@@ -326,13 +362,12 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None, filter_s
                 key, val = list(value[0].items())[0]
                 if isinstance(val, dict) and "path" in val and "split" in val:
                     # Process the path spec with split, passing the key as template to wrap results.
-                    processed = process_value(val, array_context=True, template=key, attributes_context=attributes_context)
+                    processed = process_value(val, array_context=True, template=key, attributes_context=attributes_context, parent_index=parent_index)
                     return processed if isinstance(processed, list) else [processed]
             
             # Sub-Case 2b: Process items with array_context=True, 
             # This ensures that path arrays within array items are handled correctly
-            # Pass attributes context through so attributes[].value can create label fields
-            processed = [process_value(item, array_context=True, attributes_context=attributes_context) for item in value]
+            processed = [process_value(item, array_context=True, attributes_context=attributes_context, parent_index=parent_index) for item in value]
 
             # Flatten if any items returned lists (from aligned path arrays)
             flattened = []
