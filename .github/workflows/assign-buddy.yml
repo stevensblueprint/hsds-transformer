@@ -1,0 +1,39 @@
+name: Assign Coding Buddy
+on:
+    pull_request:
+        types: [opened, ready_for_review]
+
+jobs:
+    assign-reviewer:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+            - name: Assign Buddy
+              uses: actions/github-script@v6
+              with:
+                  script: |
+                      const fs = require('fs');
+
+                      // Read and parse the config file
+                      let buddyMap = {};
+                      try {
+                        const content = fs.readFileSync('.github/buddies.json', 'utf8');
+                        buddyMap = JSON.parse(content);
+                      } catch (err) {
+                        console.log("No buddy config found or invalid JSON.");
+                        return; // Exit if file missing
+                      }
+
+                      const author = context.payload.pull_request.user.login;
+                      const buddy = buddyMap[author];
+
+                      if (buddy) {
+                        console.log(`Assigning ${buddy} as reviewer for ${author}`);
+                        await github.rest.pulls.requestReviewers({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          pull_number: context.payload.pull_request.number,
+                          reviewers: [buddy]
+                        });
+                      }
