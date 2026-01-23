@@ -1,6 +1,6 @@
 path,input_files_field,split,strip,description
 ,,,,
-id,id,",",,
+id,id,,,,
 organization_id,organization_id,,,
 program_id,program_id,,,
 name,name,,,
