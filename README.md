@@ -31,6 +31,10 @@ Finally run, `python -m src.cli.main path\to\datadir` (powershell) or `python3 -
 
 You can also specify an output directory with `python -m src.cli.main path\to\datadir path\to\outputdir` (windows). Without specifying an output directory, the transformer will create one in your root directory or add the files to `output` if it already exists.
 
+**Reverse transform (HSDS JSON to CSV inputs).**
+
+Run `python -m src.cli.reverse_transform --mapping-dir path\to\mappings --hsds-dir path\to\hsds-json --output-dir path\to\output` (powershell) or `python3 -m src.cli.reverse_transform --mapping-dir path/to/mappings --hsds-dir path/to/hsds-json --output-dir path/to/output` (bash). The output directory is optional and defaults to `reverse_output`.
+
 
 ## BRIEF PROCESS EXPLANATION: 
 
