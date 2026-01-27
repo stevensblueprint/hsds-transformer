@@ -4,27 +4,26 @@ version = "0.1.0"
 description = "Convert almost resource data into Human Services Data Specification (HSDS) compliant format."
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "glom==24.11.0",
+    "click>=8.2.1"
+]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-[tool.uv.workspace]
-members = [
-    "api",
-    "cli",
-    "lib",
-]
-
-[tool.uv.sources]
-api = { workspace = true }
-cli = { workspace = true }
-lib = { workspace = true }
-
 [tool.hatch.build.targets.wheel]
-packages = ["api", "cli", "lib"]
+packages = ["hsds_transformer"]
 
 [project.optional-dependencies]
-api = ["fastapi", "uvicorn"]
+api = [
+    "fastapi>=0.116.1",
+    "uvicorn>=0.35.0",
+    "python-multipart>=0.0.20",
+]
+cli = [
+]
+all = [
+]
 
