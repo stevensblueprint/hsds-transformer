@@ -1,11 +1,3 @@
-"""
-Fetch and parse a dereferenced JSON Schema into a Python dictionary.
-
-The schema URL is hard-coded for now.
-"""
-
-from __future__ import annotations
-
 import json
 from typing import Any
 import requests
@@ -16,7 +8,17 @@ SCHEMA_URL = "https://raw.githubusercontent.com/openreferral/specification/refs/
 
 def fetch_json_from_url(url: str, *, timeout_s: int = 30) -> dict[str, Any]:
     """
-    Download JSON from `url` and parse into a Python dictionary.
+    Fetch and parse a dereferenced JSON Schema into a Python dictionary.
+
+    The schema URL is hard-coded for now
+    
+    Args:
+        url: The URL of the JSON Schema to fetch
+        timeout_s: The timeout in seconds for the request
+
+    Returns:
+        A dictionary of the JSON Schema
+
     """
     headers = {
         # Explicit User-Agent to prevent potentially failed requests
