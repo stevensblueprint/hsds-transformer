@@ -9,6 +9,9 @@ from uuid import UUID, uuid5
 # TODO: Initialize UUID with a proper fixed value
 NAMESPACE = UUID("{12345678-1234-5678-1234-567812345678}")
 
+# Global counter for hsds-object ID generation
+_id_counter = 0
+
 
 def build_collections(data_directory: str):
     """
@@ -214,7 +217,7 @@ def attach_original_to_targets(
                 break
 
         if not appended:
-            plural_key = original_type # Adds base word
+            plural_key = original_type  # Adds base word
             # Adds s or es based on english plural ending rules
             if original_type.endswith(("s", "sh", "ch", "x", "z")):
                 plural_key += "es"
@@ -251,27 +254,27 @@ def generate_ids(data: Any, requestor_identifier: Optional[str] = None) -> None:
 
         # Process this object's ID
         # Check if ID exists
+        global _id_counter
         if "id" in data:
             old_id = data["id"]
-
-            # Generate new ID for the current object utilizing the old_id
-            # Using placeholder identifier string as requested
+            # Build string for UUID5 based on presence of requestor_identifier and old_id
             if requestor_identifier:
-                data["id"] = str(
-                    uuid5(NAMESPACE, f"hsds-object-{requestor_identifier}-{old_id}")
+                string_for_uuid = (
+                    f"hsds-object-{requestor_identifier}-{old_id}-{_id_counter}"
                 )
             else:
-                data["id"] = str(uuid5(NAMESPACE, f"hsds-object-{old_id}"))
-
+                string_for_uuid = f"hsds-object-{old_id}-{_id_counter}"
+            data["id"] = str(uuid5(NAMESPACE, string_for_uuid))
+            _id_counter += 1
         else:
             # No ID exists, generate one
-            # Using placeholder identifier string as requested
             if requestor_identifier:
-                data["id"] = str(
-                    uuid5(NAMESPACE, f"hsds-object-{requestor_identifier}")
-                )
+                string_for_uuid = f"hsds-object-{requestor_identifier}-{_id_counter}"
             else:
-                data["id"] = str(uuid5(NAMESPACE, "hsds-object"))
+                string_for_uuid = f"hsds-object-{_id_counter}"
+            data["id"] = str(uuid5(NAMESPACE, string_for_uuid))
+            _id_counter += 1
+
 
 # Remove legacy *_id fields from all objects after linking
 def remove_legacy_id_fields(obj):
@@ -284,6 +287,7 @@ def remove_legacy_id_fields(obj):
             del obj[k]
         for v in obj.values():
             remove_legacy_id_fields(v)
+
 
 def searching_and_assigning(
     collections: List[Tuple[str, List[Dict[str, Any]]]],
