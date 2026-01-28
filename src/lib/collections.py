@@ -254,7 +254,7 @@ def generate_ids(data: Any, requestor_identifier: Optional[str] = None) -> None:
         if "id" in data:
             old_id = data["id"]
 
-            # Generate new ID for the current object
+            # Generate new ID for the current object utilizing the old_id
             # Using placeholder identifier string as requested
             if requestor_identifier:
                 data["id"] = str(
