@@ -271,7 +271,7 @@ def generate_ids(data: Any, requestor_identifier: Optional[str] = None) -> None:
                     uuid5(NAMESPACE, f"hsds-object-{requestor_identifier}")
                 )
             else:
-                data["id"] = str(uuid5(NAMESPACE, f"hsds-object"))
+                data["id"] = str(uuid5(NAMESPACE, "hsds-object"))
 
 # Remove legacy *_id fields from all objects after linking
 def remove_legacy_id_fields(obj):
