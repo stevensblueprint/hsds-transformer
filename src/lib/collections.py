@@ -9,59 +9,74 @@ from uuid import UUID, uuid5
 # TODO: Initialize UUID with a proper fixed value
 NAMESPACE = UUID("{12345678-1234-5678-1234-567812345678}")
 
+
 def build_collections(data_directory: str):
     """
     From multiple mapping and input CSV files, returns a list of tuples like: [("organization", [dicts]), ("location", [dicts]), ...]
     Each mapping file name MUST follow this format: "<input_file_name>_<object_type>_mapping.csv
     This function pairs each input CSV with its correspodning mapping file and converts flat CSV rows into nested dictionaries
     """
-    
-    data_directory = Path(data_directory) # Converts provided folder path into a Path object
-    
+
+    data_directory = Path(
+        data_directory
+    )  # Converts provided folder path into a Path object
+
     if not any(data_directory.iterdir()):
         raise ValueError(f"Input directory '{data_directory}' is empty.")
 
-    results = [] # List of tuples like ("organization", [dict_list])
-    
+    results = []  # List of tuples like ("organization", [dict_list])
+
     mapping_files = list(data_directory.glob("*_mapping.csv"))
     if not mapping_files:
         # Check if there are any CSVs at all to give a better error message
         csv_files = list(data_directory.glob("*.csv"))
         if not csv_files:
-             raise ValueError(f"No CSV files found in '{data_directory}'.")
+            raise ValueError(f"No CSV files found in '{data_directory}'.")
         else:
-             raise ValueError(f"No mapping files (*_mapping.csv) found in '{data_directory}'.")
+            raise ValueError(
+                f"No mapping files (*_mapping.csv) found in '{data_directory}'."
+            )
 
     # Goes through every CSV file in the folder that ends with "_mapping.csv"
     for mapping_file in mapping_files:
-        match = re.match(r"(.+)_([A-Za-z0-9]+)_mapping\.csv", mapping_file.name) # Parses and extracts name before "_mapping" using regex
-        
+        match = re.match(
+            r"(.+)_([A-Za-z0-9]+)_mapping\.csv", mapping_file.name
+        )  # Parses and extracts name before "_mapping" using regex
+
         # Skips files with no _mapping ending
         if not match:
             continue
 
-        input_name, object_type = match.groups() # Grabs the name and type of object for labeling in results
-        input_file = data_directory / f"{input_name}.csv" # Uses the extracted name to find the corresponding input CSV file
+        input_name, object_type = (
+            match.groups()
+        )  # Grabs the name and type of object for labeling in results
+        input_file = (
+            data_directory / f"{input_name}.csv"
+        )  # Uses the extracted name to find the corresponding input CSV file
 
         # Skips this mapping if the matching input CSV doesn't exist
         if not input_file.exists():
             continue
-        
+
         # Parses through input CSV rows and returns something like [{"organizations": {"id": "1", "name": "Blueprint"}}, ...]
         input_rows = parse_input_csv(str(input_file), input_name)
-        
+
         if not input_rows:
-            print(f"Warning: Input file '{input_file.name}' is empty or has no valid rows. Skipping.")
+            print(
+                f"Warning: Input file '{input_file.name}' is empty or has no valid rows. Skipping."
+            )
             continue
 
         # Parses the mapping file into a nested structure and optional filter
         mapping, filter_spec = parse_nested_mapping(str(mapping_file), input_name)
 
         if not mapping:
-            print(f"Warning: Mapping file '{mapping_file.name}' is empty or invalid. Skipping.")
+            print(
+                f"Warning: Mapping file '{mapping_file.name}' is empty or invalid. Skipping."
+            )
             continue
 
-        objects = [] # Converted object list
+        objects = []  # Converted object list
 
         # Build a glom path-based filter for nested_map, if it was provided
         nested_map_filter = None
@@ -69,26 +84,30 @@ def build_collections(data_directory: str):
             column_name = filter_spec.get("column")
             match_value = filter_spec.get("value")
             if column_name and match_value is not None:
-                nested_map_filter = {"path": f"{input_name}.{column_name}", "value": match_value}
+                nested_map_filter = {
+                    "path": f"{input_name}.{column_name}",
+                    "value": match_value,
+                }
 
         for row in input_rows:
             mapped_dictionary = nested_map(row, mapping, filter_spec=nested_map_filter)
             if mapped_dictionary is not None:
                 objects.append(mapped_dictionary)
 
-        results.append((object_type, objects)) # Adds tuple of object type and list of dictionaries. For example: ("organization", [{x}, {y}, ...])
+        results.append(
+            (object_type, objects)
+        )  # Adds tuple of object type and list of dictionaries. For example: ("organization", [{x}, {y}, ...])
 
     return results
 
 
-SINGULAR_CHILD_CASES = { # (target_collection, original_type)
+SINGULAR_CHILD_CASES = {  # (target_collection, original_type)
     ("service", "organization"),
     ("service", "program"),
     ("service_at_location", "location"),
     ("attribute", "taxonomy_term"),
     ("taxonomy_term", "taxonomy_detail"),
 }
-
 
 
 def find_in_collection(
@@ -142,7 +161,7 @@ def attach_original_to_targets(
 ) -> None:
     """
     Attaches "original" to matching targets in collection_map based on relations
-    Params: 
+    Params:
     collection_map -> dict[str, [dict]]
     original_type -> str
     original -> dict (the dictionary to embed into matching targets)
@@ -200,59 +219,68 @@ def attach_original_to_targets(
             else:
                 append_to_list_field(target, plural_key, original)
 
-def generate_ids(data: Any) -> None:
+
+def generate_ids(data: Any, requestor_identifier: Optional[str] = None) -> None:
     """
     Recursively traverses the data structure (list or dict) to generate IDs for objects.
-    
+
     If an object (dict) doesn't have an ID, it generates one using UUID-5.
-    If an object already has an ID, it moves the old ID to a child attribute object 
+    If an object already has an ID, it moves the old ID to a child attribute object
     with label "Previous ID" and generates a new ID.
-    
+
     Args:
         data: The data structure to process (list of dicts, or a single dict).
     """
     if isinstance(data, list):
         for item in data:
-            generate_ids(item)
+            generate_ids(item, requestor_identifier)
     elif isinstance(data, dict):
         # Recursively process all values in the dictionary FIRST
         for key, value in list(data.items()):
             # Skip processing the 'id' field itself
             if key != "id":
-                generate_ids(value)
+                generate_ids(value, requestor_identifier)
 
         # Process this object's ID
         # Check if ID exists
         if "id" in data:
             old_id = data["id"]
-            
-            # Create the attribute object for the old ID
-            attribute_obj = {
-                "value": old_id,
-                "label": "Previous ID"
-            }
-            
-            # Generate ID for the new attribute object itself
-            # Using a placeholder string for now as requested
-            attribute_obj["id"] = str(uuid5(NAMESPACE, f"attribute-{old_id}"))
-            
-            # Add to attributes list
-            if "attributes" in data and isinstance(data["attributes"], list):
-                data["attributes"].append(attribute_obj)
-            else:
-                data["attributes"] = [attribute_obj]
-            
+
             # Generate new ID for the current object
             # Using placeholder identifier string as requested
-            data["id"] = str(uuid5(NAMESPACE, "some-identifier-string"))
-            
+            if requestor_identifier:
+                data["id"] = str(
+                    uuid5(NAMESPACE, f"hsds-object-{requestor_identifier}-{old_id}")
+                )
+            else:
+                data["id"] = str(uuid5(NAMESPACE, f"hsds-object-{old_id}"))
+
         else:
             # No ID exists, generate one
             # Using placeholder identifier string as requested
-            data["id"] = str(uuid5(NAMESPACE, "some-identifier-string"))
+            if requestor_identifier:
+                data["id"] = str(
+                    uuid5(NAMESPACE, f"hsds-object-{requestor_identifier}")
+                )
+            else:
+                data["id"] = str(uuid5(NAMESPACE, f"hsds-object"))
 
+# Remove legacy *_id fields from all objects after linking
+def remove_legacy_id_fields(obj):
+    if isinstance(obj, list):
+        for item in obj:
+            remove_legacy_id_fields(item)
+    elif isinstance(obj, dict):
+        keys_to_remove = [k for k in obj.keys() if k.endswith("_id")]
+        for k in keys_to_remove:
+            del obj[k]
+        for v in obj.values():
+            remove_legacy_id_fields(v)
 
-def searching_and_assigning(collections: List[Tuple[str, List[Dict[str, Any]]]]) -> List[Tuple[str, List[Dict[str, Any]]]]:
+def searching_and_assigning(
+    collections: List[Tuple[str, List[Dict[str, Any]]]],
+    requestor_identifier: Optional[str] = None,
+) -> List[Tuple[str, List[Dict[str, Any]]]]:
     if not collections:
         return collections
 
@@ -260,7 +288,9 @@ def searching_and_assigning(collections: List[Tuple[str, List[Dict[str, Any]]]])
     # Converts the list of tuples into a dict for faster lookup
     collection_map = {}
     for name, objs in collections:
-        collection_map[name] = objs # Tuple structure: ("organization", [dicts]) is now a key value pair
+        collection_map[name] = (
+            objs  # Tuple structure: ("organization", [dicts]) is now a key value pair
+        )
 
     # Correct order to process object types
     process_order = get_process_order(collections)
@@ -268,18 +298,22 @@ def searching_and_assigning(collections: List[Tuple[str, List[Dict[str, Any]]]])
     # Creates a list to track which objects should be deleted
     to_delete = {}
     for name, _ in collections:
-        to_delete[name] = [] # Each collection starts with a empty list
+        to_delete[name] = []  # Each collection starts with a empty list
 
     # Iterates through each object type in the correct order
     for obj_type in process_order:
-        objects = collection_map.get(obj_type) # Retrieves all objs (dicts) of this type from the mapping
-        if not objects: # If no objects, skip to next
+        objects = collection_map.get(
+            obj_type
+        )  # Retrieves all objs (dicts) of this type from the mapping
+        if not objects:  # If no objects, skip to next
             continue
-        
+
         # Loops through each object in collection
         for original in list(objects):
-            relations = identify_parent_relationships(original) # Dynamically infers relations from *_id fields
-            if not relations: # If object has no relation, skip it
+            relations = identify_parent_relationships(
+                original
+            )  # Dynamically infers relations from *_id fields
+            if not relations:  # If object has no relation, skip it
                 continue
 
             # Pass collection_map directly instead of the full collections list
@@ -287,30 +321,33 @@ def searching_and_assigning(collections: List[Tuple[str, List[Dict[str, Any]]]])
 
             # Checks to see if object was linked after attached
             for target_collection, target_id in relations:
-                found = find_in_collection(collection_map, target_collection, target_id, "id") # Looks for target in collection
-                if found: # Once confirmed attached, stops checking relations
-                    to_delete[obj_type].append(original) # Adds to be deleted later
+                found = find_in_collection(
+                    collection_map, target_collection, target_id, "id"
+                )  # Looks for target in collection
+                if found:  # Once confirmed attached, stops checking relations
+                    to_delete[obj_type].append(original)  # Adds to be deleted later
                     break
-    
+
     # Goes through each collection type and removes objs that were attached
     for c_name, objs_to_remove in to_delete.items():
-        updated_objects = [] # New list exluding deleted items
+        updated_objects = []  # New list exluding deleted items
         for o in collection_map[c_name]:
             if o not in objs_to_remove:
                 updated_objects.append(o)
-        collection_map[c_name] = updated_objects # Replaces old list with updated list
+        collection_map[c_name] = updated_objects  # Replaces old list with updated list
 
-    # Generate IDs for all objects in the collection map
-    # This iterates through every single object in our collection (including the nested ones)
     for name, objects in collection_map.items():
-        generate_ids(objects)
+        remove_legacy_id_fields(objects)
+        generate_ids(objects, requestor_identifier)
 
     # Rebuilds the final result as a list of tuples to match the original format returned in build_collections
     final_result = []
     for name in process_order:
         # Only includes collection in map
         if name in collection_map:
-            objects = collection_map.get(name, []) # Gets cleaned list of objects
-            final_result.append((name, objects)) # Adds it back as (name, objects) tuple
+            objects = collection_map.get(name, [])  # Gets cleaned list of objects
+            final_result.append(
+                (name, objects)
+            )  # Adds it back as (name, objects) tuple
 
     return final_result
