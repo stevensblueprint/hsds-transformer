@@ -5,7 +5,6 @@ from urllib.parse import urlparse
 
 # url validation checking
 def _validate_url(url, valid_urls):
-    try:
         urlList = valid_urls.split(',')
 
         parsed = urlparse(url)
@@ -13,17 +12,16 @@ def _validate_url(url, valid_urls):
         if parsed.netloc != "":
             urlElements.append(parsed.netloc)
         
-        if all(urlElements) == False:
+        if not all(urlElements) :
             raise click.ClickException("Invalid URL Provided")
         else:
-            if ((parsed.scheme in ['http','https']) == False) or ((parsed.netloc in urlList) == False) or (_path_ext(parsed.path) != 'json'):
+            if ((not parsed.scheme in ['http','https'])) or ((not parsed.netloc in urlList)) or (_path_ext(parsed.path) != 'json'):
                 raise click.ClickException("Invalid URL Provided")
-    except:
-        raise click.ClickException("Invalid URL Provided")
 
 def _post_url(url):
     request = requests.get(url)
-    if request.status_code != 200: raise click.ClickException("Url Unreachable")
+    if request.status_code != 200: 
+        raise click.ClickException("Url Unreachable")
 
 def _path_ext(path):
     return (path.split('.')[-1])
