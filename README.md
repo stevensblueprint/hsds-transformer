@@ -39,6 +39,16 @@ _NOTE Currently the actual reverse transformation is not implemented_
 
 Run `python -m src.cli.reverse_transform --mapping-dir path\to\mappings --hsds-dir path\to\hsds-json --output-dir path\to\output` (powershell) or `python3 -m src.cli.reverse_transform --mapping-dir path/to/mappings --hsds-dir path/to/hsds-json --output-dir path/to/output` (bash). The output directory is optional and defaults to `reverse_output`.
 
+
+### Mapping Generation 
+_NOTE The mapping generation functionality is not yet implemented
+
+Bash: Run 'python3 -m src.cli.maintenance generate-mapping --github-url <github-url> --check-connectivity'
+
+Powershell: Run 'python -m src.cli.maintenance generate-mapping --github-url <github-url> --check-connectivity'
+
+The check-connectivity argument is optional and will check if the url is reachable
+
 ## BRIEF PROCESS EXPLANATION
 
 We create a collection of each of the HSDS files by going through each input file and doing the following:
