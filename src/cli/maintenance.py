@@ -15,7 +15,7 @@ def _validate_url(url, valid_urls):
         if not all(urlElements) :
             raise click.ClickException("Invalid URL Provided")
         else:
-            if ((not parsed.scheme in ['http','https'])) or ((not parsed.netloc in urlList)) or (_path_ext(parsed.path) != 'json'):
+            if ((parsed.scheme not in ['http','https'])) or ((parsed.netloc not in urlList)) or (_path_ext(parsed.path) != 'json'):
                 raise click.ClickException("Invalid URL Provided")
 
 def _post_url(url):
