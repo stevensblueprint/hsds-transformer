@@ -44,8 +44,8 @@ def build_collections(data_directory: str):
         if not match:
             continue
 
-        input_name, object_type = match.groups()  # Grabs the name and type of object for labeling in results
-        input_file = data_directory / f"{input_name}.csv"  # Uses the extracted name to find the corresponding input CSV file
+        input_name, object_type = match.groups() # Grabs the name and type of object for labeling in results
+        input_file = data_directory / f"{input_name}.csv" # Uses the extracted name to find the corresponding input CSV file
 
         # Skips this mapping if the matching input CSV doesn't exist
         if not input_file.exists():
@@ -57,7 +57,7 @@ def build_collections(data_directory: str):
         if not input_rows:
             print(f"Warning: Input file '{input_file.name}' is empty or has no valid rows. Skipping.")
             continue
-        
+
         # Parses the mapping file into a nested structure and optional filter
         mapping, filter_spec = parse_nested_mapping(str(mapping_file), input_name)
 
@@ -80,7 +80,7 @@ def build_collections(data_directory: str):
             if mapped_dictionary is not None:
                 objects.append(mapped_dictionary)
 
-        results.append((object_type, objects))  # Adds tuple of object type and list of dictionaries. For example: ("organization", [{x}, {y}, ...])
+        results.append((object_type, objects)) # Adds tuple of object type and list of dictionaries. For example: ("organization", [{x}, {y}, ...])
 
     return results
 
@@ -92,6 +92,7 @@ SINGULAR_CHILD_CASES = { # (target_collection, original_type)
     ("attribute", "taxonomy_term"),
     ("taxonomy_term", "taxonomy_detail"),
 }
+
 
 
 def find_in_collection(
@@ -300,7 +301,7 @@ def searching_and_assigning(
         # Loops through each object in collection
         for original in list(objects):
             relations = identify_parent_relationships(original) # Dynamically infers relations from *_id fields
-            if not relations:  # If object has no relation, skip it
+            if not relations: # If object has no relation, skip it
                 continue
 
             # Pass collection_map directly instead of the full collections list
