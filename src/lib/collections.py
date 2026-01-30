@@ -3,6 +3,7 @@ import re
 from .parser import parse_input_csv, parse_nested_mapping
 from .mapper import nested_map, get_process_order
 from .relationships import identify_parent_relationships
+from .relations import HSDS_RELATIONS
 from typing import Dict, List, Tuple, Any, Optional
 from uuid import UUID, uuid5
 
@@ -264,7 +265,12 @@ def remove_legacy_id_fields(obj):
         for item in obj:
             remove_legacy_id_fields(item)
     elif isinstance(obj, dict):
-        keys_to_remove = [k for k in obj.keys() if k.endswith("_id")]
+        keys_to_remove = []
+        for k in obj.keys():
+            if k.endswith("_id"):
+                base_name = k[:-3]
+                if base_name in HSDS_RELATIONS:
+                    keys_to_remove.append(k)
         for k in keys_to_remove:
             del obj[k]
         for v in obj.values():
