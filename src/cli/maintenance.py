@@ -1,27 +1,32 @@
 import click
-#import requests
-from urllib.parse import *
+import requests
+from urllib.parse import urlparse
 
 
-
+# url validation checking
 def _validate_url(url, valid_urls):
     try:
         urlList = valid_urls.split(',')
 
         parsed = urlparse(url)
-        urlComp = [parsed.scheme, parsed.path]
+        urlElements = [parsed.scheme, parsed.path]
         if parsed.netloc != "":
-            urlComp.append(parsed.netloc)
+            urlElements.append(parsed.netloc)
         
-        if all(urlComp) == False:
+        if all(urlElements) == False:
             raise click.ClickException("Invalid URL Provided")
         else:
-            if (parsed.scheme in ['http','https']) == False:
-                raise click.ClickException("Invalid URL Provided")
-            elif (parsed.netloc in urlList) == False:
+            if ((parsed.scheme in ['http','https']) == False) or ((parsed.netloc in urlList) == False) or (_path_ext(parsed.path) != 'json'):
                 raise click.ClickException("Invalid URL Provided")
     except:
         raise click.ClickException("Invalid URL Provided")
+
+def _post_url(url):
+    request = requests.get(url)
+    if request.status_code != 200: raise click.ClickException("Url Unreachable")
+
+def _path_ext(path):
+    return (path.split('.')[-1])
 
 
 
@@ -29,17 +34,32 @@ def _validate_url(url, valid_urls):
 def main():
     pass
 
-
+# subcommand generate mapping
 @main.command()
-@click.option('--github-url',type=click.STRING,required=True)
-@click.option("--valid-hostname",type=click.STRING,default="github.com,raw.githubusercontent.com")
-def generate_mapping(github_url, valid_hostname):
+@click.option(
+    '--github-url',
+    type=click.STRING,
+    required=True,
+    help="Github URL for Json Schema"
+)
+@click.option(
+    "--valid-hostname",
+    type=click.STRING,
+    default="github.com,raw.githubusercontent.com",
+    help="Valid Hostnames for URL"
+)
+@click.option(
+    '--check-connectivity',
+    is_flag=True
+)
+def generate_mapping(github_url, valid_hostname, check_connectivity):
     _validate_url(github_url,valid_hostname)
+    if check_connectivity:
+        _post_url(github_url)
+
     click.echo("Valid url, JSON Schema is reachable, mapping generation not yet implemented")
+
 
 if __name__ == "__main__":
     main()
 
-
-#https://github.com/SchemaStore/schemastore/blob/master/src/schemas/json/abc-inventory-module-data-5.1.0.json
-#https://raw.githubusercontent.com/SchemaStore/schemastore/refs/heads/master/src/schemas/json/abc-inventory-module-data-5.1.0.json
