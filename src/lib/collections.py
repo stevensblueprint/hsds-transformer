@@ -295,6 +295,9 @@ def searching_and_assigning(
     if not collections:
         return collections
 
+    global _id_counter
+    _id_counter = 0
+
     # Build collection_map once and reuse it everywhere
     # Converts the list of tuples into a dict for faster lookup
     collection_map = {}
