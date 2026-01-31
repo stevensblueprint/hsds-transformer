@@ -214,7 +214,7 @@ def attach_original_to_targets(
                 append_to_list_field(target, plural_key, original)
 
 
-def generate_ids(data: Any, requestor_identifier: Optional[str] = None) -> None:
+def generate_ids(data: Any, requestor_identifier: Optional[str] = None, visited: Optional[set] = None) -> None:
     """
     Recursively traverses the data structure (list or dict) to generate IDs for objects.
 
@@ -224,16 +224,27 @@ def generate_ids(data: Any, requestor_identifier: Optional[str] = None) -> None:
 
     Args:
         data: The data structure to process (list of dicts, or a single dict).
+        requestor_identifier: Optional identifier for UUID generation.
+        visited: Set tracking visited objects to prevent re-processing shared references.
     """
+    if visited is None:
+        visited = set()
+
     if isinstance(data, list):
         for item in data:
-            generate_ids(item, requestor_identifier)
+            generate_ids(item, requestor_identifier, visited)
     elif isinstance(data, dict):
+        # Skip if this dict has already been processed
+        obj_id = id(data)
+        if obj_id in visited:
+            return
+        visited.add(obj_id)
+
         # Recursively process all values in the dictionary FIRST
         for key, value in list(data.items()):
             # Skip processing the 'id' field itself
             if key != "id":
-                generate_ids(value, requestor_identifier)
+                generate_ids(value, requestor_identifier, visited)
 
         # Process this object's ID
         # Check if ID exists
