@@ -1,6 +1,6 @@
 from pathlib import Path
 import re
-from .parser import parse_input_csv, parse_nested_mapping
+from .parser import parse_input_csv, parse_nested_mapping, validate_mapping_against_parsed_data
 from .mapper import nested_map, get_process_order
 from .relationships import identify_parent_relationships
 from .relations import HSDS_RELATIONS
@@ -65,6 +65,13 @@ def build_collections(data_directory: str):
         if not mapping:
             print(f"Warning: Mapping file '{mapping_file.name}' is empty or invalid. Skipping.")
             continue
+
+        validate_mapping_against_parsed_data(
+            mapping_spec=mapping,
+            input_rows=input_rows,
+            filename=input_name,
+            mapping_file=mapping_file.name,
+        )
 
         objects = [] # Converted object list
 

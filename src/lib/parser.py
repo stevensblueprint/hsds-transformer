@@ -1,5 +1,6 @@
 import csv
 import os
+from typing import Any, Dict
 
 def parse_input_csv(input_file, filename) -> list:
     """
@@ -29,8 +30,9 @@ def parse_nested_mapping(mapping_file, filename) -> tuple[dict, dict | None]:
              If empty, no filter is applied (returns None for filter)
     - Row 3+: Mapping rows: [output_path, input_field]
     """
-    mapping = {}
-    filter_spec = None
+
+    mapping: dict = {}
+    filter_spec: dict | None = None
 
     with open(mapping_file, 'r', newline='', encoding='utf-8') as file:
         reader = csv.reader(file)
@@ -146,3 +148,68 @@ def parse_mapping(mapping_file, filename) -> dict:
                 mapping[row[1]] = {"path": filename + "." + row[0]}
 
     return mapping
+
+def validate_mapping_against_parsed_data(
+    mapping_spec: Dict[str, Any],
+    input_rows: list[dict],
+    filename: str,
+    mapping_file: str,
+) -> None:
+    """
+    Check that every column referenced in a mapping exists in the original file
+    This uses already parsed data instead of reopening CSVs
+    """
+
+    if not input_rows:
+        # Base case
+        return
+
+    # Gets the first row to use as a structure example
+    first_row = input_rows[0]
+
+    # checks if row follows structuere: { filename: {column: value, ... } }
+    # If it does, it pulls out its inner column dict
+    if isinstance(first_row, dict) and filename in first_row and isinstance(first_row[filename], dict):
+        data_row = first_row[filename]
+    else:
+        # if not it treats the row as the set of columns itself
+        data_row = first_row
+
+    original_fields = {str(k).strip() for k in data_row.keys() if str(k).strip()}
+
+    referenced_cols: set[str] = set()
+
+    def walk(node: Any) -> None:
+        # Recursively "walk" through the mapping and pick out any path fields
+        if isinstance(node, dict):
+            if "path" in node:
+                p = node["path"]
+                if isinstance(p, str):
+                    paths = [p]
+                elif isinstance(p, list):
+                    paths = [x for x in p if isinstance(x, str)]
+                else:
+                    paths = []
+
+                for full in paths:
+                    # We only care about paths relevant to this file (ex: "AgencyMapping.Agency")
+                    prefix = f"{filename}."
+                    if full.startswith(prefix):
+                        col = full[len(prefix):]
+                        if col:
+                            referenced_cols.add(col.strip())
+            # Recursively run in children
+            for v in node.values():
+                walk(v)
+        elif isinstance(node, list):
+            for item in node:
+                walk(item)
+
+    walk(mapping_spec)
+
+    missing = sorted(col for col in referenced_cols if col not in original_fields)
+
+    if missing:
+        # Finds any columns that the mapping wants that aren't in the file
+        missing_str = ", ".join(missing)
+        raise ValueError(f"Invalid mapping: these columns are referenced in '{mapping_file}' for input '{filename}.csv' but do not exist in the input data: {missing_str}")
