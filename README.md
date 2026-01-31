@@ -39,6 +39,7 @@ Optionally, specify an ID or name of the parent organization performing the tran
 `python -m src.cli.main path/to/datadir --parent-org "Name or ID"`
 
 Without specifying an output directory, the transformer will create one in your root directory or add the files to `output` if it already exists.
+
 **Reverse transform (HSDS JSON to CSV inputs).**
 _NOTE Currently the actual reverse transformation is not implemented_
 
