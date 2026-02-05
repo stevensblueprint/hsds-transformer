@@ -1,0 +1,10 @@
+path,input_files_field,split,strip,description
+Status,Active,,,
+id,ID,,,
+name,Name,,,
+description,Description,,"<p>;</p>",
+languages[].name,Languages,",",,
+phones[].number,Phone1;Phone2,,,
+phones[].type,Phone1Type;Phone2Type,,,
+attributes[].value,Feature1;Feature2,,,
+tags[],Tags,",",,
