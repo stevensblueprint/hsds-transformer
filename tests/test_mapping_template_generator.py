@@ -5,11 +5,9 @@ import tempfile
 import unittest
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-
 from src.lib.mapping_template import flatten_schema, write_mapping_template_csv
 
-
+ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = ROOT / "tests" / "fixtures"
 
 
