@@ -9,6 +9,9 @@ wheels/
 # Virtual environments
 .venv
 
+# agent skills
+.agents
+PLAN.md
 # Output folder
 output/
 json_schema/

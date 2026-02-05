@@ -1,0 +1,13 @@
+path,input_files_field,split,strip,description,required
+,,,,,
+id,,,,Identifier,true
+name,,,,Name,false
+details,,,,Details,true
+details.summary,,,,Summary,true
+details.notes,,,,Notes,false
+tags[],,,,Tags,true
+contacts[],,,,Contacts,false
+contacts[].email,,,,Email,false
+contacts[].phone,,,,Phone,false
+contacts[].addresses[],,,,Addresses,false
+contacts[].addresses[].line1,,,,Line 1,false
