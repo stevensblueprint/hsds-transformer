@@ -5,7 +5,7 @@ from typing import Tuple, Callable, MutableMapping, Any, Dict
 from uuid import uuid4
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.types import Message, ASGIApp
+from starlette.types import ASGIApp
 from .utils import AsyncIteratorWrapper
 
 
