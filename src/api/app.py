@@ -30,6 +30,7 @@ app.add_middleware(RouterLoggingMiddleware, logger=logging.getLogger("hsds.api")
     response_class=StreamingResponse,
 )
 async def transform(zip_file: UploadFile = File(..., description="Zip file containing input and mapping CSVs")) -> StreamingResponse:
+    # Input validation: require a non-empty .zip file
     if not zip_file.filename or not zip_file.filename.lower().endswith(".zip"):
         raise HTTPException(status_code=422, detail="Must provide a zip file")
     content = await zip_file.read()
@@ -42,12 +43,14 @@ async def transform(zip_file: UploadFile = File(..., description="Zip file conta
     except zipfile.BadZipFile:
         raise HTTPException(status_code=422, detail="Invalid zip file")
 
+    # Unzip into a temp directory
     with tempfile.TemporaryDirectory() as input_dir:
         with zipfile.ZipFile(io.BytesIO(content), "r") as zf:
             zf.extractall(input_dir)
         if not any(Path(input_dir).iterdir()):
             raise HTTPException(status_code=422, detail="Zip file extracts to an empty folder")
 
+        # Run the transformer: build collections, then link parents/children
         try:
             results = build_collections(input_dir)
         except ValueError as e:
@@ -55,6 +58,7 @@ async def transform(zip_file: UploadFile = File(..., description="Zip file conta
 
         results = searching_and_assigning(results)
 
+        # Write each object to JSON files in another temp dir, then zip and return 
         with tempfile.TemporaryDirectory() as output_dir:
             save_objects_to_json(results, output_dir)
             buf = io.BytesIO()
