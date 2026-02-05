@@ -1,8 +1,6 @@
-import pytest
 import sys
 import os
 from pathlib import Path
-from uuid import UUID
 
 # Ensure src is in path so we can import the transformer modules
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
