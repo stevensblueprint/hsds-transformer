@@ -26,7 +26,6 @@ class RouterLoggingMiddleware(BaseHTTPMiddleware):
             "X-API-REQUEST-ID": request_id,
         }
 
-        await self.set_body(request)
         response, response_dict = await self._log_response(
             call_next, request, request_id
         )
@@ -37,17 +36,6 @@ class RouterLoggingMiddleware(BaseHTTPMiddleware):
         self._logger.info(logging_dict)
         return response
 
-    async def set_body(self, request: Request) -> None:
-        """
-        Make the request body available to be logged within a middleware.
-        """
-        receive_ = await request._receive()
-
-        async def receive() -> Message:
-            return receive_
-
-        request._receive = receive
-
     async def _log_request(self, request: Request) -> Dict[str, Any]:
         path = request.url.path
         if request.query_params:
@@ -57,14 +45,10 @@ class RouterLoggingMiddleware(BaseHTTPMiddleware):
             "method": request.method,
             "path": path,
             "ip": request.client.host if request.client else "unknown",
+            "body": None,
         }
-
-        try:
-            body = await request.json()
-            request_logging["body"] = body
-        except (json.JSONDecodeError, UnicodeDecodeError):
-            body = None
-
+        # Do not read the request body here; it would consume the stream and break
+        # file uploads and StreamingResponse (e.g. zip download).
         return request_logging
 
     async def _log_response(
