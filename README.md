@@ -9,7 +9,15 @@ python3 -m venv .venv # Create a virtualenv
 
 source .venv/bin/activate # Activate the virtualenv
 
+# Install dependencies using pip or uv
+
 pip3 install -r requirements.txt # Install dependencies
+
+# OR
+
+pip3 install uv # install uv
+
+uv sync # install dependencies
 ```
 
 (powershell)
@@ -19,7 +27,15 @@ python -m venv .venv # Create a virtualenv
 
 .venv\Scripts\activate # Activate virtualenv
 
+# Install dependencies using pip or uv
+
 pip install -r requirements.txt # Install dependencies
+
+# OR
+
+pip install uv # install uv
+
+uv sync # install dependencies
 ```
 
 ## Running the command line tool
