@@ -4,6 +4,9 @@ from dataclasses import dataclass
 from typing import Any, Iterable
 
 
+from ..maintenance.parse_json import fetch_json_from_url
+
+
 @dataclass(frozen=True)
 class FieldSpec:
     path: str
@@ -86,3 +89,16 @@ def flatten_schema(schema: dict[str, Any]) -> list[FieldSpec]:
 
     walk(schema, "", True)
     return rows
+
+
+def fetch_schema_from_url(url: str, *, timeout_s: int = 30) -> dict[str, Any]:
+    """Fetch a schema over HTTP and return the parsed dictionary."""
+
+    return fetch_json_from_url(url, timeout_s=timeout_s)
+
+
+def flatten_schema_from_url(url: str, *, timeout_s: int = 30) -> list[FieldSpec]:
+    """Shortcut to flatten a schema fetched from *url*."""
+
+    schema = fetch_schema_from_url(url, timeout_s=timeout_s)
+    return flatten_schema(schema)
