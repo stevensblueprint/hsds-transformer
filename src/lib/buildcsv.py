@@ -1,5 +1,5 @@
 import csv
-import os 
+#import os 
 
 def __get_nested_value(data, path):
     '''Retrieves nested dictionary values, i.e get_nested_value(data,user.name) will retrieve name key from user key in data dictionary, with nested values 
