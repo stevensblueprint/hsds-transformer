@@ -47,6 +47,12 @@ async def transform(zip_file: UploadFile = File(..., description="Zip file conta
     with tempfile.TemporaryDirectory() as input_dir:
         with zipfile.ZipFile(io.BytesIO(content), "r") as zf:
             zf.extractall(input_dir)
+
+        # Handle case where zip creates a single top-level folder
+        extracted_items = list(Path(input_dir).iterdir())
+        if len(extracted_items) == 1 and extracted_items[0].is_dir():
+            input_dir = str(extracted_items[0])
+   
         if not any(Path(input_dir).iterdir()):
             raise HTTPException(status_code=422, detail="Zip file extracts to an empty folder")
 
