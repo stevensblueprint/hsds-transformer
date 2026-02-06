@@ -50,17 +50,10 @@ def main():
     default="github.com,raw.githubusercontent.com",
     help="Valid Hostnames for URL"
 )
-@click.option(
-    '--check-connectivity',
-    is_flag=True
-)
-def generate_mapping(github_url, valid_hostname, check_connectivity):
+def generate_mapping(github_url, valid_hostname):
     _validate_url(github_url,valid_hostname)
-    if check_connectivity:
-        _post_url(github_url)
-        click.echo("Valid url, JSON Schema is reachable, mapping generation not yet implemented")
-    else:
-        click.echo("Valid url format.")
+    _post_url(github_url)
+    click.echo("Valid url, JSON Schema is reachable, mapping generation not yet implemented")
 
 
 if __name__ == "__main__":
