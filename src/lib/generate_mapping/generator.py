@@ -45,6 +45,14 @@ def flatten_schema(schema: dict[str, Any]) -> list[FieldSpec]:
         if not isinstance(node, dict):
             return
 
+        # Handle composition keywords (allOf, oneOf, anyOf)
+        for composition_key in ("allOf", "oneOf", "anyOf"):
+            composition_value = node.get(composition_key)
+            if isinstance(composition_value, list):
+                for entry in composition_value:
+                    if isinstance(entry, dict):
+                        walk(entry, prefix, ancestors_required)
+
         node_type = node.get("type")
         properties = node.get("properties")
         if node_type == "object" or isinstance(properties, dict):
