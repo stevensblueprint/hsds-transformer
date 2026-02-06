@@ -49,9 +49,30 @@ def flatten_schema(schema: dict[str, Any]) -> list[FieldSpec]:
         for composition_key in ("allOf", "oneOf", "anyOf"):
             composition_value = node.get(composition_key)
             if isinstance(composition_value, list):
-                for entry in composition_value:
-                    if isinstance(entry, dict):
-                        walk(entry, prefix, ancestors_required)
+                if composition_key == "allOf":
+                    # Collect and merge all "required" arrays from every dict entry
+                    # so that required items declared in one sibling are applied
+                    # when walking property definitions in other siblings
+                    merged_required: set[str] = set()
+                    for entry in composition_value:
+                        if isinstance(entry, dict):
+                            merged_required.update(iter_required(entry))
+                    # Extend or create merged_ancestors_required based on current ancestors_required
+                    # We inject the merged required set into each entry before walking
+                    for entry in composition_value:
+                        if isinstance(entry, dict):
+                            # Create a shallow copy to inject merged required without mutating original
+                            merged_entry = dict(entry)
+                            existing_required = merged_entry.get("required", [])
+                            if isinstance(existing_required, list):
+                                merged_entry["required"] = list(merged_required)
+                            else:
+                                merged_entry["required"] = list(merged_required)
+                            walk(merged_entry, prefix, ancestors_required)
+                else:
+                    for entry in composition_value:
+                        if isinstance(entry, dict):
+                            walk(entry, prefix, ancestors_required)
 
         node_type = node.get("type")
         properties = node.get("properties")
