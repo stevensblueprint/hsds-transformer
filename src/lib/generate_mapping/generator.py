@@ -91,14 +91,14 @@ def flatten_schema(schema: dict[str, Any]) -> list[FieldSpec]:
     return rows
 
 
-def fetch_schema_from_url(url: str, *, timeout_s: int = 30) -> dict[str, Any]:
+def _fetch_schema_from_url(url: str, *, timeout_s: int = 30) -> dict[str, Any]:
     """Fetch a schema over HTTP and return the parsed dictionary."""
 
     return fetch_json_from_url(url, timeout_s=timeout_s)
 
 
-def flatten_schema_from_url(url: str, *, timeout_s: int = 30) -> list[FieldSpec]:
+def _flatten_schema_from_url(url: str, *, timeout_s: int = 30) -> list[FieldSpec]:
     """Shortcut to flatten a schema fetched from *url*."""
 
-    schema = fetch_schema_from_url(url, timeout_s=timeout_s)
+    schema = _fetch_schema_from_url(url, timeout_s=timeout_s)
     return flatten_schema(schema)
