@@ -1,4 +1,4 @@
-from buildcsv import *
+from buildcsv import reverseTransform
 
 paths = [
     ("user.name", "Name"),

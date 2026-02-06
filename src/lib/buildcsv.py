@@ -31,8 +31,8 @@ def reverseTransform(dictList, pathsTuple, csvPath):
                     if len(entry) == 1:
                         dataFields.append(entry[0])
                     else:
-                        dataFields.append(",".join(map(str,entry)))
-                except:
+                        dataFields.append((",".join(map(str,entry))) if entry else "") 
+                except KeyError:
                     dataFields.append("")
 
             writer.writerow(dataFields)
