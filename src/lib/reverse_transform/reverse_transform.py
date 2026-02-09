@@ -4,13 +4,13 @@ import json
 
 def ingest_json_directory(directory_path: str) -> list[dict]:
     """
-    Read all JSON files from a directory and return as a list of dictionaries.
+    Read all .json files in the given directory and return their parsed contents.
     
-    Args:
-        directory_path: Path to directory containing JSON files
-        
+    Parameters:
+        directory_path (str): Path to the directory containing JSON files.
+    
     Returns:
-        List of dictionaries, one per JSON file
+        list[dict]: A list of dictionaries parsed from each JSON file found in the directory.
     """
     results = []
     
@@ -25,25 +25,18 @@ def ingest_json_directory(directory_path: str) -> list[dict]:
 
 def get_path_value(hsds_directory: dict, path: str) -> tuple:
     """
-    Gets all items at a given path in an HSDS directory. If multiple items
-    lie at the same path in different branches, returns all of them.
-
-    Args:
-        HSDS_directory: Python dictionary in canonical HSDS format.
-
+    Retrieve all values located at the given dot-separated path within an HSDS directory, supporting list segments denoted with [] (e.g., "locations[].phones[].number").
+    
+    Parameters:
+        hsds_directory (dict): HSDS directory represented in canonical Python dict form.
+        path (str): Dot-separated path string. Append "[]" to a segment name to indicate the segment is expected to be a list and should be flattened across branches.
+    
     Returns:
-        All items at path. If multiple branches can be traversed to get to 
-        the same path, one item is pulled from each branch.
-
+        tuple: A tuple containing every value found at the specified path across all branches.
+    
     Raises:
-        ValueError: If, following every actual path described by input path,
-            the path cannot be traversed fully. E.g. for path
-            locations[].phones[].number, if there are zero locations, or if any
-            location has zero phones, or if any phone does not have a number,
-            this error with be thrown.
-        ValueError: If, at a path node specifying a list, e.g. locations[], 
-            there is not a list, but a singular object, this error will be
-            thrown.
+        ValueError: If a path segment is missing in every applicable branch such that the path cannot be fully traversed.
+        ValueError: If a path segment marked with "[]" is not a list in the input data.
     """
     path_string = path
 
