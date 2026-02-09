@@ -29,7 +29,9 @@ def get_path_value(hsds_directory: dict, path: str) -> tuple:
     lie at the same path in different branches, returns all of them.
 
     Args:
-        HSDS_directory: Python dictionary in canonical HSDS format.
+        hsds_directory: Python dictionary in canonical HSDS format.
+        path:           Path a la mapping template, e.g. 'id', 'program.name',
+                        'contacts[].email'.
 
     Returns:
         All items at path. If multiple branches can be traversed to get to 
@@ -40,7 +42,7 @@ def get_path_value(hsds_directory: dict, path: str) -> tuple:
             the path cannot be traversed fully. E.g. for path
             locations[].phones[].number, if there are zero locations, or if any
             location has zero phones, or if any phone does not have a number,
-            this error with be thrown.
+            this error will be thrown.
         ValueError: If, at a path node specifying a list, e.g. locations[], 
             there is not a list, but a singular object, this error will be
             thrown.
@@ -64,14 +66,12 @@ def get_path_value(hsds_directory: dict, path: str) -> tuple:
                 raise ValueError(f"Could not find path \"{p}\" in item {c}.") from ke
         if p_is_list:
             temp2 = []
-            try:
-                for t in temp:
-                    assert isinstance(t, list)
-                    temp2 += t
-            except AssertionError:
-                raise ValueError(f"Poorly formatted input. Expected all {p} in "
-                    f"{path_string} to be in a list, but found one in a non-list "
-                    f"in {curr} \n---") from None
+            for t in temp:
+                if not isinstance(t, list):
+                    raise ValueError(f"Poorly formatted input. Expected all {p} in "
+                        f"{path_string} to be in a list, but found one in a non-list "
+                        f"in {curr} \n---") from None
+                temp2 += t
             temp = temp2
         curr = temp
 
