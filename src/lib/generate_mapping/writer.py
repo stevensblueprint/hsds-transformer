@@ -17,7 +17,7 @@ HEADER = [
 
 
 def write_mapping_template_csv(rows: Iterable[FieldSpec], out_file: str) -> None:
-    with open(out_file, "w", newline="", encoding="utf-8") as handle:
+    with open(out_file, "x", newline="", encoding="utf-8") as handle:
         writer = csv.writer(handle, lineterminator="\n")
         writer.writerow(HEADER)
         writer.writerow([""] * len(HEADER))
