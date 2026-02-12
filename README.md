@@ -55,9 +55,25 @@ _NOTE Currently the actual reverse transformation is not implemented_
 
 Run `python -m src.cli.reverse_transform --mapping-dir path\to\mappings --hsds-dir path\to\hsds-json --output-dir path\to\output` (powershell) or `python3 -m src.cli.reverse_transform --mapping-dir path/to/mappings --hsds-dir path/to/hsds-json --output-dir path/to/output` (bash). The output directory is optional and defaults to `reverse_output`.
 
+### Sanity Check
 
-### Mapping Generation 
-_NOTE The mapping generation functionality is not yet implemented
+To confirm that the transformer is functioning correctly, you can run it against the included `sanity_check` dataset.
+
+**Bash:**
+
+```bash
+python3 -m src.cli.main data/sanity_check
+```
+
+**Powershell:**
+
+```powershell
+python -m src.cli.main data\sanity_check
+```
+
+### Mapping Generation
+
+\_NOTE The mapping generation functionality is not yet implemented
 
 Bash: Run 'python3 -m src.cli.maintenance generate-mapping --github-url <github-url>'
 
