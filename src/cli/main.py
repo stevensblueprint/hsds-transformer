@@ -7,12 +7,12 @@ import sys
 @click.command()
 @click.argument('data_dictionary', type=click.Path(exists=True, file_okay=False, dir_okay=True, readable=True))
 @click.option('--output-dir', '-o', default='output', help='Output directory for JSON files')
-@click.option('--parent-org', default=None, help='ID or name of person/organization performing the transformation')
+@click.option('--generate-ids', default=None, help='Generate new IDs using the provided organization name/id')
 
-def main(data_dictionary, output_dir, parent_org):
+def main(data_dictionary, output_dir, generate_ids):
     try:
         results = build_collections(data_dictionary)  # Builds collections
-        results = searching_and_assigning(results, requestor_identifier=parent_org) # Links and cleans up, passes transformer_id
+        results = searching_and_assigning(results, requestor_identifier=generate_ids) # Links and cleans up, passes transformer_id
         
         # Save individual JSON files
         save_objects_to_json(results, output_dir)

@@ -351,7 +351,9 @@ def searching_and_assigning(
 
     for name, objects in collection_map.items():
         remove_legacy_id_fields(objects)
-        generate_ids(objects, requestor_identifier)
+        # Only generate new IDs if --generate-ids flag was provided
+        if requestor_identifier is not None:
+            generate_ids(objects, requestor_identifier)
 
     # Rebuilds the final result as a list of tuples to match the original format returned in build_collections
     final_result = []
