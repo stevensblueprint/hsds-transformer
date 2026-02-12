@@ -59,9 +59,9 @@ Run `python -m src.cli.reverse_transform --mapping-dir path\to\mappings --hsds-d
 ### Mapping Generation 
 _NOTE The mapping generation functionality is not yet implemented
 
-Bash: Run 'python3 -m src.cli.maintenance generate-mapping --github-url <github-url> --check-connectivity'
+Bash: Run 'python3 -m src.cli.maintenance generate-mapping --github-url <github-url>'
 
-Powershell: Run 'python -m src.cli.maintenance generate-mapping --github-url <github-url> --check-connectivity'
+Powershell: Run 'python -m src.cli.maintenance generate-mapping --github-url <github-url>'
 
 The check-connectivity argument is optional and will check if the url is reachable
 
