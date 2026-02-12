@@ -34,9 +34,11 @@ Finally run, `python -m src.cli.main path\to\datadir` (powershell) or `python3 -
 
 You can also specify an output directory with `python -m src.cli.main path\to\datadir --output-dir path\to\outputdir` (windows or bash).
 
-Optionally, specify an ID or name of the parent organization performing the transformation with:
+Optionally, generate new UUID-based IDs for all objects using:
 
-`python -m src.cli.main path/to/datadir --parent-org "Name or ID"`
+`python -m src.cli.main path/to/datadir --generate-ids "Organization Name or ID"`
+
+By default, the transformer preserves original IDs from the source data. Use `--generate-ids` when you want to create new standardized IDs.
 
 Without specifying an output directory, the transformer will create one in your root directory or add the files to `output` if it already exists.
 
