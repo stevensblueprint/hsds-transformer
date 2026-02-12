@@ -9,7 +9,15 @@ python3 -m venv .venv # Create a virtualenv
 
 source .venv/bin/activate # Activate the virtualenv
 
+# Install dependencies using pip or uv
+
 pip3 install -r requirements.txt # Install dependencies
+
+# OR
+
+pip3 install uv # install uv
+
+uv sync # install dependencies
 ```
 
 (powershell)
@@ -19,7 +27,15 @@ python -m venv .venv # Create a virtualenv
 
 .venv\Scripts\activate # Activate virtualenv
 
+# Install dependencies using pip or uv
+
 pip install -r requirements.txt # Install dependencies
+
+# OR
+
+pip install uv # install uv
+
+uv sync # install dependencies
 ```
 
 ## Running the command line tool
@@ -39,7 +55,7 @@ _NOTE Currently the actual reverse transformation is not implemented_
 
 Run `python -m src.cli.reverse_transform --mapping-dir path\to\mappings --hsds-dir path\to\hsds-json --output-dir path\to\output` (powershell) or `python3 -m src.cli.reverse_transform --mapping-dir path/to/mappings --hsds-dir path/to/hsds-json --output-dir path/to/output` (bash). The output directory is optional and defaults to `reverse_output`.
 
-**Generate mapping template (HSDS schema to CSV template).**
+**Generate mapping template from schema (HSDS schema to CSV template).**
 
 This command expects a local, **dereferenced** HSDS JSON schema file (no `$ref` resolution or URL fetching). It writes a CSV with a header row, an empty second row, and one row per schema path using dot notation and `[]` for arrays.
 
@@ -51,6 +67,15 @@ Output naming:
 - Default output filename is `{schema_name}_mapping_template.csv` if the schema has a `name` field.
 - Otherwise it falls back to `{schema_file_stem}_mapping_template.csv`.
 - Override with `--out path\to\output.csv`.
+
+### Mapping Generation from GitHub
+_NOTE: The GitHub-based mapping generation functionality is not yet implemented_
+
+Bash: Run `python3 -m src.cli.maintenance generate-mapping --github-url <github-url>`
+
+Powershell: Run `python -m src.cli.maintenance generate-mapping --github-url <github-url>`
+
+The `--check-connectivity` argument is optional and will check if the url is reachable.
 
 ## BRIEF PROCESS EXPLANATION
 
