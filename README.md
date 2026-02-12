@@ -48,7 +48,15 @@ Make sure you're in the root folder.
 
 Finally run, `python -m src.cli.main path\to\datadir` (powershell) or `python3 -m src.cli.main path/to/datadir` (bash) where the two paths are relative paths to the directory with the input and mapping files. (Using example csvs with powershell): `python -m src.cli.main data\deprecated_hsds`).
 
-You can also specify an output directory with `python -m src.cli.main path\to\datadir path\to\outputdir` (windows). Without specifying an output directory, the transformer will create one in your root directory or add the files to `output` if it already exists.
+You can also specify an output directory with `python -m src.cli.main path\to\datadir --output-dir path\to\outputdir` (windows or bash).
+
+Optionally, generate new UUID-based IDs for all objects using:
+
+`python -m src.cli.main path/to/datadir --generate-ids "Organization Name or ID"`
+
+By default, the transformer preserves original IDs from the source data. Use `--generate-ids` when you want to create new standardized IDs.
+
+Without specifying an output directory, the transformer will create one in your root directory or add the files to `output` if it already exists.
 
 **Reverse transform (HSDS JSON to CSV inputs).**
 _NOTE Currently the actual reverse transformation is not implemented_
