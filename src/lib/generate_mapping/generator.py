@@ -6,12 +6,21 @@ from typing import Any, Iterable
 
 @dataclass(frozen=True)
 class FieldSpec:
+    """A single row entry describing a field in the flattened schema."""
+
     path: str
     description: str
     required: bool
 
 
 def flatten_schema(schema: dict[str, Any]) -> list[FieldSpec]:
+    """Walk *schema* and return a list of rows describing each scalar field.
+
+    The returned paths use dot notation and append `[]` for array targets. Each
+    ``FieldSpec`` also normalizes descriptions and tracks whether the field is
+    required along the ancestor chain.
+    """
+
     if not isinstance(schema, dict):
         raise TypeError("schema must be a dict")
 
@@ -19,17 +28,23 @@ def flatten_schema(schema: dict[str, Any]) -> list[FieldSpec]:
     seen: set[str] = set()
 
     def normalize_desc(value: Any) -> str:
+        """Return a single-line, whitespace-normalized description."""
+
         if not isinstance(value, str):
             return ""
         normalized = value.replace("\r", " ").replace("\n", " ")
         return " ".join(normalized.split()).strip()
 
     def join(prefix: str, part: str) -> str:
+        """Concatenate the path prefix and the next segment."""
+
         if not prefix:
             return part
         return f"{prefix}.{part}"
 
     def iter_required(node: dict[str, Any]) -> set[str]:
+        """Return the combined required/property lists for *node*."""
+
         required: set[str] = set()
         for key in ("required", "tabular_required"):
             items = node.get(key)
@@ -40,6 +55,8 @@ def flatten_schema(schema: dict[str, Any]) -> list[FieldSpec]:
         return required
 
     def walk(node: Any, prefix: str, ancestors_required: bool) -> None:
+        """Recursively walk *node*, emitting FieldSpecs for each property."""
+
         if not isinstance(node, dict):
             return
 

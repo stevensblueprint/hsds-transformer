@@ -17,6 +17,8 @@ HEADER = [
 
 
 def write_mapping_template_csv(rows: Iterable[FieldSpec], out_file: str) -> None:
+    """Write the flattened rows to *out_file* as a mapping template CSV."""
+
     with open(out_file, "x", newline="", encoding="utf-8") as handle:
         writer = csv.writer(handle, lineterminator="\n")
         writer.writerow(HEADER)

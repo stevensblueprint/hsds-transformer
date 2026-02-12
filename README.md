@@ -55,7 +55,7 @@ _NOTE Currently the actual reverse transformation is not implemented_
 
 Run `python -m src.cli.reverse_transform --mapping-dir path\to\mappings --hsds-dir path\to\hsds-json --output-dir path\to\output` (powershell) or `python3 -m src.cli.reverse_transform --mapping-dir path/to/mappings --hsds-dir path/to/hsds-json --output-dir path/to/output` (bash). The output directory is optional and defaults to `reverse_output`.
 
-**Generate mapping template from schema (HSDS schema to CSV template).**
+### Generate mapping template from schema (HSDS schema to CSV template).
 
 There are two ways to generate a mapping template:
 
