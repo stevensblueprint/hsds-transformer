@@ -1,7 +1,6 @@
 from ..lib.outputs import save_objects_to_json
 from ..lib.collections import build_collections, searching_and_assigning
 from ..lib.logger import transformer_log
-import json
 import click
 import sys
 
