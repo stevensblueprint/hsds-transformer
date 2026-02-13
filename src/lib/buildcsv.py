@@ -23,11 +23,11 @@ def reverseTransform(dictList, pathsTuple, csvPath):
             fields.append(field[1])
         writer.writerow(fields)
 
-        for dict in dictList: 
+        for element in dictList: 
             dataFields = []
             for field in pathsTuple:
                 try:
-                    entry = __get_nested_value(dict, field[0])
+                    entry = __get_nested_value(element, field[0])
                     if len(entry) == 1:
                         dataFields.append(entry[0])
                     else:
