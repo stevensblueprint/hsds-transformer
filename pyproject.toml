@@ -24,4 +24,6 @@ api = [
     "python-multipart>=0.0.20",
 ]
 
+[tool.pytest.ini_options]
+pythonpath = ["."]
 
