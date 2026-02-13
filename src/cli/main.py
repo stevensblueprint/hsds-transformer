@@ -1,5 +1,6 @@
 from ..lib.outputs import save_objects_to_json
 from ..lib.collections import build_collections, searching_and_assigning
+from ..lib.logger import transformer_log
 import json
 import click
 import sys
@@ -10,14 +11,21 @@ import sys
 
 def main(data_dictionary, output_dir):
     try:
+        # Clear any previous log entries from prior runs
+        transformer_log.clear()
+        
         results = build_collections(data_dictionary) # Builds collections
         results = searching_and_assigning(results) # Links and cleans up
         
         # Save individual JSON files
         save_objects_to_json(results, output_dir)
         
-        output_json = json.dumps(results, indent=2, ensure_ascii=False) # Convert to json string
-        click.echo(output_json)
+        # Log output summary
+        transformer_log.section("Output")
+        transformer_log.log(f"JSON files saved to: {output_dir}")
+        
+        # Print the log instead of results
+        click.echo(transformer_log.get_log())
 
     except ValueError as e:
         click.echo(f"Error: {str(e)}", err=True)

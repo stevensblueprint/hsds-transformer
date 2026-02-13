@@ -1,0 +1,8 @@
+path,input_files_field,split,strip,description
+,,,,
+id,id,,,
+organization_id,organization_id,,,
+name,name,,,
+address_1,address,,,
+city,city,,,
+state_province,state,,,
