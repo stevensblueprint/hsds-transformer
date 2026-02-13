@@ -8,6 +8,11 @@ wheels/
 
 # Virtual environments
 .venv
+.DS_Store
+
+# agent skills
+.agents
+PLAN.md
 
 # Output folder
 output/
