@@ -8,13 +8,63 @@
 - `data/` provides sample datasets and mapping CSVs for reference.
 
 ## Build, Test, and Development Commands
-- `python3 -m venv .venv` and `source .venv/bin/activate` (macOS/Linux) to create and activate a virtualenv.
-- `pip3 install -r requirements.txt` to install base dependencies.
-- `pip3 install uv` then `uv sync` to install dependencies via `uv`.
-- `python3 -m src.cli.main path/to/datadir` to transform CSVs into HSDS JSON.
-- `python3 -m src.cli.main path/to/datadir path/to/outputdir` to specify output.
-- `python3 -m src.cli.reverse_transform --mapping-dir path/to/mappings --hsds-dir path/to/hsds-json --output-dir path/to/output` for the reverse transform (currently WIP).
-- `uvicorn api.app:app --app-dir src --reload` to run the FastAPI server locally.
+
+### Environment Setup
+```bash
+# macOS/Linux (bash/zsh)
+# Create and activate virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
+
+# Install dependencies (preferred method)
+pip3 install uv
+uv sync
+
+# Alternative: install with pip
+pip3 install -r requirements.txt
+```
+
+```bash
+# Windows (PowerShell/cmd)
+# Create and activate virtual environment
+python -m venv .venv
+.venv\Scripts\activate
+
+# Install dependencies (preferred method)
+pip install uv
+uv sync
+
+# Alternative: install with pip
+pip install -r requirements.txt
+```
+
+### Running the CLI
+```bash
+# macOS/Linux (bash/zsh)
+# Transform CSVs into HSDS JSON
+python3 -m src.cli.main path/to/datadir
+python3 -m src.cli.main path/to/datadir -o path/to/outputdir
+
+# Reverse transform (currently WIP)
+python3 -m src.cli.reverse_transform --mapping-dir path/to/mappings --hsds-dir path/to/hsds-json --output-dir path/to/output
+```
+
+```bash
+# Windows (PowerShell/cmd)
+# Transform CSVs into HSDS JSON
+python -m src.cli.main path\to\datadir
+python -m src.cli.main path\to\datadir -o path\to\outputdir
+
+# Reverse transform (currently WIP)
+python -m src.cli.reverse_transform --mapping-dir path\to\mappings --hsds-dir path\to\hsds-json --output-dir path\to\output
+```
+
+### Running the API
+```bash
+# All Platforms
+# Run the FastAPI server locally
+uvicorn api.app:app --app-dir src --reload
+```
 
 ## Coding Style & Naming Conventions
 - Use Python 3.13+ and standard library idioms (project uses `glom` and `click`).
