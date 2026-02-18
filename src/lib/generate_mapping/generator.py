@@ -13,12 +13,38 @@ class FieldSpec:
     required: bool
 
 
+def _should_include_field(path: str) -> bool:
+    """Determine if a field should be included in the mapping template.
+
+    Filters out fields under 'attributes[]' except 'attributes[].value',
+    and filters out all fields under 'metadata[]' to reduce template size.
+    """
+    # Check if this is under attributes[] - only keep attributes[].value
+    if "attributes[]" in path:
+        # Allow attributes[] itself and attributes[].value
+        if path == "attributes[]":
+            return True
+        if path == "attributes[].value":
+            return True
+        # Filter out all other attributes[] sub-fields
+        return False
+
+    # Check if this is under metadata[] - filter all out
+    if "metadata[]" in path:
+        return False
+
+    return True
+
+
 def flatten_schema(schema: dict[str, Any]) -> list[FieldSpec]:
     """Walk *schema* and return a list of rows describing each scalar field.
 
     The returned paths use dot notation and append `[]` for array targets. Each
     ``FieldSpec`` also normalizes descriptions and tracks whether the field is
     required along the ancestor chain.
+
+    Fields under 'attributes[]' (except 'attributes[].value') and all fields
+    under 'metadata[]' are excluded to keep the template concise.
     """
 
     if not isinstance(schema, dict):
@@ -79,6 +105,10 @@ def flatten_schema(schema: dict[str, Any]) -> list[FieldSpec]:
                 part = f"{prop_name}[]" if is_array else prop_name
                 prop_path = join(prefix, part)
 
+                # Skip fields that should be excluded from the template
+                if not _should_include_field(prop_path):
+                    continue
+
                 required_here = prop_name in required_set
                 effective_required = ancestors_required and required_here
 
@@ -95,6 +125,12 @@ def flatten_schema(schema: dict[str, Any]) -> list[FieldSpec]:
                     # Recurse into children only on the first encounter to
                     # avoid wasted duplicate walks when composition
                     # subschemas later re-visit the same subtree.
+                    # Skip recursion for attributes[] since we've already
+                    # filtered out all children except attributes[].value
+                    if "attributes[]" in prop_path and prop_path != "attributes[]":
+                        continue
+                    if "metadata[]" in prop_path:
+                        continue
                     if is_array:
                         items = prop_schema.get("items")
                         if isinstance(items, dict):

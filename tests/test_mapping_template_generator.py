@@ -58,5 +58,61 @@ class MappingTemplateGeneratorTests(unittest.TestCase):
         self.assertEqual(actual_lines, expected_lines)
 
 
+    def test_flatten_schema_filters_attributes_and_metadata(self) -> None:
+        """Test that attributes[] (except value) and metadata[] fields are filtered out."""
+        schema = {
+            "type": "object",
+            "properties": {
+                "id": {"type": "string", "description": "Identifier"},
+                "attributes": {
+                    "type": "array",
+                    "description": "Attributes",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "id": {"type": "string", "description": "ID"},
+                            "value": {"type": "string", "description": "Value"},
+                            "label": {"type": "string", "description": "Label"},
+                            "url": {"type": "string", "description": "URL"},
+                        },
+                    },
+                },
+                "metadata": {
+                    "type": "array",
+                    "description": "Metadata",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "id": {"type": "string", "description": "ID"},
+                            "value": {"type": "string", "description": "Value"},
+                        },
+                    },
+                },
+                "regular_field": {"type": "string", "description": "Regular field"},
+            },
+        }
+
+        rows = flatten_schema(schema)
+        paths = [row.path for row in rows]
+
+        # Should include attributes[] itself
+        self.assertIn("attributes[]", paths)
+        # Should include attributes[].value
+        self.assertIn("attributes[].value", paths)
+        # Should NOT include other attributes sub-fields
+        self.assertNotIn("attributes[].id", paths)
+        self.assertNotIn("attributes[].label", paths)
+        self.assertNotIn("attributes[].url", paths)
+
+        # Should NOT include metadata[] or any of its children
+        self.assertNotIn("metadata[]", paths)
+        self.assertNotIn("metadata[].id", paths)
+        self.assertNotIn("metadata[].value", paths)
+
+        # Regular fields should still be included
+        self.assertIn("id", paths)
+        self.assertIn("regular_field", paths)
+
+
 if __name__ == "__main__":
     unittest.main()
