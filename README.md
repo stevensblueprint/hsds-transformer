@@ -2,40 +2,38 @@
 
 ## Setup
 
-(bash)
+### Environment Setup
 
 ```bash
-python3 -m venv .venv # Create a virtualenv
+# macOS/Linux (bash/zsh)
+# Create a virtualenv
+python3 -m venv .venv
 
-source .venv/bin/activate # Activate the virtualenv
+# Activate the virtualenv
+source .venv/bin/activate
 
 # Install dependencies using pip or uv
-
-pip3 install -r requirements.txt # Install dependencies
+pip3 install -r requirements.txt
 
 # OR
-
-pip3 install uv # install uv
-
-uv sync # install dependencies
+pip3 install uv
+uv sync
 ```
 
-(powershell)
+```bash
+# Windows (PowerShell/cmd)
+# Create a virtualenv
+python -m venv .venv
 
-```powershell
-python -m venv .venv # Create a virtualenv
-
-.venv\Scripts\activate # Activate virtualenv
+# Activate the virtualenv
+.venv\Scripts\activate
 
 # Install dependencies using pip or uv
-
-pip install -r requirements.txt # Install dependencies
+pip install -r requirements.txt
 
 # OR
-
-pip install uv # install uv
-
-uv sync # install dependencies
+pip install uv
+uv sync
 ```
 
 ## Running the command line tool
@@ -46,14 +44,36 @@ Move the csv files to be transformed with their associated mapping (csv) files i
 
 Make sure you're in the root folder.
 
-Finally run, `python -m src.cli.main path\to\datadir` (powershell) or `python3 -m src.cli.main path/to/datadir` (bash) where the two paths are relative paths to the directory with the input and mapping files. (Using example csvs with powershell): `python -m src.cli.main data\deprecated_hsds`).
+```bash
+# macOS/Linux (bash/zsh)
+# Transform CSVs to HSDS JSON
+python3 -m src.cli.main path/to/datadir
+python3 -m src.cli.main path/to/datadir -o path/to/outputdir
+```
 
-You can also specify an output directory with `python -m src.cli.main path\to\datadir path\to\outputdir` (windows). Without specifying an output directory, the transformer will create one in your root directory or add the files to `output` if it already exists.
+```bash
+# Windows (PowerShell/cmd)
+# Transform CSVs to HSDS JSON
+python -m src.cli.main path\to\datadir
+python -m src.cli.main path\to\datadir -o path\to\outputdir
+```
+
+Without specifying an output directory, the transformer will create one in your root directory or add the files to `output` if it already exists.
 
 **Reverse transform (HSDS JSON to CSV inputs).**
 _NOTE Currently the actual reverse transformation is not implemented_
 
-Run `python -m src.cli.reverse_transform --mapping-dir path\to\mappings --hsds-dir path\to\hsds-json --output-dir path\to\output` (powershell) or `python3 -m src.cli.reverse_transform --mapping-dir path/to/mappings --hsds-dir path/to/hsds-json --output-dir path/to/output` (bash). The output directory is optional and defaults to `reverse_output`.
+```bash
+# macOS/Linux (bash/zsh)
+python3 -m src.cli.reverse_transform --mapping-dir path/to/mappings --hsds-dir path/to/hsds-json --output-dir path/to/output
+```
+
+```bash
+# Windows (PowerShell/cmd)
+python -m src.cli.reverse_transform --mapping-dir path\to\mappings --hsds-dir path\to\hsds-json --output-dir path\to\output
+```
+
+The output directory is optional and defaults to `reverse_output`.
 
 ### Sanity Check
 
@@ -71,15 +91,43 @@ python3 -m src.cli.main data/sanity_check
 python -m src.cli.main data\sanity_check
 ```
 
-### Mapping Generation
+### Generate mapping template from schema (HSDS schema to CSV template).
 
-\_NOTE The mapping generation functionality is not yet implemented
+There are two ways to generate a mapping template:
 
-Bash: Run 'python3 -m src.cli.maintenance generate-mapping --github-url <github-url>'
+#### From a local schema file
 
-Powershell: Run 'python -m src.cli.maintenance generate-mapping --github-url <github-url>'
+_NOTE: The local CLI entry point (`src.cli.generate_mapping`) is not yet implemented._
 
-The check-connectivity argument is optional and will check if the url is reachable
+This command will expect a local, **dereferenced** HSDS JSON schema file (no `$ref` resolution or URL fetching). It will write a CSV with a header row, an empty second row, and one row per schema path using dot notation and `[]` for arrays.
+
+Planned usage:
+
+- Powershell: `python -m src.cli.generate_mapping --schema-file path\to\schema.json`
+- Bash: `python3 -m src.cli.generate_mapping --schema-file path/to/schema.json`
+
+Output naming:
+
+- Default output filename is `{schema_name}_mapping_template.csv` if the schema has a `name` field.
+- Otherwise it falls back to `{schema_file_stem}_mapping_template.csv`.
+- Override with `--out path\to\output.csv`.
+
+#### From a GitHub URL
+
+This uses the `src.cli.maintenance` module with the `generate-mapping` subcommand. It validates the URL, fetches the schema, flattens it, and writes a mapping template CSV to your current working directory.
+
+- Bash: `python3 -m src.cli.maintenance generate-mapping --github-url <github-url>`
+- Powershell: `python -m src.cli.maintenance generate-mapping --github-url <github-url>`
+
+The output file is named `{schema_name}_mapping_template.csv` (using the schema's `name` field), after sanitizing to a safe lowercase filename. If `name` is missing/empty after sanitization, it falls back to `{filename}_mapping_template.csv` from the URL path. For example:
+
+```bash
+python3 -m src.cli.maintenance generate-mapping \
+  --github-url "https://raw.githubusercontent.com/openreferral/specification/refs/heads/3.2/schema/compiled/organization.json"
+# → writes organization_mapping_template.csv to the current directory
+```
+
+If the target output file already exists, the command fails instead of overwriting it.
 
 ## BRIEF PROCESS EXPLANATION
 
@@ -119,5 +167,7 @@ Once the collections have been created, we search through each collection, linki
 ## Running the api
 
 ```bash
+# All Platforms
+# Start the FastAPI server
 uvicorn api.app:app --app-dir src --reload
 ```
