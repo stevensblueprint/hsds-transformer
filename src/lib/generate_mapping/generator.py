@@ -18,20 +18,25 @@ def _should_include_field(path: str) -> bool:
 
     Filters out fields under 'attributes[]' except 'attributes[].value',
     and filters out all fields under 'metadata[]' to reduce template size.
+    Uses path segment-based logic to handle nested paths like 'service.attributes[]'.
     """
-    # Check if this is under attributes[] - only keep attributes[].value
-    if "attributes[]" in path:
-        # Allow attributes[] itself and attributes[].value
-        if path == "attributes[]":
-            return True
-        if path == "attributes[].value":
-            return True
-        # Filter out all other attributes[] sub-fields
-        return False
+    parts = path.split(".")
 
-    # Check if this is under metadata[] - filter all out
-    if "metadata[]" in path:
-        return False
+    # Check for metadata[] - filter out all fields under metadata[]
+    for i, part in enumerate(parts):
+        if part == "metadata[]":
+            return False
+
+    # Check for attributes[] - only keep attributes[] itself and attributes[].value
+    for i, part in enumerate(parts):
+        if part == "attributes[]":
+            # Get segments after attributes[]
+            after = parts[i + 1:]
+            # Allow if no segments after (just attributes[] itself) or only "value"
+            if not after or after == ["value"]:
+                return True
+            # Filter out all other attributes[] sub-fields
+            return False
 
     return True
 
@@ -125,11 +130,21 @@ def flatten_schema(schema: dict[str, Any]) -> list[FieldSpec]:
                     # Recurse into children only on the first encounter to
                     # avoid wasted duplicate walks when composition
                     # subschemas later re-visit the same subtree.
-                    # Skip recursion for attributes[] since we've already
-                    # filtered out all children except attributes[].value
-                    if "attributes[]" in prop_path and prop_path != "attributes[]":
-                        continue
-                    if "metadata[]" in prop_path:
+                    # Skip recursion for attributes[] children (except value) and
+                    # all metadata[] fields using segment-based logic.
+                    parts = prop_path.split(".")
+                    should_skip = False
+                    for i, part in enumerate(parts):
+                        if part == "attributes[]":
+                            after = parts[i + 1:]
+                            # Skip if we've gone past attributes[] (not value)
+                            if after and after != ["value"]:
+                                should_skip = True
+                                break
+                        if part == "metadata[]":
+                            should_skip = True
+                            break
+                    if should_skip:
                         continue
                     if is_array:
                         items = prop_schema.get("items")
