@@ -1,4 +1,5 @@
 path,input_files_field
+,
 id,location_uuid
 location_type,
 url,location_url

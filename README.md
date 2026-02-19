@@ -75,6 +75,22 @@ python -m src.cli.reverse_transform --mapping-dir path\to\mappings --hsds-dir pa
 
 The output directory is optional and defaults to `reverse_output`.
 
+### Sanity Check
+
+To confirm that the transformer is functioning correctly, you can run it against the included `sanity_check` dataset.
+
+**Bash:**
+
+```bash
+python3 -m src.cli.main data/sanity_check
+```
+
+**Powershell:**
+
+```powershell
+python -m src.cli.main data\sanity_check
+```
+
 ### Generate mapping template from schema (HSDS schema to CSV template).
 
 There are two ways to generate a mapping template:
@@ -86,10 +102,12 @@ _NOTE: The local CLI entry point (`src.cli.generate_mapping`) is not yet impleme
 This command will expect a local, **dereferenced** HSDS JSON schema file (no `$ref` resolution or URL fetching). It will write a CSV with a header row, an empty second row, and one row per schema path using dot notation and `[]` for arrays.
 
 Planned usage:
+
 - Powershell: `python -m src.cli.generate_mapping --schema-file path\to\schema.json`
 - Bash: `python3 -m src.cli.generate_mapping --schema-file path/to/schema.json`
 
 Output naming:
+
 - Default output filename is `{schema_name}_mapping_template.csv` if the schema has a `name` field.
 - Otherwise it falls back to `{schema_file_stem}_mapping_template.csv`.
 - Override with `--out path\to\output.csv`.
