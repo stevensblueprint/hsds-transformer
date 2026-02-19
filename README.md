@@ -2,40 +2,38 @@
 
 ## Setup
 
-(bash)
+### Environment Setup
 
 ```bash
-python3 -m venv .venv # Create a virtualenv
+# macOS/Linux (bash/zsh)
+# Create a virtualenv
+python3 -m venv .venv
 
-source .venv/bin/activate # Activate the virtualenv
+# Activate the virtualenv
+source .venv/bin/activate
 
 # Install dependencies using pip or uv
-
-pip3 install -r requirements.txt # Install dependencies
+pip3 install -r requirements.txt
 
 # OR
-
-pip3 install uv # install uv
-
-uv sync # install dependencies
+pip3 install uv
+uv sync
 ```
 
-(powershell)
+```bash
+# Windows (PowerShell/cmd)
+# Create a virtualenv
+python -m venv .venv
 
-```powershell
-python -m venv .venv # Create a virtualenv
-
-.venv\Scripts\activate # Activate virtualenv
+# Activate the virtualenv
+.venv\Scripts\activate
 
 # Install dependencies using pip or uv
-
-pip install -r requirements.txt # Install dependencies
+pip install -r requirements.txt
 
 # OR
-
-pip install uv # install uv
-
-uv sync # install dependencies
+pip install uv
+uv sync
 ```
 
 ## Running the command line tool
@@ -46,14 +44,36 @@ Move the csv files to be transformed with their associated mapping (csv) files i
 
 Make sure you're in the root folder.
 
-Finally run, `python -m src.cli.main path\to\datadir` (powershell) or `python3 -m src.cli.main path/to/datadir` (bash) where the two paths are relative paths to the directory with the input and mapping files. (Using example csvs with powershell): `python -m src.cli.main data\deprecated_hsds`).
+```bash
+# macOS/Linux (bash/zsh)
+# Transform CSVs to HSDS JSON
+python3 -m src.cli.main path/to/datadir
+python3 -m src.cli.main path/to/datadir -o path/to/outputdir
+```
 
-You can also specify an output directory with `python -m src.cli.main path\to\datadir path\to\outputdir` (windows). Without specifying an output directory, the transformer will create one in your root directory or add the files to `output` if it already exists.
+```bash
+# Windows (PowerShell/cmd)
+# Transform CSVs to HSDS JSON
+python -m src.cli.main path\to\datadir
+python -m src.cli.main path\to\datadir -o path\to\outputdir
+```
+
+Without specifying an output directory, the transformer will create one in your root directory or add the files to `output` if it already exists.
 
 **Reverse transform (HSDS JSON to CSV inputs).**
 _NOTE Currently the actual reverse transformation is not implemented_
 
-Run `python -m src.cli.reverse_transform --mapping-dir path\to\mappings --hsds-dir path\to\hsds-json --output-dir path\to\output` (powershell) or `python3 -m src.cli.reverse_transform --mapping-dir path/to/mappings --hsds-dir path/to/hsds-json --output-dir path/to/output` (bash). The output directory is optional and defaults to `reverse_output`.
+```bash
+# macOS/Linux (bash/zsh)
+python3 -m src.cli.reverse_transform --mapping-dir path/to/mappings --hsds-dir path/to/hsds-json --output-dir path/to/output
+```
+
+```bash
+# Windows (PowerShell/cmd)
+python -m src.cli.reverse_transform --mapping-dir path\to\mappings --hsds-dir path\to\hsds-json --output-dir path\to\output
+```
+
+The output directory is optional and defaults to `reverse_output`.
 
 ### Generate mapping template from schema (HSDS schema to CSV template).
 
@@ -129,5 +149,7 @@ Once the collections have been created, we search through each collection, linki
 ## Running the api
 
 ```bash
+# All Platforms
+# Start the FastAPI server
 uvicorn api.app:app --app-dir src --reload
 ```
