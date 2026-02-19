@@ -1,6 +1,9 @@
 from pathlib import Path
 import click
-
+from ..lib.reverse_transform.process_rev_transform import process_mappings
+from ..lib.reverse_transform.buildcsv import reverseTransform
+from ..lib.reverse_transform.parser import parse_input_csv
+from ..lib.reverse_transform.reverse_transform import ingest_json_directory, get_path_value
 
 def _ensure_non_empty_dir(path: Path, label: str) -> None:
     if not any(path.iterdir()):
@@ -39,6 +42,7 @@ def _find_files(path: Path, pattern: str, label: str) -> list[Path]:
 def main(mapping_dir: str, hsds_dir: str, output_dir: str) -> None:
     mapping_path = Path(mapping_dir)
     hsds_path = Path(hsds_dir)
+    output_path = Path(output_dir)
 
     _ensure_non_empty_dir(mapping_path, "Mapping")
     _ensure_non_empty_dir(hsds_path, "HSDS")
@@ -50,8 +54,18 @@ def main(mapping_dir: str, hsds_dir: str, output_dir: str) -> None:
         f"Found {len(csv_files)} mapping CSV file(s) and {len(json_files)} HSDS JSON file(s)."
     )
     click.echo(f"Output directory: {output_dir}")
-    click.echo("Reverse transformation is not implemented yet.")
+    
+    mappingData = process_mappings(mapping_path)
 
+    jsonObjects = ingest_json_directory(hsds_path)
 
+    output_path.mkdir(parents=True, exist_ok=True)
+    for spec in mappingData:
+        output_file = output_path / f"{spec.name}.csv"
+        reverseTransform(
+            dictList=jsonObjects,
+            pathsTuple=spec.fields,
+            csvPath=output_file,
+        )
 if __name__ == "__main__":
     main()
