@@ -1,6 +1,5 @@
 from click.testing import CliRunner
 from src.cli.maintenance import main
-from pathlib import Path
 from unittest.mock import patch
 
 def test_generate_relations_command(tmp_path):
