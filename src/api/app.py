@@ -1,10 +1,12 @@
 import io
 import logging
 import tempfile
+import time
 import zipfile
+from datetime import datetime, timezone
 from pathlib import Path
 
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, HTTPException, Response, UploadFile
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.exceptions import RequestValidationError
 
@@ -12,11 +14,32 @@ from api.middleware import RouterLoggingMiddleware
 from api.logger import configure_logger
 from lib.collections import build_collections, searching_and_assigning
 from lib.outputs import save_objects_to_json
+from model import HealthResponse
 
 
 configure_logger()
 app = FastAPI(title="HSDS Transformer API", version="0.1.0")
 app.add_middleware(RouterLoggingMiddleware, logger=logging.getLogger("hsds.api"))
+APP_STARTED_AT_UTC = datetime.now(timezone.utc)
+APP_START_MONOTONIC = time.monotonic()
+
+
+
+@app.get(
+    "/health",
+    summary="Service health check",
+    description="Lightweight liveness endpoint for load balancers and orchestrators",
+    response_model=HealthResponse,
+)
+async def health(response: Response) -> HealthResponse:
+    response.headers["Cache-Control"] = "no-store"
+    return HealthResponse(
+        status="ok",
+        service=app.title,
+        version=app.version,
+        timestamp_utc=datetime.now(timezone.utc),
+        uptime_seconds=round(time.monotonic() - APP_START_MONOTONIC, 3),
+    )
 
 
 @app.post(
