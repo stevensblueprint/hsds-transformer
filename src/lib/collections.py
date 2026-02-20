@@ -191,9 +191,9 @@ def attach_original_to_targets(
             # Skips if no corresponding dict
             continue
 
-        # Edge case where service_at_location has a key for both a child and parent
+        # Edge case where service_at_location has a key for both a child and parent (pluralized)
         if original_type == "service_at_location":
-            append_to_list_field(target, "service_at_location", original)
+            append_to_list_field(target, "service_at_locations", original.copy())
             continue
 
         # SINGULAR EMBED CASE (HARD CODED)
