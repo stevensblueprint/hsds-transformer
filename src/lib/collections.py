@@ -8,9 +8,18 @@ from typing import Dict, List, Tuple, Any, Optional
 
 def build_collections(data_directory: str):
     """
-    From multiple mapping and input CSV files, returns a list of tuples like: [("organization", [dicts]), ("location", [dicts]), ...]
-    Each mapping file name MUST follow this format: "<input_file_name>_<object_type>_mapping.csv
-    This function pairs each input CSV with its correspodning mapping file and converts flat CSV rows into nested dictionaries
+    Builds collections by converting rows from input CSVs into nested objects according to their corresponding mapping files.
+    
+    Requires mapping files named "<input_file_name>_<object_type>_mapping.csv" alongside matching "<input_file_name>.csv" input files. For each valid pair, parses and validates the mapping, applies an optional mapping filter, converts each input row into a nested dictionary, and groups resulting objects by object type. Normalizes certain edge-case object types (e.g., serviceatlocation → service_at_location) and skips missing or empty inputs/mappings.
+    
+    Parameters:
+        data_directory (str): Path to the directory containing input CSVs and mapping CSVs.
+    
+    Returns:
+        List[Tuple[str, List[Dict[str, Any]]]]: A list of (object_type, objects) tuples where `objects` is a list of nested dictionaries produced from the corresponding input CSV.
+    
+    Raises:
+        ValueError: If the input directory is empty, or if no mapping files are found (or no CSV files exist at all).
     """
     transformer_log.section("Build Collections")
     transformer_log.log(f"Input directory: {data_directory}")
@@ -159,17 +168,22 @@ def attach_original_to_targets(
     id_field: str = "id",
 ) -> None:
     """
-    Attaches "original" to matching targets in collection_map based on relations
-    Params: 
-    collection_map -> dict[str, [dict]]
-    original_type -> str
-    original -> dict (the dictionary to embed into matching targets)
-    relations -> list[(str, str)] (tuples of (collection_name, id) to search for. If empty: skip)
-    id_field -> str (field used as identifier)
-
-    Looks through the specified collections for objects with the given IDs and attaches the original dictionary to them
-    Most links are stored as lists, except for the special case where a service has one Organization
-    Skips anything missing an ID or a match
+    Embed an original object into matching target objects across collections using provided relation tuples.
+    
+    Each relation is a (target_collection, target_id) pair; the function finds the target object in collection_map by id_field and attaches original to it in one of three ways:
+    - If original_type == "service_at_location", appends original to the target under the key "service_at_location" (as a list).
+    - If (target_collection, original_type) is in SINGULAR_CHILD_CASES, sets target[original_type] = original (singular embed).
+    - Otherwise, appends original to an existing list field on the target (preferring a singular key if it already holds a list), or creates a pluralized list key and appends there. Pluralization uses English rules: add "es" for endings in "s", "sh", "ch", "x", "z"; otherwise add "s".
+    
+    Parameters:
+        collection_map (Dict[str, List[Dict[str, Any]]]): Mapping from collection names to lists of objects to search and modify.
+        original_type (str): Type name of the original object (used to choose which target field to populate).
+        original (Dict[str, Any]): The object to embed into matching targets (may be mutated if reverse relationships are created).
+        relations (List[Tuple[str, str]]): List of (collection_name, id) tuples identifying targets to attach to; empty list causes no action.
+        id_field (str, optional): Field name used to match target_id against target objects' identifiers. Defaults to "id".
+    
+    Side effects:
+        Mutates objects in collection_map (and possibly the original object) in-place; does not return a value.
     """
 
     # If there are no relations to process, return
@@ -234,6 +248,15 @@ def attach_original_to_targets(
 
 
 def searching_and_assigning(collections: List[Tuple[str, List[Dict[str, Any]]]]) -> List[Tuple[str, List[Dict[str, Any]]]]:
+    """
+    Link child objects into their parent targets based on inferred relationships and return the cleaned collections in processing order.
+    
+    Parameters:
+        collections (List[Tuple[str, List[Dict[str, Any]]]]): A list of (collection_name, objects) pairs where each objects value is a list of dictionaries representing items in that collection. Item dictionaries may contain fields (e.g., `<parent>_id`) used to infer parent relationships.
+    
+    Returns:
+        List[Tuple[str, List[Dict[str, Any]]]]: A list of (collection_name, objects) pairs in the determined processing order. Child objects that were embedded into parent objects are removed from their original top-level collections; embedded objects appear only inside their parent targets in the returned structure.
+    """
     transformer_log.section("Searching and Assigning")
     
     if not collections:
