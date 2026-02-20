@@ -6,6 +6,7 @@ import click
 
 from src.lib.maintenance.parse_json import fetch_json_from_url
 from src.lib.generate_mapping import flatten_schema, write_mapping_template_csv
+from src.lib.maintenance.generate_relations import generate_relations_dict, write_relations_file
 
 
 # url validation checking
@@ -116,6 +117,46 @@ def generate_mapping(github_url, valid_hostname):
         raise click.ClickException(str(exc)) from exc
 
     click.echo(f"Mapping template written to {out_file} ({len(rows)} fields)")
+
+
+@main.command()
+@click.option(
+    "--github-url",
+    type=click.STRING,
+    required=True,
+    help="Github URL for Json Schema",
+)
+@click.option(
+    "--valid-hostname",
+    type=click.STRING,
+    default="github.com,raw.githubusercontent.com",
+    help="Valid Hostnames for URL",
+)
+@click.option(
+    "--out-file",
+    type=click.STRING,
+    default="src/lib/relations.py",
+    help="Output file path for the relations dictionary.",
+)
+def generate_relations(github_url, valid_hostname, out_file):
+    """Generate relations.py from a JSON schema URL."""
+    _validate_url(github_url, valid_hostname)
+
+    try:
+        click.echo("Fetching schema...")
+        schema = fetch_json_from_url(github_url)
+
+        click.echo("Generating relations dictionary...")
+        relations_dict = generate_relations_dict(schema)
+
+        out_path = Path.cwd().resolve() / out_file
+        write_relations_file(relations_dict, str(out_path))
+        
+        click.echo(f"Relations successfully written to {out_path}")
+    except click.ClickException:
+        raise
+    except Exception as exc:
+        raise click.ClickException(str(exc)) from exc
 
 
 if __name__ == "__main__":
