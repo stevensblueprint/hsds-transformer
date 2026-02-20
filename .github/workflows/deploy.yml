@@ -1,0 +1,42 @@
+name: Deploy HSDS Container to ECR
+
+on:
+    workflow_dispatch:
+    push:
+        branches:
+            - main
+            - feat/deployment
+
+permissions:
+    id-token: write
+    contents: read
+
+env:
+    AWS_REGION: us-east-1
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+            - name: Configure AWS credentials (OIDC)
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                  role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+                  aws-region: ${{ env.AWS_REGION }}
+            - name: Login to Amazon ECR
+              id: login-ecr
+              uses: aws-actions/amazon-ecr-login@v1
+            - name: Build, tag, and push image to Amazon ECR
+              env:
+                  ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+                  ECR_REPOSITORY: hsds-transformer
+                  IMAGE_TAG: latest
+              run: |
+                  # Build the Docker image                  
+                  docker build -t $ECR_REPOSITORY:$IMAGE_TAG .
+                  # Tag the image with the ECR registry
+                  docker tag $ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+                  # Push the image to ECR
+                  docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
