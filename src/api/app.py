@@ -20,9 +20,7 @@ from api.model import HealthResponse
 configure_logger()
 app = FastAPI(title="HSDS Transformer API", version="0.1.0")
 app.add_middleware(RouterLoggingMiddleware, logger=logging.getLogger("hsds.api"))
-APP_STARTED_AT_UTC = datetime.now(timezone.utc)
 APP_START_MONOTONIC = time.monotonic()
-
 
 
 @app.get(
@@ -52,7 +50,11 @@ async def health(response: Response) -> HealthResponse:
     ),
     response_class=StreamingResponse,
 )
-async def transform(zip_file: UploadFile = File(..., description="Zip file containing input and mapping CSVs")) -> StreamingResponse:
+async def transform(
+    zip_file: UploadFile = File(
+        ..., description="Zip file containing input and mapping CSVs"
+    )
+) -> StreamingResponse:
     # Input validation: require a non-empty .zip file
     if not zip_file.filename or not zip_file.filename.lower().endswith(".zip"):
         raise HTTPException(status_code=422, detail="Must provide a zip file")
@@ -62,7 +64,9 @@ async def transform(zip_file: UploadFile = File(..., description="Zip file conta
     try:
         with zipfile.ZipFile(io.BytesIO(content), "r") as zf:
             if not zf.namelist():
-                raise HTTPException(status_code=422, detail="Zip file contains no files")
+                raise HTTPException(
+                    status_code=422, detail="Zip file contains no files"
+                )
     except zipfile.BadZipFile:
         raise HTTPException(status_code=422, detail="Invalid zip file")
 
@@ -75,9 +79,11 @@ async def transform(zip_file: UploadFile = File(..., description="Zip file conta
         extracted_items = list(Path(input_dir).iterdir())
         if len(extracted_items) == 1 and extracted_items[0].is_dir():
             input_dir = str(extracted_items[0])
-   
+
         if not any(Path(input_dir).iterdir()):
-            raise HTTPException(status_code=422, detail="Zip file extracts to an empty folder")
+            raise HTTPException(
+                status_code=422, detail="Zip file extracts to an empty folder"
+            )
 
         # Run the transformer: build collections, then link parents/children
         try:
@@ -87,7 +93,7 @@ async def transform(zip_file: UploadFile = File(..., description="Zip file conta
 
         results = searching_and_assigning(results)
 
-        # Write each object to JSON files in another temp dir, then zip and return 
+        # Write each object to JSON files in another temp dir, then zip and return
         with tempfile.TemporaryDirectory() as output_dir:
             save_objects_to_json(results, output_dir)
             buf = io.BytesIO()
