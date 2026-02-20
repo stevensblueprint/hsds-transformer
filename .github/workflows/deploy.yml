@@ -13,6 +13,7 @@ permissions:
 
 env:
     AWS_REGION: us-east-1
+    AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
 
 jobs:
     deploy:
@@ -23,7 +24,7 @@ jobs:
             - name: Configure AWS credentials (OIDC)
               uses: aws-actions/configure-aws-credentials@v4
               with:
-                  role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+                  role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/github-ecr-deployer-hsds-transformer
                   aws-region: ${{ env.AWS_REGION }}
             - name: Login to Amazon ECR
               id: login-ecr
