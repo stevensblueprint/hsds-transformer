@@ -3,6 +3,7 @@ import re
 from .parser import parse_input_csv, parse_nested_mapping, validate_mapping_against_parsed_data
 from .mapper import nested_map, get_process_order
 from .relationships import identify_parent_relationships
+from .logger import transformer_log
 from typing import Dict, List, Tuple, Any, Optional
 
 def build_collections(data_directory: str):
@@ -11,6 +12,8 @@ def build_collections(data_directory: str):
     Each mapping file name MUST follow this format: "<input_file_name>_<object_type>_mapping.csv
     This function pairs each input CSV with its correspodning mapping file and converts flat CSV rows into nested dictionaries
     """
+    transformer_log.section("Build Collections")
+    transformer_log.log(f"Input directory: {data_directory}")
     
     data_directory = Path(data_directory) # Converts provided folder path into a Path object
     
@@ -20,6 +23,7 @@ def build_collections(data_directory: str):
     results = [] # List of tuples like ("organization", [dict_list])
     
     mapping_files = list(data_directory.glob("*_mapping.csv"))
+    transformer_log.log(f"Found {len(mapping_files)} mapping file(s)")
     if not mapping_files:
         # Check if there are any CSVs at all to give a better error message
         csv_files = list(data_directory.glob("*.csv"))
@@ -80,7 +84,13 @@ def build_collections(data_directory: str):
                 objects.append(mapped_dictionary)
 
         results.append((object_type, objects)) # Adds tuple of object type and list of dictionaries. For example: ("organization", [{x}, {y}, ...])
+        transformer_log.log(f"  {object_type}: {len(objects)} object(s) from {input_file.name}")
 
+    # Summary of build_collections
+    total_objects = sum(len(objs) for _, objs in results)
+    transformer_log.log(f"Total collections built: {len(results)}")
+    transformer_log.log(f"Total objects created: {total_objects}")
+    
     return results
 
 
@@ -214,7 +224,10 @@ def attach_original_to_targets(
 
 
 def searching_and_assigning(collections: List[Tuple[str, List[Dict[str, Any]]]]) -> List[Tuple[str, List[Dict[str, Any]]]]:
+    transformer_log.section("Searching and Assigning")
+    
     if not collections:
+        transformer_log.log("No collections to process")
         return collections
 
     # Build collection_map once and reuse it everywhere
@@ -223,8 +236,14 @@ def searching_and_assigning(collections: List[Tuple[str, List[Dict[str, Any]]]])
     for name, objs in collections:
         collection_map[name] = objs # Tuple structure: ("organization", [dicts]) is now a key value pair
 
+    # Log counts before processing
+    transformer_log.log("Object counts before linking:")
+    for name, objs in collections:
+        transformer_log.log(f"  {name}: {len(objs)}")
+
     # Correct order to process object types
     process_order = get_process_order(collections)
+    transformer_log.log(f"Process order: {' -> '.join(process_order)}")
 
     # Creates a list to track which objects should be deleted
     to_delete = {}
@@ -268,5 +287,17 @@ def searching_and_assigning(collections: List[Tuple[str, List[Dict[str, Any]]]])
         if name in collection_map:
             objects = collection_map.get(name, []) # Gets cleaned list of objects
             final_result.append((name, objects)) # Adds it back as (name, objects) tuple
+
+    # Log counts after linking and cleanup
+    transformer_log.log("Object counts after linking:")
+    total_remaining = 0
+    for name, objs in final_result:
+        transformer_log.log(f"  {name}: {len(objs)}")
+        total_remaining += len(objs)
+    
+    # Log how many were embedded
+    total_deleted = sum(len(objs) for objs in to_delete.values())
+    transformer_log.log(f"Objects embedded into parents: {total_deleted}")
+    transformer_log.log(f"Total top-level objects remaining: {total_remaining}")
 
     return final_result

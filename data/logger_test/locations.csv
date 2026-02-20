@@ -1,0 +1,4 @@
+id,organization_id,name,address,city,state
+loc_001,org_001,Main Distribution Center,123 Main St,Exampleville,EX
+loc_002,org_001,North Branch,456 North Ave,Northtown,EX
+loc_003,org_002,Health Clinic,789 Health Blvd,Exampleville,EX
