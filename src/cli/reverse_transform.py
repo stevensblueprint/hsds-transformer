@@ -1,9 +1,7 @@
 from pathlib import Path
 import click
-from ..lib.reverse_transform.process_rev_transform import process_mappings
+from ..lib.reverse_transform.reverse_transform import process_mappings, get_entity_objects, ingest_json_directory
 from ..lib.reverse_transform.buildcsv import reverseTransform
-from ..lib.reverse_transform.parser import parse_input_csv
-from ..lib.reverse_transform.reverse_transform import ingest_json_directory, get_path_value
 
 def _ensure_non_empty_dir(path: Path, label: str) -> None:
     if not any(path.iterdir()):
@@ -54,18 +52,25 @@ def main(mapping_dir: str, hsds_dir: str, output_dir: str) -> None:
         f"Found {len(csv_files)} mapping CSV file(s) and {len(json_files)} HSDS JSON file(s)."
     )
     click.echo(f"Output directory: {output_dir}")
-    
-    mappingData = process_mappings(mapping_path)
 
-    jsonObjects = ingest_json_directory(hsds_path)
+    mapping_data = process_mappings(mapping_path)
+    all_objects = ingest_json_directory(hsds_path)
 
     output_path.mkdir(parents=True, exist_ok=True)
-    for spec in mappingData:
+    for spec in mapping_data:
+        dict_list = get_entity_objects(spec, all_objects, hsds_path)
+        if dict_list is None:
+            click.echo(f"  Skipping {spec.source_file.name}: unrecognized mapping filename format.")
+            continue
+
         output_file = output_path / f"{spec.name}.csv"
+        click.echo(f"  Writing {output_file.name} ({len(dict_list)} row(s))...")
         reverseTransform(
-            dictList=jsonObjects,
+            dictList=dict_list,
             pathsTuple=spec.fields,
             csvPath=output_file,
         )
+
+    click.echo(f"Done. {len(mapping_data)} CSV file(s) written to '{output_path}'.")
 if __name__ == "__main__":
     main()
