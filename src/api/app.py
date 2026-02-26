@@ -1,10 +1,12 @@
 import io
 import logging
 import tempfile
+import time
 import zipfile
+from datetime import datetime, timezone
 from pathlib import Path
 
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, HTTPException, Response, UploadFile
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.exceptions import RequestValidationError
 
@@ -12,11 +14,30 @@ from api.middleware import RouterLoggingMiddleware
 from api.logger import configure_logger
 from lib.collections import build_collections, searching_and_assigning
 from lib.outputs import save_objects_to_json
+from api.model import HealthResponse
 
 
 configure_logger()
 app = FastAPI(title="HSDS Transformer API", version="0.1.0")
 app.add_middleware(RouterLoggingMiddleware, logger=logging.getLogger("hsds.api"))
+APP_START_MONOTONIC = time.monotonic()
+
+
+@app.get(
+    "/health",
+    summary="Service health check",
+    description="Lightweight liveness endpoint for load balancers and orchestrators",
+    response_model=HealthResponse,
+)
+async def health(response: Response) -> HealthResponse:
+    response.headers["Cache-Control"] = "no-store"
+    return HealthResponse(
+        status="ok",
+        service=app.title,
+        version=app.version,
+        timestamp_utc=datetime.now(timezone.utc),
+        uptime_seconds=round(time.monotonic() - APP_START_MONOTONIC, 3),
+    )
 
 
 @app.post(
@@ -29,7 +50,11 @@ app.add_middleware(RouterLoggingMiddleware, logger=logging.getLogger("hsds.api")
     ),
     response_class=StreamingResponse,
 )
-async def transform(zip_file: UploadFile = File(..., description="Zip file containing input and mapping CSVs")) -> StreamingResponse:
+async def transform(
+    zip_file: UploadFile = File(
+        ..., description="Zip file containing input and mapping CSVs"
+    )
+) -> StreamingResponse:
     # Input validation: require a non-empty .zip file
     if not zip_file.filename or not zip_file.filename.lower().endswith(".zip"):
         raise HTTPException(status_code=422, detail="Must provide a zip file")
@@ -39,7 +64,9 @@ async def transform(zip_file: UploadFile = File(..., description="Zip file conta
     try:
         with zipfile.ZipFile(io.BytesIO(content), "r") as zf:
             if not zf.namelist():
-                raise HTTPException(status_code=422, detail="Zip file contains no files")
+                raise HTTPException(
+                    status_code=422, detail="Zip file contains no files"
+                )
     except zipfile.BadZipFile:
         raise HTTPException(status_code=422, detail="Invalid zip file")
 
@@ -52,9 +79,11 @@ async def transform(zip_file: UploadFile = File(..., description="Zip file conta
         extracted_items = list(Path(input_dir).iterdir())
         if len(extracted_items) == 1 and extracted_items[0].is_dir():
             input_dir = str(extracted_items[0])
-   
+
         if not any(Path(input_dir).iterdir()):
-            raise HTTPException(status_code=422, detail="Zip file extracts to an empty folder")
+            raise HTTPException(
+                status_code=422, detail="Zip file extracts to an empty folder"
+            )
 
         # Run the transformer: build collections, then link parents/children
         try:
@@ -64,7 +93,7 @@ async def transform(zip_file: UploadFile = File(..., description="Zip file conta
 
         results = searching_and_assigning(results)
 
-        # Write each object to JSON files in another temp dir, then zip and return 
+        # Write each object to JSON files in another temp dir, then zip and return
         with tempfile.TemporaryDirectory() as output_dir:
             save_objects_to_json(results, output_dir)
             buf = io.BytesIO()
