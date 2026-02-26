@@ -85,5 +85,5 @@ async def transform(zip_file: UploadFile = File(..., description="Zip file conta
 async def validation_exception_handler(_, exc: RequestValidationError) -> JSONResponse:
     return JSONResponse(
         status_code=422,
-        content={"detail": exc.errors(), "body": exc.body},
+        content={"detail": exc.errors()},
     )
