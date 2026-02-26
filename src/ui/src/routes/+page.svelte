@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { onDestroy } from 'svelte';
+
 	let file = $state<File | null>(null);
 	let isDragging = $state(false);
 	let isLoading = $state(false);
@@ -7,6 +9,17 @@
 
 	// Use relative URL - nginx proxies /transform to the API
 	const API_URL = import.meta.env.DEV ? 'http://localhost:8000' : '/api';
+
+	function clearDownloadUrl() {
+		if (downloadUrl) {
+			URL.revokeObjectURL(downloadUrl);
+			downloadUrl = null;
+		}
+	}
+
+	onDestroy(() => {
+		clearDownloadUrl();
+	});
 
 	function handleDragOver(e: DragEvent) {
 		e.preventDefault();
@@ -28,7 +41,7 @@
 			if (droppedFile.name.endsWith('.zip')) {
 				file = droppedFile;
 				error = null;
-				downloadUrl = null;
+				clearDownloadUrl();
 			} else {
 				error = 'Please drop a .zip file';
 			}
@@ -42,7 +55,7 @@
 			if (selectedFile.name.endsWith('.zip')) {
 				file = selectedFile;
 				error = null;
-				downloadUrl = null;
+				clearDownloadUrl();
 			} else {
 				error = 'Please select a .zip file';
 			}
@@ -54,7 +67,7 @@
 		
 		isLoading = true;
 		error = null;
-		downloadUrl = null;
+		clearDownloadUrl();
 
 		try {
 			const formData = new FormData();
@@ -66,8 +79,17 @@
 			});
 
 			if (!response.ok) {
-				const err = await response.json();
-				throw new Error(err.detail || 'Transform failed');
+				const responseBody = await response.text();
+				let errorDetail = responseBody;
+
+				try {
+					const err = JSON.parse(responseBody) as { detail?: string };
+					errorDetail = err.detail || responseBody;
+				} catch {}
+
+				const statusMessage = `Transform failed (${response.status} ${response.statusText})`;
+				const message = errorDetail ? `${statusMessage}: ${errorDetail}` : statusMessage;
+				throw new Error(message);
 			}
 
 			const blob = await response.blob();
@@ -92,7 +114,7 @@
 
 	function handleReset() {
 		file = null;
-		downloadUrl = null;
+		clearDownloadUrl();
 		error = null;
 	}
 </script>
