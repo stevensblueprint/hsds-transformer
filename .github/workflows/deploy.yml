@@ -37,12 +37,13 @@ jobs:
                   ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
                   ECR_REPOSITORY: hsds-transformer
               run: |
-                  # Build the Docker image                  
-                  IMAGE_TAG=${IMAGE_TAG}-${COMMIT_HASH}-${TIMESTAMP}
+                  # Build the Docker image
+                  IMAGE_TAG=${ECR_REPOSITORY}-${COMMIT_HASH}-${TIMESTAMP}
                   echo "Building Docker image with tag: $IMAGE_TAG"
                   docker build -t $ECR_REPOSITORY:$IMAGE_TAG .
-                  # Tag the image with the ECR registry
-                  docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+                  # Tag the locally built image with the ECR registry
+                  docker tag $ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+                  docker tag $ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
                   # Push the image to ECR
                   docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
                   docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
