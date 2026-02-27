@@ -123,5 +123,79 @@ class TestTransformation(unittest.TestCase):
         self.assertEqual(main_center["state_province"], "EX")
 
 
+    def test5(self):
+        """
+        Verifies a full multi-entity pipeline using data/sanity_check, covering:
+        - HTML strip (description)
+        - Split into array objects (languages)
+        - Aligned array mapping (phones with number + type)
+        - Attribute label generation (attributes[].value + label)
+        - Flat split into a list (tags)
+        - One-to-many linking (org -> services)
+        - Singular embedding (service -> program as dict, not list)
+        - Filter row exclusion (Status != Active rows dropped)
+        """
+        results = build_collections("data/sanity_check")
+        results = searching_and_assigning(results)
+        results_dict = {name: objs for name, objs in results}
+
+        # Services and programs are consumed; only organization remains at top level
+        self.assertIn("organization", results_dict)
+        self.assertEqual(results_dict.get("service", []), [])
+        self.assertEqual(results_dict.get("program", []), [])
+
+        orgs = results_dict["organization"]
+        self.assertEqual(len(orgs), 1)
+        org = orgs[0]
+
+        self.assertEqual(org["id"], "1")
+        self.assertEqual(org["name"], "Test Organization")
+
+        # HTML strip: <p>Clean Me</p> -> Clean Me
+        self.assertEqual(org["description"], "Clean Me")
+
+        # Split: "en,fr" -> two language objects
+        self.assertEqual(len(org["languages"]), 2)
+        lang_names = [l["name"] for l in org["languages"]]
+        self.assertIn("en", lang_names)
+        self.assertIn("fr", lang_names)
+
+        # Aligned arrays: Phone1/Phone2 zipped with Phone1Type/Phone2Type
+        self.assertEqual(len(org["phones"]), 2)
+        self.assertEqual(org["phones"][0]["number"], "555-0100")
+        self.assertEqual(org["phones"][0]["type"], "Office")
+        self.assertEqual(org["phones"][1]["number"], "555-0101")
+        self.assertEqual(org["phones"][1]["type"], "Mobile")
+
+        # Attributes with auto-generated label from column name
+        wifi = next(a for a in org["attributes"] if a["value"] == "HasWifi")
+        self.assertEqual(wifi["label"], "Feature1")
+        parking = next(a for a in org["attributes"] if a["value"] == "HasParking")
+        self.assertEqual(parking["label"], "Feature2")
+
+        # Flat split: "tagA,tagB" -> ["tagA", "tagB"]
+        self.assertIn("tagA", org["tags"])
+        self.assertIn("tagB", org["tags"])
+
+        # One-to-many: org has 2 services nested
+        self.assertIsInstance(org["services"], list)
+        self.assertEqual(len(org["services"]), 2)
+        service_ids = [s["id"] for s in org["services"]]
+        self.assertIn("101", service_ids)
+        self.assertIn("102", service_ids)
+
+        service_a = next(s for s in org["services"] if s["id"] == "101")
+        service_b = next(s for s in org["services"] if s["id"] == "102")
+
+        # Singular embedding: program embedded as dict inside service_a
+        self.assertIn("program", service_a)
+        self.assertIsInstance(service_a["program"], dict)
+        self.assertEqual(service_a["program"]["id"], "501")
+        self.assertEqual(service_a["program"]["name"], "Program X")
+
+        # Service with no program has no program key
+        self.assertNotIn("program", service_b)
+
+
 if __name__ == '__main__':
     unittest.main()
