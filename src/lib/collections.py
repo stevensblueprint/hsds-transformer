@@ -4,7 +4,16 @@ from .parser import parse_input_csv, parse_nested_mapping, validate_mapping_agai
 from .mapper import nested_map, get_process_order
 from .relationships import identify_parent_relationships
 from .logger import transformer_log
+from .relations import HSDS_RELATIONS
 from typing import Dict, List, Tuple, Any, Optional
+from uuid import UUID, uuid5
+
+# TODO: Initialize UUID with a proper fixed value
+NAMESPACE = UUID("{12345678-1234-5678-1234-567812345678}")
+
+# Global counter for hsds-object ID generation
+_id_counter = 0
+
 
 def build_collections(data_directory: str):
     """
@@ -21,21 +30,21 @@ def build_collections(data_directory: str):
         raise ValueError(f"Input directory '{data_directory}' is empty.")
 
     results = [] # List of tuples like ("organization", [dict_list])
-    
+
     mapping_files = list(data_directory.glob("*_mapping.csv"))
     transformer_log.log(f"Found {len(mapping_files)} mapping file(s)")
     if not mapping_files:
         # Check if there are any CSVs at all to give a better error message
         csv_files = list(data_directory.glob("*.csv"))
         if not csv_files:
-             raise ValueError(f"No CSV files found in '{data_directory}'.")
+            raise ValueError(f"No CSV files found in '{data_directory}'.")
         else:
-             raise ValueError(f"No mapping files (*_mapping.csv) found in '{data_directory}'.")
+            raise ValueError(f"No mapping files (*_mapping.csv) found in '{data_directory}'.")
 
     # Goes through every CSV file in the folder that ends with "_mapping.csv"
     for mapping_file in mapping_files:
         match = re.match(r"(.+)_([A-Za-z0-9]+)_mapping\.csv", mapping_file.name) # Parses and extracts name before "_mapping" using regex
-        
+
         # Skips files with no _mapping ending
         if not match:
             continue
@@ -222,13 +231,92 @@ def attach_original_to_targets(
                 append_to_list_field(target, plural_key, original)
 
 
+def generate_ids(data: Any, requestor_identifier: Optional[str] = None, visited: Optional[set] = None) -> None:
+    """
+    Recursively traverses the data structure (list or dict) to generate IDs for objects.
 
-def searching_and_assigning(collections: List[Tuple[str, List[Dict[str, Any]]]]) -> List[Tuple[str, List[Dict[str, Any]]]]:
+    If an object (dict) doesn't have an ID, it generates one using UUID-5.
+    If an object already has an ID, it moves the old ID to a child attribute object
+    with label "Previous ID" and generates a new ID.
+
+    Args:
+        data: The data structure to process (list of dicts, or a single dict).
+        requestor_identifier: Optional identifier for UUID generation.
+        visited: Set tracking visited objects to prevent re-processing shared references.
+    """
+    if visited is None:
+        visited = set()
+
+    if isinstance(data, list):
+        for item in data:
+            generate_ids(item, requestor_identifier, visited)
+    elif isinstance(data, dict):
+        # Skip if this dict has already been processed
+        obj_id = id(data)
+        if obj_id in visited:
+            return
+        visited.add(obj_id)
+
+        # Recursively process all values in the dictionary FIRST
+        for key, value in list(data.items()):
+            # Skip processing the 'id' field itself
+            if key != "id":
+                generate_ids(value, requestor_identifier, visited)
+
+        # Process this object's ID
+        # Check if ID exists
+        global _id_counter
+        if "id" in data:
+            old_id = data["id"]
+            # Build string for UUID5 based on presence of requestor_identifier and old_id
+            if requestor_identifier:
+                string_for_uuid = (
+                    f"hsds-object-{requestor_identifier}-{old_id}-{_id_counter}"
+                )
+            else:
+                string_for_uuid = f"hsds-object-{old_id}-{_id_counter}"
+            data["id"] = str(uuid5(NAMESPACE, string_for_uuid))
+            _id_counter += 1
+        else:
+            # No ID exists, generate one
+            if requestor_identifier:
+                string_for_uuid = f"hsds-object-{requestor_identifier}-{_id_counter}"
+            else:
+                string_for_uuid = f"hsds-object-{_id_counter}"
+            data["id"] = str(uuid5(NAMESPACE, string_for_uuid))
+            _id_counter += 1
+
+
+# Remove legacy *_id fields from all objects after linking
+def remove_legacy_id_fields(obj):
+    if isinstance(obj, list):
+        for item in obj:
+            remove_legacy_id_fields(item)
+    elif isinstance(obj, dict):
+        keys_to_remove = []
+        for k in obj.keys():
+            if k.endswith("_id"):
+                base_name = k[:-3]
+                if base_name in HSDS_RELATIONS:
+                    keys_to_remove.append(k)
+        for k in keys_to_remove:
+            del obj[k]
+        for v in obj.values():
+            remove_legacy_id_fields(v)
+
+
+def searching_and_assigning(
+    collections: List[Tuple[str, List[Dict[str, Any]]]],
+    requestor_identifier: Optional[str] = None,
+) -> List[Tuple[str, List[Dict[str, Any]]]]:
     transformer_log.section("Searching and Assigning")
     
     if not collections:
         transformer_log.log("No collections to process")
         return collections
+
+    global _id_counter
+    _id_counter = 0
 
     # Build collection_map once and reuse it everywhere
     # Converts the list of tuples into a dict for faster lookup
@@ -279,6 +367,12 @@ def searching_and_assigning(collections: List[Tuple[str, List[Dict[str, Any]]]])
             if o not in objs_to_remove:
                 updated_objects.append(o)
         collection_map[c_name] = updated_objects # Replaces old list with updated list
+
+    for name, objects in collection_map.items():
+        remove_legacy_id_fields(objects)
+        # Only generate new IDs if --generate-ids flag was provided
+        if requestor_identifier is not None:
+            generate_ids(objects, requestor_identifier)
 
     # Rebuilds the final result as a list of tuples to match the original format returned in build_collections
     final_result = []
