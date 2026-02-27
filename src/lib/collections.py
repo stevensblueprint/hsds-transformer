@@ -50,6 +50,11 @@ def build_collections(data_directory: str):
             continue
 
         input_name, object_type = match.groups() # Grabs the name and type of object for labeling in results
+
+        # Edge case where service_at_location has a key for both a child and parent
+        if object_type.lower() in ("serviceatlocation", "servicesatlocation"):
+            object_type = "service_at_location"
+
         input_file = data_directory / f"{input_name}.csv" # Uses the extracted name to find the corresponding input CSV file
 
         # Skips this mapping if the matching input CSV doesn't exist
@@ -193,6 +198,11 @@ def attach_original_to_targets(
         )
         if target is None:
             # Skips if no corresponding dict
+            continue
+
+        # Edge case where service_at_location has a key for both a child and parent (pluralized)
+        if original_type == "service_at_location":
+            append_to_list_field(target, "service_at_locations", original.copy())
             continue
 
         # SINGULAR EMBED CASE (HARD CODED)
