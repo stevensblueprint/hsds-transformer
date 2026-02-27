@@ -6,6 +6,16 @@ services:
     ports:
       - "8000:8000"
     environment:
-      APP_MODULE: api.main:app
+      APP_MODULE: api.app:app
       PORT: "8000"
+    restart: unless-stopped
+
+  ui:
+    build:
+      context: ./src/ui
+    container_name: hsds-transformer-ui
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
     restart: unless-stopped

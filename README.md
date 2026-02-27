@@ -177,3 +177,54 @@ Once the collections have been created, we search through each collection, linki
 # Start the FastAPI server
 uvicorn api.app:app --app-dir src --reload
 ```
+
+## Running with Docker
+
+### Using Docker Compose (Recommended)
+
+This runs both the API and UI containers:
+
+```bash
+# Build and start all services
+docker compose up -d
+
+# View logs
+docker compose logs -f
+
+# Stop services
+docker compose down
+```
+
+### Services
+
+| Service | URL | Description |
+|---------|-----|-------------|
+| UI | http://localhost:3000 | Svelte web interface |
+| API | http://localhost:8000 | FastAPI backend |
+| API Docs | http://localhost:8000/docs | Swagger documentation |
+
+### Using the UI
+
+1. Open http://localhost:3000 in your browser
+2. Drag and drop a zip file containing:
+   - Input CSV files (e.g., `services.csv`)
+   - Mapping CSV files (e.g., `*_mapping.csv`)
+3. Click "Transform"
+4. Download the resulting HSDS JSON zip
+
+Sample data is available in the `data/` directory. To create a test zip:
+
+```bash
+cd data/services
+zip -r test.zip *.csv
+```
+
+### Manual API Usage
+
+```bash
+# Transform a zip file
+curl -X POST -F "zip_file=@path/to/your.zip" http://localhost:8000/transform -o output.zip
+
+# Or through the UI proxy
+curl -X POST -F "zip_file=@path/to/your.zip" http://localhost:3000/api/transform -o output.zip
+```
