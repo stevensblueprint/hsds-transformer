@@ -191,9 +191,12 @@ def attach_original_to_targets(
             # Skips if no corresponding dict
             continue
 
-        # Edge case where service_at_location has a key for both a child and parent (pluralized)
+        # Edge case where service_at_location has both service_id and location_id
         if original_type == "service_at_location":
-            append_to_list_field(target, "service_at_locations", original.copy())
+            if target_collection == "service":
+                append_to_list_field(target, "service_at_locations", original)
+            elif target_collection == "location":
+                original["location"] = target
             continue
 
         # SINGULAR EMBED CASE (HARD CODED)
@@ -279,7 +282,8 @@ def searching_and_assigning(collections: List[Tuple[str, List[Dict[str, Any]]]])
             for target_collection, target_id in relations:
                 found = find_in_collection(collection_map, target_collection, target_id, "id") # Looks for target in collection
                 if found: # Once confirmed attached, stops checking relations
-                    to_delete[obj_type].append(original) # Adds to be deleted later
+                    if obj_type not in {"service", "location"}:
+                        to_delete[obj_type].append(original) # Adds to be deleted later
                     break
     
     # Goes through each collection type and removes objs that were attached
