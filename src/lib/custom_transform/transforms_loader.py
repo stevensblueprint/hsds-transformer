@@ -1,10 +1,14 @@
-"""Handles loading user-provided custom modules. Its purpose is to dynamically 
-import a single dedicated Python file defined by the user that contains their 
+"""Handles loading user-provided custom modules. Its purpose is to dynamically
+import a single dedicated Python file defined by the user that contains their
 customized cleanup functions."""
 
 import importlib.util
 from pathlib import Path
 from typing import Callable
+
+from .custom_transform_error import CustomTransformError
+
+__all__ = ["TransformsRegistry"]
 
 
 class TransformsRegistry:
