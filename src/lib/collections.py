@@ -50,6 +50,11 @@ def build_collections(data_directory: str):
             continue
 
         input_name, object_type = match.groups() # Grabs the name and type of object for labeling in results
+
+        # Edge case where service_at_location has a key for both a child and parent
+        if object_type.lower() in ("serviceatlocation", "servicesatlocation"):
+            object_type = "service_at_location"
+
         input_file = data_directory / f"{input_name}.csv" # Uses the extracted name to find the corresponding input CSV file
 
         # Skips this mapping if the matching input CSV doesn't exist
@@ -193,6 +198,14 @@ def attach_original_to_targets(
         )
         if target is None:
             # Skips if no corresponding dict
+            continue
+
+        # Edge case where service_at_location has both service_id and location_id
+        if original_type == "service_at_location":
+            if target_collection == "service":
+                append_to_list_field(target, "service_at_locations", original)
+            elif target_collection == "location":
+                original["location"] = target
             continue
 
         # SINGULAR EMBED CASE (HARD CODED)
@@ -357,7 +370,8 @@ def searching_and_assigning(
             for target_collection, target_id in relations:
                 found = find_in_collection(collection_map, target_collection, target_id, "id") # Looks for target in collection
                 if found: # Once confirmed attached, stops checking relations
-                    to_delete[obj_type].append(original) # Adds to be deleted later
+                    if obj_type not in {"service", "location"}:
+                        to_delete[obj_type].append(original) # Adds to be deleted later
                     break
     
     # Goes through each collection type and removes objs that were attached
