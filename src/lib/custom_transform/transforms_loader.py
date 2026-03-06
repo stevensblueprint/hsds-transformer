@@ -6,8 +6,6 @@ import importlib.util
 from pathlib import Path
 from typing import Callable
 
-from .custom_transform_error import CustomTransformError
-
 __all__ = ["TransformsRegistry"]
 
 
