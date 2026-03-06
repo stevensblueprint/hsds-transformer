@@ -124,15 +124,36 @@ def get_entity_objects(spec: CsvMapping, all_objects: list[dict], hsds_path: Pat
         for f in hsds_path.glob(f"{entity_type}_*.json")
     }
 
-    if entity_ids:
-        return [d for d in all_objects if d.get('id') in entity_ids]
+
+    from_files = [d for d in all_objects if d.get('id') in entity_ids]
 
     if entity_type.endswith(("s", "sh", "ch", "x", "z")):
         nested_key = entity_type + "es"
     else:
         nested_key = entity_type + "s"
 
-    dict_list = []
+    nested = []
+    def collect_nested(obj):
+        if isinstance(obj, dict):
+            if nested_key in obj and isinstance(obj[nested_key], list):
+                nested.extend(obj[nested_key])
+            for v in obj.values():
+                if isinstance(v, (dict, list)):
+                    collect_nested(v)
+        elif isinstance(obj, list):
+            for item in obj:
+                collect_nested(item)
+
     for parent in all_objects:
-        dict_list.extend(parent.get(nested_key, []))
-    return dict_list
+        collect_nested(parent)
+
+    seen_ids = {d['id'] for d in from_files if 'id' in d}
+
+    for item in nested:
+        item_id = item.get('id')
+        if item_id not in seen_ids:
+            from_files.append(item)
+            seen_ids.add(item_id)
+
+
+    return from_files
