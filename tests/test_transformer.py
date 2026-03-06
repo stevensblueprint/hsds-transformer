@@ -3,7 +3,7 @@ from src.lib.collections import build_collections, searching_and_assigning
 
 class TestTransformation(unittest.TestCase):
 
-    def test1(self):
+    def test_organization_data(self):
         expected = [
             (
                 "organization", 
@@ -24,7 +24,7 @@ class TestTransformation(unittest.TestCase):
         results = searching_and_assigning(results) # Links and cleans up        
         self.assertEqual(expected,results)
         
-    def test2(self):
+    def test_empty_input(self):
         """
         Verifies that a mapping file with no input_files_field values produces no records.
         """
@@ -34,7 +34,7 @@ class TestTransformation(unittest.TestCase):
         self.assertEqual(all_objects, [])
         
 
-    def test3(self):
+    def test_split_input(self):
         """
         Verifies that the split feature correctly splits comma-separated
         language strings into individual language objects.
@@ -77,7 +77,7 @@ class TestTransformation(unittest.TestCase):
         self.assertIn("English", lang_names)
         self.assertIn("Spanish", lang_names)
         
-    def test4(self):
+    def test_relationship_linking(self):
         """
         Verifies one-to-many relationship linking: locations are nested into
         their parent organizations, and field name mapping is applied correctly
@@ -123,7 +123,7 @@ class TestTransformation(unittest.TestCase):
         self.assertEqual(main_center["state_province"], "EX")
 
 
-    def test5(self):
+    def test_sanity_check(self):
         """
         Verifies a full multi-entity pipeline using data/sanity_check, covering:
         - HTML strip (description)
