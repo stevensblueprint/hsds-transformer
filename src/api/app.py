@@ -9,6 +9,7 @@ from pathlib import Path
 from fastapi import FastAPI, File, HTTPException, Response, UploadFile
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 
 from api.middleware import RouterLoggingMiddleware
 from api.logger import configure_logger
@@ -22,6 +23,19 @@ app = FastAPI(title="HSDS Transformer API", version="0.1.0")
 app.add_middleware(RouterLoggingMiddleware, logger=logging.getLogger("hsds.api"))
 APP_START_MONOTONIC = time.monotonic()
 
+origins = [
+"http://localhost:5173",
+"https://hsds.sitblueprint.com"
+]
+
+# Adding CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins, # Specify allowed origins
+    allow_credentials=True, # Allow cookies and credentials
+    allow_methods=["*"], # Allow all HTTP methods
+    allow_headers=["*"], # Allow all headers
+)
 
 @app.get(
     "/health",
