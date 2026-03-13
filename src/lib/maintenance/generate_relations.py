@@ -55,12 +55,26 @@ def generate_relations_dict(schema: dict[str, Any]) -> dict[str, list[str]]:
     """Parse JSON schema into a dictionary of HSDS relationships."""
     relations: defaultdict[str, set[str]] = defaultdict(set)
     
-    # organization is typically the root of the datapackage/schema we ingest
-    _traverse_schema(schema, "organization", relations)
+    # Start traversal from all top-level datapackage properties
+    # This ensures we discover all HSDS entities, not just those nested under organization
+    properties = schema.get("properties", {})
+    for top_level_prop in properties.keys():
+        entity_name = _singularize_property_name(top_level_prop)
+        relations[entity_name] = set()  # Initialize as root entity
+        _traverse_schema(properties[top_level_prop], entity_name, relations)
 
-    # Ensure root is present
-    if "organization" not in relations:
-        relations["organization"] = set()
+    # Ensure all known HSDS 3.1.2 entities are present in relations
+    # This guarantees a complete output even if some entities aren't in the input schema
+    all_hsds_entities = {
+        "organization", "service", "location", "service_at_location",
+        "address", "phone", "schedule", "service_area", "language", "funding",
+        "accessibility", "cost_option", "program", "required_document", "contact",
+        "organization_identifier", "service_capacity", "unit", "attribute", "url",
+        "metadata", "meta_table_description", "taxonomy", "taxonomy_term"
+    }
+    for entity in all_hsds_entities:
+        if entity not in relations:
+            relations[entity] = set()
 
     # Manual Overrides for Edge Cases present in HSDS 3.1.2 mapping
     # 1. 'attribute' and 'metadata' are polymorphic and don't natively nest everything in the schema.
