@@ -133,6 +133,7 @@ def get_entity_objects(spec: CsvMapping, all_objects: list[dict], hsds_path: Pat
         nested_key = entity_type + "s"
 
     nested = []
+    # searches through nested entries
     def collect_nested(obj):
         if isinstance(obj, dict):
             if nested_key in obj and isinstance(obj[nested_key], list):
@@ -151,9 +152,10 @@ def get_entity_objects(spec: CsvMapping, all_objects: list[dict], hsds_path: Pat
 
     for item in nested:
         item_id = item.get('id')
-        if item_id not in seen_ids:
+        if item_id is None or item_id not in seen_ids:
             from_files.append(item)
-            seen_ids.add(item_id)
+            if item_id is not None:
+                seen_ids.add(item_id)
 
 
     return from_files
