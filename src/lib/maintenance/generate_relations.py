@@ -25,46 +25,101 @@ def _singularize_property_name(prop_name: str) -> str:
     return prop_name
 
 
-def _traverse_schema(node: Any, parent_name: str, relations: defaultdict[str, set[str]]) -> None:
-    """Recursively search for properties and array items to build parent-child relations."""
-    if not isinstance(node, dict):
+def _extract_entity_name(node: dict, prop_name: str) -> str | None:
+    """Get the canonical entity name from a schema node, or None if not an entity."""
+    name = node.get("name")
+    if name and isinstance(name, str):
+        return name
+    if node.get("type") == "object" or "properties" in node:
+        return _singularize_property_name(prop_name)
+    return None
+
+
+def _add_parent(relations: dict[str, list[str]], entity: str, parent: str) -> None:
+    """Append a parent to an entity's parent list if not already present."""
+    if parent not in relations[entity]:
+        relations[entity].append(parent)
+
+
+def _collect_entities(
+    schema_node: dict,
+    relations: dict[str, list[str]],
+) -> None:
+    """Recursively walk the schema to discover all HSDS entities and their _id references.
+
+    Always recurses into nested schemas so that _id refs from every occurrence
+    of an entity (at different nesting levels) are accumulated.
+    """
+    if not isinstance(schema_node, dict):
         return
 
-    properties = node.get("properties", {})
-    for prop_name, prop_schema in properties.items():
+    props = schema_node.get("properties", {})
+    if not props:
+        items = schema_node.get("items", {})
+        if isinstance(items, dict):
+            props = items.get("properties", {})
+            schema_node = items
+
+    for prop_name, prop_schema in props.items():
         if not isinstance(prop_schema, dict):
             continue
 
-        p_type = prop_schema.get("type")
-        if p_type == "array":
+        # Array of objects = nested entity
+        if prop_schema.get("type") == "array":
             items = prop_schema.get("items", {})
             if isinstance(items, dict) and (items.get("type") == "object" or "properties" in items):
-                child_name = _singularize_property_name(prop_name)
-                if parent_name:
-                    relations[child_name].add(parent_name)
-                _traverse_schema(items, child_name, relations)
+                entity_name = _extract_entity_name(items, prop_name)
+                if entity_name:
+                    if entity_name not in relations:
+                        relations[entity_name] = []
+                    for parent in _extract_id_refs(items, relations.keys()):
+                        _add_parent(relations, entity_name, parent)
+                # Always recurse — entity may appear at multiple nesting levels
+                _collect_entities(items, relations)
 
-        elif p_type == "object" or "properties" in prop_schema:
-            child_name = _singularize_property_name(prop_name)
-            if parent_name:
-                relations[child_name].add(parent_name)
-            _traverse_schema(prop_schema, child_name, relations)
+        # Inline object = nested entity
+        elif prop_schema.get("type") == "object" or "properties" in prop_schema:
+            entity_name = _extract_entity_name(prop_schema, prop_name)
+            if entity_name:
+                if entity_name not in relations:
+                    relations[entity_name] = []
+                for parent in _extract_id_refs(prop_schema, relations.keys()):
+                    _add_parent(relations, entity_name, parent)
+            _collect_entities(prop_schema, relations)
+
+
+def _extract_id_refs(entity_node: dict, known_entities) -> list[str]:
+    """Extract parent entity names from *_id fields in an entity schema."""
+    parents = []
+    props = entity_node.get("properties", {})
+    known = set(known_entities)
+
+    for prop_name in props:
+        if prop_name.endswith("_id") and prop_name != "id":
+            ref_name = prop_name[:-3]  # strip "_id"
+            if ref_name in known:
+                parents.append(ref_name)
+            else:
+                singular = _singularize_property_name(ref_name)
+                if singular in known:
+                    parents.append(singular)
+
+    return parents
 
 
 def generate_relations_dict(schema: dict[str, Any]) -> dict[str, list[str]]:
     """Parse JSON schema into a dictionary of HSDS relationships."""
-    relations: defaultdict[str, set[str]] = defaultdict(set)
-    
-    # Start traversal from all top-level datapackage properties
-    # This ensures we discover all HSDS entities, not just those nested under organization
-    properties = schema.get("properties", {})
-    for top_level_prop in properties.keys():
-        entity_name = _singularize_property_name(top_level_prop)
-        relations[entity_name] = set()  # Initialize as root entity
-        _traverse_schema(properties[top_level_prop], entity_name, relations)
+    relations: dict[str, list[str]] = {}
 
-    # Ensure all known HSDS 3.1.2 entities are present in relations
-    # This guarantees a complete output even if some entities aren't in the input schema
+    # Register the root entity
+    root_name = _extract_entity_name(schema, "organization")
+    if root_name:
+        relations[root_name] = []
+
+    # Recursively collect all entities and their _id-based parent refs
+    _collect_entities(schema, relations)
+
+    # Add any missing known HSDS entities as root entities
     all_hsds_entities = {
         "organization", "service", "location", "service_at_location",
         "address", "phone", "schedule", "service_area", "language", "funding",
@@ -74,56 +129,66 @@ def generate_relations_dict(schema: dict[str, Any]) -> dict[str, list[str]]:
     }
     for entity in all_hsds_entities:
         if entity not in relations:
-            relations[entity] = set()
+            relations[entity] = []
 
-    # Manual Overrides for Edge Cases present in HSDS 3.1.2 mapping
-    # 1. 'attribute' and 'metadata' are polymorphic and don't natively nest everything in the schema.
-    # We want them to point to basically all entities.
-    all_entities = set(relations.keys())
-    # from relations.py, attributes usually covers almost everything except itself, taxonomy, metadata
-    attribute_parents = all_entities - {"attribute", "metadata", "taxonomy", "taxonomy_term", "meta_table_description"}
-    relations["attribute"].update(attribute_parents)
-    
-    metadata_parents = all_entities - {"metadata", "meta_table_description"}
-    relations["metadata"].update(metadata_parents)
+    # --- Manual overrides for spec-level edge cases ---
 
-    # 2. 'taxonomy_term' vs 'attribute' direction
-    # the schema nests taxonomy_term under attribute, but conceptually attribute uses taxonomy_term.
-    # We will ensure taxonomy_term depends on attribute as in the original relations.py
-    if "attribute" in relations.get("taxonomy_term", set()):
-        relations["taxonomy_term"].remove("attribute")
-    relations["taxonomy_term"].add("attribute")
-    if "taxonomy_term" in relations.get("attribute", set()):
-         relations["attribute"].remove("taxonomy_term")
-    # Remove self loops
+    # service is a root entity (breaks cyclic dependency with organization/program)
+    relations["service"] = []
+
+    # Root entities with no parents
+    relations["meta_table_description"] = []
+    relations["taxonomy"] = []
+
+    # taxonomy_term depends on attribute (not the other way around)
+    relations["taxonomy_term"] = ["attribute"]
+
+    # unit depends on service_capacity
+    relations["unit"] = ["service_capacity"]
+
+    # service_capacity only depends on service (unit is a child, not a parent)
+    relations["service_capacity"] = ["service"]
+
+    # Build entity ordering: core first, then alphabetical
+    core_keys = ["organization", "service", "location", "service_at_location"]
+    ordered_entities = list(core_keys)
+    for key in sorted(relations.keys()):
+        if key not in core_keys:
+            ordered_entities.append(key)
+
+    # attribute is polymorphic — applies to nearly all entities
+    attribute_parents = [
+        e for e in ordered_entities
+        if e not in {"attribute", "metadata", "taxonomy", "taxonomy_term", "service_capacity"}
+    ]
+    relations["attribute"] = attribute_parents
+
+    # metadata is polymorphic — applies to nearly all entities including attribute
+    relations["metadata"] = [
+        e for e in ordered_entities
+        if e not in {"metadata", "service_capacity", "taxonomy_term"}
+    ]
+
+    # Remove self-loops
     for key, parents in relations.items():
         if key in parents:
             parents.remove(key)
 
-    # Clear cyclic explicit dependencies if any (e.g., service might have picked up organization)
-    relations["service"] = set()
+    # Reverse edges: service depends on organization/program, so those entities
+    # have service as a child in the DAG
+    if "organization" in relations:
+        _add_parent(relations, "organization", "service")
+    if "program" in relations:
+        _add_parent(relations, "program", "service")
 
-    # Create the final sorted dict (keys sorted, values sorted)
-    final_dict = {}
-    
-    # Custom sort order to mimic Core first, then Other
-    # Though we can just alphabetically sort them for consistency, matching original is nice
-    core_keys = ["organization", "service", "location", "service_at_location"]
-    
-    for key in core_keys:
-        if key in relations:
-            final_dict[key] = sorted(list(relations[key]))
-            
-    for key in sorted(relations.keys()):
-        if key not in core_keys:
-            final_dict[key] = sorted(list(relations[key]))
+    # Build final dict preserving entity ordering
+    final_dict = {key: relations[key] for key in ordered_entities if key in relations}
 
     return final_dict
 
 
 def write_relations_file(relations: dict[str, list[str]], out_path: str) -> None:
     """Write the dictionary to relations.py preserving the original docstring if possible."""
-    # Build dictionary literal
     dict_content = "HSDS_RELATIONS = {\n"
     for i, (key, parents) in enumerate(relations.items()):
         dict_content += f'    "{key}": [\n'
@@ -142,7 +207,7 @@ def write_relations_file(relations: dict[str, list[str]], out_path: str) -> None
 
     # Default Docstring
     docstring = '"""\nDAG model of HSDS entity relationships.\n"""\n\n'
-    
+
     # Try to grab existing docstring
     try:
         with open(out_path, "r", encoding="utf-8") as f:
