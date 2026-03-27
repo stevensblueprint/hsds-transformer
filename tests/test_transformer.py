@@ -72,7 +72,7 @@ class TestTransformation(unittest.TestCase):
 
         # The split feature: "{English,Spanish}" -> two language objects
         trenza = next(s for s in services if s["id"] == "236966")
-        lang_names = [l["name"] for l in trenza["languages"]]
+        lang_names = [lang["name"] for lang in trenza["languages"]]
         self.assertEqual(len(lang_names), 2)
         self.assertIn("English", lang_names)
         self.assertIn("Spanish", lang_names)
@@ -111,13 +111,13 @@ class TestTransformation(unittest.TestCase):
         self.assertEqual(len(health_center["locations"]), 1)
 
         # Location IDs are correctly assigned
-        food_bank_loc_ids = [l["id"] for l in food_bank["locations"]]
+        food_bank_loc_ids = [loc["id"] for loc in food_bank["locations"]]
         self.assertIn("loc_001", food_bank_loc_ids)
         self.assertIn("loc_002", food_bank_loc_ids)
         self.assertEqual(health_center["locations"][0]["id"], "loc_003")
 
         # Field name mapping: 'address' -> 'address_1', 'state' -> 'state_province'
-        main_center = next(l for l in food_bank["locations"] if l["id"] == "loc_001")
+        main_center = next(loc for loc in food_bank["locations"] if loc["id"] == "loc_001")
         self.assertEqual(main_center["address_1"], "123 Main St")
         self.assertEqual(main_center["city"], "Exampleville")
         self.assertEqual(main_center["state_province"], "EX")
@@ -156,7 +156,7 @@ class TestTransformation(unittest.TestCase):
 
         # Split: "en,fr" -> two language objects
         self.assertEqual(len(org["languages"]), 2)
-        lang_names = [l["name"] for l in org["languages"]]
+        lang_names = [lang["name"] for lang in org["languages"]]
         self.assertIn("en", lang_names)
         self.assertIn("fr", lang_names)
 
