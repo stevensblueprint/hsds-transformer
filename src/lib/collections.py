@@ -282,8 +282,8 @@ def searching_and_assigning(collections: List[Tuple[str, List[Dict[str, Any]]]])
             for target_collection, target_id in relations:
                 found = find_in_collection(collection_map, target_collection, target_id, "id") # Looks for target in collection
                 if found: # Once confirmed attached, stops checking relations
-                    if obj_type not in {"service", "location"}:
-                        to_delete[obj_type].append(original) # Adds to be deleted later
+                    if obj_type != "service_at_location":
+                        to_delete[obj_type].append(original)
                     break
     
     # Goes through each collection type and removes objs that were attached
