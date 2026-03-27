@@ -1,5 +1,4 @@
 import ast
-from collections import defaultdict
 from typing import Any
 
 
@@ -41,14 +40,15 @@ def _add_parent(relations: dict[str, list[str]], entity: str, parent: str) -> No
         relations[entity].append(parent)
 
 
-def _collect_entities(
+def _discover_entities(
     schema_node: dict,
     relations: dict[str, list[str]],
+    id_refs: dict[str, list[str]],
 ) -> None:
-    """Recursively walk the schema to discover all HSDS entities and their _id references.
+    """Recursively walk the schema to discover all HSDS entities and collect raw _id fields.
 
-    Always recurses into nested schemas so that _id refs from every occurrence
-    of an entity (at different nesting levels) are accumulated.
+    _id fields are stored unfiltered in id_refs so they can be resolved later
+    against the complete entity set, making the algorithm order-independent.
     """
     if not isinstance(schema_node, dict):
         return
@@ -72,10 +72,13 @@ def _collect_entities(
                 if entity_name:
                     if entity_name not in relations:
                         relations[entity_name] = []
-                    for parent in _extract_id_refs(items, relations.keys()):
-                        _add_parent(relations, entity_name, parent)
+                        id_refs[entity_name] = []
+                    # Collect raw _id fields without filtering — resolve later
+                    for prop_n in items.get("properties", {}):
+                        if prop_n.endswith("_id") and prop_n != "id":
+                            id_refs[entity_name].append(prop_n[:-3])
                 # Always recurse — entity may appear at multiple nesting levels
-                _collect_entities(items, relations)
+                _discover_entities(items, relations, id_refs)
 
         # Inline object = nested entity
         elif prop_schema.get("type") == "object" or "properties" in prop_schema:
@@ -83,9 +86,11 @@ def _collect_entities(
             if entity_name:
                 if entity_name not in relations:
                     relations[entity_name] = []
-                for parent in _extract_id_refs(prop_schema, relations.keys()):
-                    _add_parent(relations, entity_name, parent)
-            _collect_entities(prop_schema, relations)
+                    id_refs[entity_name] = []
+                for prop_n in prop_schema.get("properties", {}):
+                    if prop_n.endswith("_id") and prop_n != "id":
+                        id_refs[entity_name].append(prop_n[:-3])
+            _discover_entities(prop_schema, relations, id_refs)
 
 
 def _extract_id_refs(entity_node: dict, known_entities) -> list[str]:
@@ -110,14 +115,16 @@ def _extract_id_refs(entity_node: dict, known_entities) -> list[str]:
 def generate_relations_dict(schema: dict[str, Any]) -> dict[str, list[str]]:
     """Parse JSON schema into a dictionary of HSDS relationships."""
     relations: dict[str, list[str]] = {}
+    id_refs: dict[str, list[str]] = {}
 
     # Register the root entity
     root_name = _extract_entity_name(schema, "organization")
     if root_name:
         relations[root_name] = []
+        id_refs[root_name] = []
 
-    # Recursively collect all entities and their _id-based parent refs
-    _collect_entities(schema, relations)
+    # Pass 1: Discover all entities and collect raw _id fields
+    _discover_entities(schema, relations, id_refs)
 
     # Add any missing known HSDS entities as root entities
     all_hsds_entities = {
@@ -130,6 +137,17 @@ def generate_relations_dict(schema: dict[str, Any]) -> dict[str, list[str]]:
     for entity in all_hsds_entities:
         if entity not in relations:
             relations[entity] = []
+
+    # Pass 2: Resolve _id refs against the complete entity set
+    known_entities = set(relations.keys())
+    for entity_name, raw_refs in id_refs.items():
+        for ref in raw_refs:
+            if ref in known_entities:
+                _add_parent(relations, entity_name, ref)
+            else:
+                singular = _singularize_property_name(ref)
+                if singular in known_entities:
+                    _add_parent(relations, entity_name, singular)
 
     # --- Manual overrides for spec-level edge cases ---
 
