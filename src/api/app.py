@@ -20,7 +20,6 @@ from api.model import HealthResponse
 
 configure_logger()
 app = FastAPI(title="HSDS Transformer API", version="0.1.0")
-app.add_middleware(RouterLoggingMiddleware, logger=logging.getLogger("hsds.api"))
 APP_START_MONOTONIC = time.monotonic()
 
 origins = [
@@ -36,6 +35,8 @@ app.add_middleware(
     allow_methods=["*"], # Allow all HTTP methods
     allow_headers=["*"], # Allow all headers
 )
+
+app.add_middleware(RouterLoggingMiddleware, logger=logging.getLogger("hsds.api"))
 
 @app.get(
     "/health",
