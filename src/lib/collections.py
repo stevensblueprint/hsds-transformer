@@ -157,7 +157,7 @@ def attach_original_to_targets(
     relations: List[Tuple[str, str]],
     *,
     id_field: str = "id",
-) -> None:
+) -> List[Tuple[str, Dict[str, Any]]]:
     """
     Attaches "original" to matching targets in collection_map based on relations
     Params: 
