@@ -44,16 +44,14 @@ test_list = {
     "test_mapping_cli": test_mapping_cli,
 }
 def resolve_tests(tests):
-    if "all" in tests:
-        return list(test_list.keys())
-
-    unknown_elements = [n for n in tests if n not in test_list]
+    unknown_elements = [n for n in tests if n != "all" and n not in test_list]
     if unknown_elements:
         raise click.BadParameter(
                     f"Unknown test(s): {', '.join(unknown_elements)}. "
                     f"Available: {', '.join(test_list)}"
                 )
-
+    if "all" in tests:
+        return list(test_list.keys())
     return list(dict.fromkeys(tests))
 
 @click.command()
@@ -63,9 +61,8 @@ def resolve_tests(tests):
     required=True,
     help='Test name(s) or "all". Repeatable: --tests t1 --tests t2',
 )
-@click.option("--verbose", "-v", is_flag=True, help="Show extra output.")
 
-def cli(tests, verbose):
+def cli(tests):
     """Run one or more unit tests by name, or pass 'all' to run everything."""
     try:
         to_run = resolve_tests(tests)
