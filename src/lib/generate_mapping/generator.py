@@ -17,8 +17,11 @@ def _should_include_field(path: str) -> bool:
     """Determine if a field should be included in the mapping template.
 
     Filters out fields under 'attributes[]' except 'attributes[].value',
-    and filters out all fields under 'metadata[]' to reduce template size.
-    Uses path segment-based logic to handle nested paths like 'service.attributes[]'.
+    filters out all fields under 'metadata[]', and removes rows that
+    represent array containers (paths ending in ``[]``).
+
+    Uses path segment-based logic to handle nested paths like
+    'service.attributes[]'.
     """
     parts = path.split(".")
 
@@ -27,13 +30,17 @@ def _should_include_field(path: str) -> bool:
         if part == "metadata[]":
             return False
 
-    # Check for attributes[] - only keep attributes[] itself and attributes[].value
+    # Filter out array container rows (e.g., addresses[]).
+    if path.endswith("[]"):
+        return False
+
+    # Check for attributes[] - only keep attributes[].value
     for i, part in enumerate(parts):
         if part == "attributes[]":
             # Get segments after attributes[]
             after = parts[i + 1:]
-            # Allow if no segments after (just attributes[] itself) or only "value"
-            if not after or after == ["value"]:
+            # Allow only attributes[].value
+            if after == ["value"]:
                 return True
             # Filter out all other attributes[] sub-fields
             return False
@@ -48,8 +55,9 @@ def flatten_schema(schema: dict[str, Any]) -> list[FieldSpec]:
     ``FieldSpec`` also normalizes descriptions and tracks whether the field is
     required along the ancestor chain.
 
-    Fields under 'attributes[]' (except 'attributes[].value') and all fields
-    under 'metadata[]' are excluded to keep the template concise.
+    Fields under 'attributes[]' (except 'attributes[].value'), all fields
+    under 'metadata[]', and array container rows (``[]`` paths) are excluded
+    to keep the template concise.
     """
 
     if not isinstance(schema, dict):
@@ -110,22 +118,20 @@ def flatten_schema(schema: dict[str, Any]) -> list[FieldSpec]:
                 part = f"{prop_name}[]" if is_array else prop_name
                 prop_path = join(prefix, part)
 
-                # Skip fields that should be excluded from the template
-                if not _should_include_field(prop_path):
-                    continue
-
                 required_here = prop_name in required_set
                 effective_required = ancestors_required and required_here
+                include_field = _should_include_field(prop_path)
 
                 if prop_path not in seen:
                     seen.add(prop_path)
-                    rows.append(
-                        FieldSpec(
-                            path=prop_path,
-                            description=normalize_desc(prop_schema.get("description")),
-                            required=effective_required,
+                    if include_field:
+                        rows.append(
+                            FieldSpec(
+                                path=prop_path,
+                                description=normalize_desc(prop_schema.get("description")),
+                                required=effective_required,
+                            )
                         )
-                    )
 
                     # Recurse into children only on the first encounter to
                     # avoid wasted duplicate walks when composition

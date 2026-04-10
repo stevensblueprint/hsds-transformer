@@ -23,11 +23,8 @@ class MappingTemplateGeneratorTests(unittest.TestCase):
             "details",
             "details.summary",
             "details.notes",
-            "tags[]",
-            "contacts[]",
             "contacts[].email",
             "contacts[].phone",
-            "contacts[].addresses[]",
             "contacts[].addresses[].line1",
         ]
         self.assertEqual(paths, expected)
@@ -36,10 +33,8 @@ class MappingTemplateGeneratorTests(unittest.TestCase):
         self.assertTrue(required["id"])
         self.assertTrue(required["details"])
         self.assertTrue(required["details.summary"])
-        self.assertTrue(required["tags[]"])
         self.assertFalse(required["name"])
         self.assertFalse(required["details.notes"])
-        self.assertFalse(required["contacts[]"])
         self.assertFalse(required["contacts[].email"])
 
     def test_writer_matches_golden_fixture(self) -> None:
@@ -59,7 +54,7 @@ class MappingTemplateGeneratorTests(unittest.TestCase):
 
 
     def test_flatten_schema_filters_attributes_and_metadata(self) -> None:
-        """Test that attributes[] (except value) and metadata[] fields are filtered out."""
+        """Test filtering of attributes[], metadata[], and array container rows."""
         schema = {
             "type": "object",
             "properties": {
@@ -95,10 +90,10 @@ class MappingTemplateGeneratorTests(unittest.TestCase):
         rows = flatten_schema(schema)
         paths = [row.path for row in rows]
 
-        # Should include attributes[] itself
-        self.assertIn("attributes[]", paths)
         # Should include attributes[].value
         self.assertIn("attributes[].value", paths)
+        # Should NOT include attributes[] container rows
+        self.assertNotIn("attributes[]", paths)
         # Should NOT include other attributes sub-fields
         self.assertNotIn("attributes[].id", paths)
         self.assertNotIn("attributes[].label", paths)
@@ -152,10 +147,10 @@ class MappingTemplateGeneratorTests(unittest.TestCase):
         rows = flatten_schema(schema)
         paths = [row.path for row in rows]
 
-        # Nested attributes[] should be included
-        self.assertIn("service.attributes[]", paths)
         # Nested attributes[].value should be included
         self.assertIn("service.attributes[].value", paths)
+        # Nested attributes[] container rows should be excluded
+        self.assertNotIn("service.attributes[]", paths)
         # Other nested attributes sub-fields should be excluded
         self.assertNotIn("service.attributes[].id", paths)
         self.assertNotIn("service.attributes[].label", paths)
