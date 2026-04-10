@@ -149,14 +149,13 @@ def fetch_json_from_url(url: str, *, timeout_s: int = 30) -> dict[str, Any]:
     """
     Fetch and parse a dereferenced JSON Schema into a Python dictionary.
 
-    The schema URL is hard-coded for now
-    
     Args:
-        url: The URL of the JSON Schema to fetch
-        timeout_s: The timeout in seconds for the request
+        url: The URL of the JSON Schema to fetch and dereference.
+        timeout_s: Timeout in seconds for each HTTP request while fetching
+            schema documents.
 
     Returns:
-        A dictionary of the JSON Schema
+        A dictionary representing the dereferenced JSON Schema.
 
     """
     parsed = _fetch_document(url, timeout_s=timeout_s, cache={})
