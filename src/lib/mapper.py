@@ -10,7 +10,7 @@ different column/field names.
 """
 
 def nested_map(data: Any, mapping_spec: Dict[str, Any],
-               root_data=None, filter_spec=None, transreg=TransformsRegistry
+               root_data=None, filter_spec=None, transreg: TransformsRegistry=None
                ) -> dict | list | None:
     """
     Process a mapping specification and transform data using glom
