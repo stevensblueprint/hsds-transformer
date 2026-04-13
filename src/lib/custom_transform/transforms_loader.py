@@ -6,7 +6,28 @@ import importlib.util
 from pathlib import Path
 from typing import Callable
 
-__all__ = ["TransformsRegistry"]
+__all__ = ["TransformsRegistry", "load_transforms_registry_if_available"]
+
+
+def load_transforms_registry_if_available(
+    module_path: str | Path | None,
+) -> "TransformsRegistry | None":
+    """
+    Load a TransformsRegistry from a file path, or return None when custom
+    transforms should not be used (no path, empty path, or missing file).
+    """
+    if module_path is None:
+        return None
+    if isinstance(module_path, str) and not module_path.strip():
+        return None
+    path = Path(module_path).expanduser()
+    try:
+        path = path.resolve()
+    except OSError:
+        return None
+    if not path.is_file():
+        return None
+    return TransformsRegistry(path)
 
 
 class TransformsRegistry:
