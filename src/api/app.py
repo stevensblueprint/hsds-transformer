@@ -13,8 +13,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from api.middleware import RouterLoggingMiddleware
 from api.logger import configure_logger
-from lib.collections import build_collections, searching_and_assigning
-from lib.outputs import save_objects_to_json
+from lib.transform.collections import build_collections, searching_and_assigning
+from lib.transform.outputs import save_objects_to_json
 from api.model import HealthResponse
 
 
