@@ -60,6 +60,12 @@ python -m src.cli.main path\to\datadir -o path\to\outputdir
 
 Without specifying an output directory, the transformer will create one in your root directory or add the files to `output` if it already exists.
 
+Optionally, generate new UUID-based IDs for all objects using:
+
+`python -m src.cli.main path/to/datadir --generate-ids "Organization Name or ID"`
+
+By default, the transformer preserves original IDs from the source data. Use `--generate-ids` when you want to create new standardized IDs.
+
 **Reverse transform (HSDS JSON to CSV inputs).**
 _NOTE Currently the actual reverse transformation is not implemented_
 

@@ -67,6 +67,7 @@ def parse_nested_mapping(mapping_file, filename) -> tuple[dict, dict | None]:
             input_field = (row[1] or '').strip()
             split_val = (row[2] or '').strip() if len(row) > 2 else ""
             strip_val = (row[3] or '').strip() if len(row) > 3 else ""
+            transform_val = (row[4] or '').strip() if len(row) > 4 else ""
 
             # Skip the row if the path or input field is empty
             if not path or not input_field: 
@@ -90,6 +91,8 @@ def parse_nested_mapping(mapping_file, filename) -> tuple[dict, dict | None]:
                 map_obj["split"] = split_val
             if strip_val:
                 map_obj["strip"] = strip_val
+            if transform_val:
+                map_obj["transform"] = transform_val
 
             # Split the path into parts
             parts = path.split('.')

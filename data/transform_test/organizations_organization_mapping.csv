@@ -1,0 +1,6 @@
+path,input_field,split,strip,transform
+,,,,
+id,id,,,
+name,name,,,title_case
+phone,phone,,"(;);-",format_phone
+tags[].name,tags,",",,sort_names
