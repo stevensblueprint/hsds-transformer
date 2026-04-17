@@ -35,7 +35,10 @@ def main(data_dictionary, output_dir, generate_ids, transforms):
                 f"Custom transforms: loaded from {transforms.resolve()}."
             )
 
-        results = build_collections(data_dictionary)  # Builds collections
+        results = build_collections(
+            data_dictionary,
+            custom_transforms_registry=transforms_registry,
+        )  # Builds collections
         results = searching_and_assigning(results, requestor_identifier=generate_ids) # Links and cleans up, passes transformer_id
 
         # Save individual JSON files

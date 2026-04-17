@@ -5,6 +5,7 @@ from .mapper import nested_map, get_process_order
 from .relationships import identify_parent_relationships
 from .logger import transformer_log
 from .relations import HSDS_RELATIONS
+from .custom_transform.transforms_loader import TransformsRegistry
 from typing import Dict, List, Tuple, Any, Optional
 from uuid import UUID, uuid5
 
@@ -15,7 +16,10 @@ NAMESPACE = UUID("{12345678-1234-5678-1234-567812345678}")
 _id_counter = 0
 
 
-def build_collections(data_directory: str):
+def build_collections(
+    data_directory: str,
+    custom_transforms_registry: Optional[TransformsRegistry] = None,
+):
     """
     From multiple mapping and input CSV files, returns a list of tuples like: [("organization", [dicts]), ("location", [dicts]), ...]
     Each mapping file name MUST follow this format: "<input_file_name>_<object_type>_mapping.csv
@@ -92,8 +96,14 @@ def build_collections(data_directory: str):
             if column_name and match_value is not None:
                 nested_map_filter = {"path": f"{input_name}.{column_name}", "value": match_value}
 
-        for row in input_rows:
-            mapped_dictionary = nested_map(row, mapping, filter_spec=nested_map_filter)
+        for row_index, row in enumerate(input_rows):
+            mapped_dictionary = nested_map(
+                row,
+                mapping,
+                filter_spec=nested_map_filter,
+                transreg=custom_transforms_registry,
+                row_index=row_index,
+            )
             if mapped_dictionary is not None:
                 objects.append(mapped_dictionary)
 
