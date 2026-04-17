@@ -37,8 +37,8 @@ def test_generate_mapping_writes_to_current_directory(monkeypatch, tmp_path: Pat
     out_file = tmp_path / "organization_mapping_template.csv"
     assert out_file.exists()
     contents = out_file.read_text(encoding="utf-8").splitlines()
-    assert contents[0] == "path,input_files_field,split,strip,description,required"
-    assert contents[1] == ",,,,,"
+    assert contents[0] == "path,input_files_field,split,strip,transform,description,required"
+    assert contents[1] == ",,,,,,"
 
 
 def test_generate_mapping_sanitizes_schema_name(monkeypatch, tmp_path: Path) -> None:
