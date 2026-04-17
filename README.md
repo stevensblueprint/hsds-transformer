@@ -65,6 +65,7 @@ Optionally, generate new UUID-based IDs for all objects using:
 `python -m src.cli.main path/to/datadir --generate-ids "Organization Name or ID"`
 
 By default, the transformer preserves original IDs from the source data. Use `--generate-ids` when you want to create new standardized IDs.
+
 **Transform JSON files into HSDS compliant objects given associated mapping files**
 
 Move the json files and mapping files into a directory, see data/json_test for an example. 
