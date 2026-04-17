@@ -177,3 +177,7 @@ Once the collections have been created, we search through each collection, linki
 # Start the FastAPI server
 uvicorn api.app:app --app-dir src --reload
 ```
+
+If you deploy in an environment where default temp directories are not writable
+(for example, some ECS task configurations), set `HSDS_TMP_DIR` to a writable
+path before starting the API.
