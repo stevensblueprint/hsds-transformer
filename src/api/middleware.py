@@ -6,8 +6,6 @@ from uuid import uuid4
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
-from .utils import AsyncIteratorWrapper
-
 
 def router_logging_middleware_factory(
     app: ASGIApp, *, logger: logging.Logger
