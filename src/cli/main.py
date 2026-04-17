@@ -22,7 +22,19 @@ def main(data_dictionary, output_dir, generate_ids, transforms):
     try:
         # Clear any previous log entries from prior runs
         transformer_log.clear()
-        
+
+        transforms_registry = load_transforms_registry_if_available(transforms)
+        if transforms is None:
+            transformer_log.log("Custom transforms: not used (no --transforms path).")
+        elif transforms_registry is None:
+            transformer_log.log(
+                f"Custom transforms: not used (path not found or not a file: {transforms})."
+            )
+        else:
+            transformer_log.log(
+                f"Custom transforms: loaded from {transforms.resolve()}."
+            )
+
         results = build_collections(data_dictionary)  # Builds collections
         results = searching_and_assigning(results, requestor_identifier=generate_ids) # Links and cleans up, passes transformer_id
 
