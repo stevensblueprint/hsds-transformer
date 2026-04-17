@@ -1,0 +1,68 @@
+{
+  "name": "sample",
+  "type": "object",
+  "required": ["id", "details", "tags"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Name"
+    },
+    "details": {
+      "type": "object",
+      "description": "Details",
+      "tabular_required": ["summary"],
+      "properties": {
+        "summary": {
+          "type": "string",
+          "description": "Summary"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Notes"
+        }
+      }
+    },
+    "tags": {
+      "type": "array",
+      "description": "Tags",
+      "items": {
+        "type": "string"
+      }
+    },
+    "contacts": {
+      "type": "array",
+      "description": "Contacts",
+      "items": {
+        "type": "object",
+        "required": ["email"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Email"
+          },
+          "phone": {
+            "type": "string",
+            "description": "Phone"
+          },
+          "addresses": {
+            "type": "array",
+            "description": "Addresses",
+            "items": {
+              "type": "object",
+              "properties": {
+                "line1": {
+                  "type": "string",
+                  "description": "Line 1"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
