@@ -2,13 +2,16 @@ from __future__ import annotations
 from typing import Any, Dict, List
 from glom import glom
 from .relations import HSDS_RELATIONS
+from .custom_transform.transforms_loader import TransformsRegistry
 
 """
 NESTED_MAP: deals with layer 1 - essentially moving from a flat spreadsheet/csv into a nested format with potentially
 different column/field names.
 """
 
-def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None, filter_spec=None) -> dict | list | None:
+def nested_map(data: Any, mapping_spec: Dict[str, Any],
+               root_data=None, filter_spec=None, transreg: TransformsRegistry=None
+               ) -> dict | list | None:
     """
     Process a mapping specification and transform data using glom
     Fixed to always use the root data for path resolution - so the path doesn't get lost during 
@@ -66,6 +69,8 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None, filter_s
                           use the path at this index over expanding all paths. 
                           Ensures child objects align with their respective parents.
         """
+
+        nonlocal transreg
         
         def is_blank(val):
             """Check if a value is considered blank/empty and should be omitted from the generated JSON object."""
@@ -113,6 +118,13 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None, filter_s
             
             return extracted_val
 
+        def apply_transform(val, value):
+            """Apply a named custom transform from the registry if specified."""
+            if transreg is not None and "transform" in value and value["transform"]:
+                transform_fn = transreg.get_transform(value["transform"])
+                val = transform_fn(val)
+            return val
+
         # Case 1: Value is a dictionary - could be a path specification or nested object
         if isinstance(value, dict):
             # Case 1A: Dictionary contains a "path" key - this is a path specification for data extraction
@@ -130,6 +142,7 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None, filter_s
                             val = apply_strip(val, value)
                             if val == "" or val is None:
                                 return None
+                            val = apply_transform(val, value)
                             return val
                         except Exception:
                             return None
@@ -144,6 +157,8 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None, filter_s
                             # Convert empty strings to None for consistent filtering later
                             if val == "" or val is None:
                                 val = None
+                            else:
+                                val = apply_transform(val, value)
                             extracted_values.append(val)
                         except Exception:
                             # If path extraction fails, store None to maintain index alignment
@@ -181,15 +196,17 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any], root_data=None, filter_s
                             # Split on delimiter and strip brackets and whitespace
                             parts = [part.strip() for part in extracted_val.split(split_char) if part.strip()]
                             parts = [part.strip('{}') for part in parts]
-                            
+
                             # If template is provided, wrap each part with that key (e.g., [{"name": "English"}, {"name": "Spanish"}])
                             if template:
-                                return [{template: part} for part in parts]
+                                result = [{template: part} for part in parts]
                             else:
                                 # Otherwise return flat list of strings
-                                return parts
-                    
+                                result = parts
+                            return apply_transform(result, value)
+
                     # Sub-Case 1A-2b: No split directive - return value as-is
+                    extracted_val = apply_transform(extracted_val, value)
                     return extracted_val
             # Case 1B: Dictionary does NOT contain "path" key - this is a nested object structure
             # Example: {"phones": [{"number": {"path": ...}, "name": {"path": ...}}]}

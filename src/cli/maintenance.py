@@ -5,7 +5,7 @@ from urllib.parse import urlparse
 import click
 
 from src.lib.maintenance.parse_json import fetch_json_from_url
-from src.lib.generate_mapping import flatten_schema, write_mapping_template_csv
+from src.lib.maintenance.generate_mapping import flatten_schema, write_mapping_template_csv
 from src.lib.maintenance.generate_relations import generate_relations_dict, write_relations_file
 
 
@@ -151,7 +151,7 @@ def generate_relations(github_url, valid_hostname, out_file):
 
         out_path = Path.cwd().resolve() / out_file
         write_relations_file(relations_dict, str(out_path))
-        
+
         click.echo(f"Relations successfully written to {out_path}")
     except click.ClickException:
         raise
