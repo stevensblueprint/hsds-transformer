@@ -6,6 +6,7 @@ from uuid import uuid4
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
+from starlette.concurrency import iterate_in_threadpool
 
 def router_logging_middleware_factory(
     app: ASGIApp, *, logger: logging.Logger
@@ -92,14 +93,16 @@ class RouterLoggingMiddleware(BaseHTTPMiddleware):
         if is_binary_response:
             return response, response_logging
 
-        # for normal (non binrary) responses, we can safely log
-        if hasattr(response, "body") and response.body is not None:
-            try:
-                parsed = json.loads(response.body.decode()) # trys to parse JSON
-            except (json.JSONDecodeError, UnicodeDecodeError, AttributeError):
-                parsed = response.body.decode(errors="ignore") # failback to decode what we can
+        # for normal (non binary) responses, we can safely log
+        resp_body = [section async for section in response.body_iterator]
+        response.body_iterator = iterate_in_threadpool(iter(resp_body))
 
-            response_logging["body"] = parsed
+        raw = b"".join(resp_body)
+
+        try:
+            response_logging["body"] = json.loads(raw) # trys to parse JSON
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            response_logging["body"] = raw.decode(errors="ignore") # failback to decode what we can
 
         return response, response_logging
 
