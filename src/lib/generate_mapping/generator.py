@@ -13,25 +13,25 @@ class FieldSpec:
     required: bool
 
 
+def _is_array_container_path(path: str) -> bool:
+    """Return True when *path* represents an array container row."""
+
+    return path.endswith("[]")
+
+
 def _should_include_field(path: str) -> bool:
     """Determine if a field should be included in the mapping template.
 
     Filters out fields under 'attributes[]' except 'attributes[].value',
-    filters out all fields under 'metadata[]', and removes rows that
-    represent array containers (paths ending in ``[]``).
+    and removes rows that represent array containers (paths ending in ``[]``).
 
     Uses path segment-based logic to handle nested paths like
     'service.attributes[]'.
     """
     parts = path.split(".")
 
-    # Check for metadata[] - filter out all fields under metadata[]
-    for i, part in enumerate(parts):
-        if part == "metadata[]":
-            return False
-
     # Filter out array container rows (e.g., addresses[]).
-    if path.endswith("[]"):
+    if _is_array_container_path(path):
         return False
 
     # Check for attributes[] - only keep attributes[].value
@@ -46,6 +46,18 @@ def _should_include_field(path: str) -> bool:
             return False
 
     return True
+
+
+def _should_skip_recursion(path: str) -> bool:
+    """Return True when traversal should stop below *path*."""
+
+    parts = path.split(".")
+    for i, part in enumerate(parts):
+        if part == "attributes[]":
+            after = parts[i + 1 :]
+            if after and after != ["value"]:
+                return True
+    return False
 
 
 def flatten_schema(schema: dict[str, Any]) -> list[FieldSpec]:
@@ -136,21 +148,11 @@ def flatten_schema(schema: dict[str, Any]) -> list[FieldSpec]:
                     # Recurse into children only on the first encounter to
                     # avoid wasted duplicate walks when composition
                     # subschemas later re-visit the same subtree.
-                    # Skip recursion for attributes[] children (except value) and
-                    # all metadata[] fields using segment-based logic.
-                    parts = prop_path.split(".")
-                    should_skip = False
-                    for i, part in enumerate(parts):
-                        if part == "attributes[]":
-                            after = parts[i + 1:]
-                            # Skip if we've gone past attributes[] (not value)
-                            if after and after != ["value"]:
-                                should_skip = True
-                                break
-                        if part == "metadata[]":
-                            should_skip = True
-                            break
-                    if should_skip:
+                    # Note: this intentionally differs from
+                    # ``_should_include_field``. We do not emit ``attributes[]``
+                    # container rows, but we still recurse into them so
+                    # ``attributes[].value`` can be discovered.
+                    if _should_skip_recursion(prop_path):
                         continue
                     if is_array:
                         items = prop_schema.get("items")

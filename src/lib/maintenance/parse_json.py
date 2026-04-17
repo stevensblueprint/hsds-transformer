@@ -9,7 +9,14 @@ import requests
 SCHEMA_URL = "https://raw.githubusercontent.com/openreferral/specification/refs/heads/3.2/schema/compiled/organization.json"
 
 
-def _fetch_document(url: str, *, timeout_s: int, cache: dict[str, dict[str, Any]]) -> dict[str, Any]:
+def _fetch_document(
+    url: str,
+    *,
+    timeout_s: int,
+    cache: dict[str, tuple[str, dict[str, Any]]],
+) -> tuple[str, dict[str, Any]]:
+    """Fetch a JSON document and return its resolved URL and payload."""
+
     if url in cache:
         return cache[url]
 
@@ -29,15 +36,22 @@ def _fetch_document(url: str, *, timeout_s: int, cache: dict[str, dict[str, Any]
     if not isinstance(parsed, dict):
         raise TypeError(f"Expected top-level JSON object (dict), got {type(parsed).__name__}")
 
-    cache[url] = parsed
-    return parsed
+    resolved_url = resp.url
+    result = (resolved_url, parsed)
+    cache[url] = result
+    cache[resolved_url] = result
+    return result
 
 
 def _decode_json_pointer_part(part: str) -> str:
+    """Decode a single JSON Pointer token."""
+
     return part.replace("~1", "/").replace("~0", "~")
 
 
 def _resolve_json_pointer(document: Any, fragment: str) -> Any:
+    """Resolve *fragment* against *document* using JSON Pointer semantics."""
+
     if not fragment or fragment == "#":
         return document
     if not fragment.startswith("#"):
@@ -57,10 +71,9 @@ def _resolve_json_pointer(document: Any, fragment: str) -> Any:
                 raise KeyError(f"JSON pointer {fragment!r} not found")
             current = current[part]
         elif isinstance(current, list):
-            try:
-                index = int(part)
-            except ValueError as e:
-                raise KeyError(f"JSON pointer {fragment!r} not found") from e
+            if not part.isdigit():
+                raise KeyError(f"JSON pointer {fragment!r} not found")
+            index = int(part)
             try:
                 current = current[index]
             except IndexError as e:
@@ -75,9 +88,11 @@ def _dereference_node(
     *,
     document_url: str,
     timeout_s: int,
-    cache: dict[str, dict[str, Any]],
+    cache: dict[str, tuple[str, dict[str, Any]]],
     resolving: set[str],
 ) -> Any:
+    """Recursively inline ``$ref`` nodes in *node*."""
+
     if isinstance(node, list):
         return [
             _dereference_node(
@@ -99,22 +114,28 @@ def _dereference_node(
             raise TypeError(f"Expected $ref to be a string, got {type(ref).__name__}")
 
         ref_url, fragment = urldefrag(urljoin(document_url, ref))
-        target_url = ref_url or document_url
+        requested_target_url = ref_url or document_url
+        target_url, target_document = _fetch_document(
+            requested_target_url,
+            timeout_s=timeout_s,
+            cache=cache,
+        )
         ref_key = f"{target_url}#{fragment}" if fragment else target_url
         if ref_key in resolving:
             raise ValueError(f"Circular $ref detected: {ref_key}")
 
         resolving.add(ref_key)
-        target_document = _fetch_document(target_url, timeout_s=timeout_s, cache=cache)
         resolved_target = _resolve_json_pointer(target_document, f"#{fragment}" if fragment else "#")
-        resolved = _dereference_node(
-            deepcopy(resolved_target),
-            document_url=target_url,
-            timeout_s=timeout_s,
-            cache=cache,
-            resolving=resolving,
-        )
-        resolving.remove(ref_key)
+        try:
+            resolved = _dereference_node(
+                deepcopy(resolved_target),
+                document_url=target_url,
+                timeout_s=timeout_s,
+                cache=cache,
+                resolving=resolving,
+            )
+        finally:
+            resolving.remove(ref_key)
 
         sibling_keys = {k: v for k, v in node.items() if k != "$ref"}
         if sibling_keys:
@@ -158,12 +179,12 @@ def fetch_json_from_url(url: str, *, timeout_s: int = 30) -> dict[str, Any]:
         A dictionary representing the dereferenced JSON Schema.
 
     """
-    parsed = _fetch_document(url, timeout_s=timeout_s, cache={})
+    document_url, parsed = _fetch_document(url, timeout_s=timeout_s, cache={})
     dereferenced = _dereference_node(
         deepcopy(parsed),
-        document_url=url,
+        document_url=document_url,
         timeout_s=timeout_s,
-        cache={url: parsed},
+        cache={url: (document_url, parsed), document_url: (document_url, parsed)},
         resolving=set(),
     )
     if not isinstance(dereferenced, dict):
