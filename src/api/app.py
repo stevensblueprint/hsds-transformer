@@ -1,5 +1,6 @@
 import io
 import logging
+import shutil
 import tempfile
 import time
 import zipfile
@@ -13,6 +14,12 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from api.middleware import RouterLoggingMiddleware
 from api.logger import configure_logger
+from api.utils import (
+    UploadSizeLimitError,
+    UploadValidationError,
+    stage_multipart_uploads,
+    validate_staged_workspace,
+)
 from lib.transform.collections import build_collections, searching_and_assigning
 from lib.transform.outputs import save_objects_to_json
 from api.model import HealthResponse
@@ -21,6 +28,7 @@ from api.model import HealthResponse
 configure_logger()
 app = FastAPI(title="HSDS Transformer API", version="0.1.0")
 APP_START_MONOTONIC = time.monotonic()
+MAX_MULTIPART_UPLOAD_BYTES = 50 * 1024 * 1024
 
 origins = [
 "http://localhost:5173",
@@ -123,6 +131,55 @@ async def transform(
                 media_type="application/zip",
                 headers={"Content-Disposition": "attachment; filename=transformed.zip"},
             )
+
+
+@app.post(
+    "/transform/stream",
+    status_code=201,
+    summary="Stage streamed JSON uploads for transform",
+    description=(
+        "Accepts multipart uploads with repeated files parts, stages them in a "
+        "request-scoped workspace, validates upload constraints, and hands off "
+        "the staged input directory to the JSON collection build path placeholder."
+    ),
+    response_class=JSONResponse,
+)
+async def transform_stream(
+    files: list[UploadFile] = File(
+        ..., description="Repeated files parts containing source JSON and *_mapping.json"
+    )
+) -> JSONResponse:
+    workspace_dir = Path(tempfile.mkdtemp(prefix="hsds-stream-"))
+    input_dir = workspace_dir / "input"
+
+    try:
+        summary = await stage_multipart_uploads(
+            files=files,
+            input_dir=input_dir,
+            max_upload_bytes=MAX_MULTIPART_UPLOAD_BYTES,
+        )
+        validate_staged_workspace(summary)
+
+        # TODO(issue #117): Call the JSON collection build path with str(input_dir).
+
+        return JSONResponse(
+            status_code=201,
+            content={
+                "detail": "Upload staged successfully.",
+                "staged": {
+                    "total_files": summary.total_files,
+                    "source_files": summary.source_file_count,
+                    "mapping_files": summary.mapping_file_count,
+                    "total_bytes": summary.total_bytes,
+                },
+            },
+        )
+    except UploadSizeLimitError as exc:
+        raise HTTPException(status_code=413, detail=str(exc)) from exc
+    except UploadValidationError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    finally:
+        shutil.rmtree(workspace_dir, ignore_errors=True)
 
 
 @app.exception_handler(RequestValidationError)
