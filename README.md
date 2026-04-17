@@ -47,8 +47,8 @@ Make sure you're in the root folder.
 ```bash
 # macOS/Linux (bash/zsh)
 # Transform CSVs to HSDS JSON
-python3 -m src.cli.main path/to/datadir
-python3 -m src.cli.main path/to/datadir -o path/to/outputdir
+python3 -m src.cli.main path/to/datadir -f csv
+python3 -m src.cli.main path/to/datadir -f csv -o path/to/outputdir
 ```
 
 ```bash
@@ -65,6 +65,16 @@ Optionally, generate new UUID-based IDs for all objects using:
 `python -m src.cli.main path/to/datadir --generate-ids "Organization Name or ID"`
 
 By default, the transformer preserves original IDs from the source data. Use `--generate-ids` when you want to create new standardized IDs.
+**Transform JSON files into HSDS compliant objects given associated mapping files**
+
+Move the json files and mapping files into a directory, see data/json_test for an example. 
+
+Make sure your in the root folder (of repo)
+
+```bash
+python3 -m src.cli.main {path to datadir} -f json
+python3 -m src.cli.main {path to datadir} -f json -o {path to output}
+```
 
 **Reverse transform (HSDS JSON to CSV inputs).**
 _NOTE Currently the actual reverse transformation is not implemented_
