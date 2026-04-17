@@ -1,26 +1,18 @@
 """
 Tests for custom transform application in process_value / nested_map.
-
-Covers:
-  - Case 1A-2b: single path, no split — transform applied to scalar (title_case)
-  - Case 1A-2b: single path, strip then transform — strip runs first (format_phone)
-  - Case 1A-2a: single path, with split — transform applied to resolved list (sort_names)
-  - Selectivity: fields without a transform key pass through unchanged
-  - transreg=None: transform keys in mapping are silently ignored; strip/split still apply
-
-Run from the project root:
-    python tests/test_custom_transform.py
 """
 
-import sys
 import os
+import sys
 from pathlib import Path
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from src.lib.transform.parser import parse_input_csv, parse_nested_mapping
-from src.lib.transform.mapper import nested_map
+from src.lib.transform.collections import build_collections
+from src.lib.transform.custom_transform.custom_transform_error import CustomTransformError
 from src.lib.transform.custom_transform.transforms_loader import TransformsRegistry
+from src.lib.transform.mapper import nested_map
+from src.lib.transform.parser import parse_input_csv, parse_nested_mapping
 
 DATA_DIR = Path(__file__).parent.parent / "data" / "transform_test"
 TRANSFORMS_MODULE = DATA_DIR / "transforms.py"
@@ -35,58 +27,80 @@ def load_test_data():
 
 
 def test_title_case_transform():
-    """Case 1A-2b: 'acme nonprofit' → 'Acme Nonprofit' via title_case."""
     rows, mapping = load_test_data()
     reg = TransformsRegistry(TRANSFORMS_MODULE)
     result = nested_map(rows[0], mapping, transreg=reg)
-    assert result["name"] == "Acme Nonprofit", f"Expected 'Acme Nonprofit', got {result['name']!r}"
-    print("PASS: title_case applied to name")
+    assert result["name"] == "Acme Nonprofit"
 
 
 def test_strip_then_format_phone():
-    """Case 1A-2b: strip removes ()-  first, then format_phone inserts dashes."""
     rows, mapping = load_test_data()
     reg = TransformsRegistry(TRANSFORMS_MODULE)
     result = nested_map(rows[0], mapping, transreg=reg)
-    assert result["phone"] == "303-617-2300", f"Expected '303-617-2300', got {result['phone']!r}"
-    print("PASS: strip then format_phone applied to phone")
+    assert result["phone"] == "303-617-2300"
 
 
 def test_sort_names_on_split_list():
-    """Case 1A-2a: split on comma produces list, then sort_names sorts alphabetically."""
     rows, mapping = load_test_data()
     reg = TransformsRegistry(TRANSFORMS_MODULE)
     result = nested_map(rows[0], mapping, transreg=reg)
     names = [t["name"] for t in result["tags"]]
-    assert names == ["tagA", "tagB", "tagC"], f"Expected sorted tags, got {names}"
-    print("PASS: sort_names applied to split tags")
+    assert names == ["tagA", "tagB", "tagC"]
 
 
 def test_no_transform_field_passthrough():
-    """Fields with no transform key must be unaffected even when a registry is present."""
     rows, mapping = load_test_data()
     reg = TransformsRegistry(TRANSFORMS_MODULE)
     result = nested_map(rows[0], mapping, transreg=reg)
-    assert result["id"] == "org-001", f"Expected 'org-001', got {result['id']!r}"
-    print("PASS: id field without transform passes through unchanged")
+    assert result["id"] == "org-001"
 
 
 def test_transreg_none_skips_transforms():
-    """With transreg=None, transform keys are ignored; strip and split still apply."""
     rows, mapping = load_test_data()
     result = nested_map(rows[0], mapping, transreg=None)
 
-    # title_case should NOT have run
-    assert result["name"] == "acme nonprofit", f"Expected raw name, got {result['name']!r}"
+    assert result["name"] == "acme nonprofit"
+    assert result["phone"] == "3036172300"
 
-    # strip still runs, but format_phone should NOT have run
-    assert result["phone"] == "3036172300", f"Expected strip-only phone, got {result['phone']!r}"
-
-    # split still runs, but sort_names should NOT have run — original CSV order preserved
     names = [t["name"] for t in result["tags"]]
-    assert names == ["tagC", "tagA", "tagB"], f"Expected unsorted tags, got {names}"
+    assert names == ["tagC", "tagA", "tagB"]
 
-    print("PASS: transreg=None skips transforms; strip and split still apply")
+
+def test_nested_map_wraps_user_transform_errors():
+    rows, mapping = load_test_data()
+
+    class FailingRegistry:
+        def get_transform(self, name):
+            def fail(value):
+                raise RuntimeError("boom")
+
+            return fail
+
+    captured_error = None
+    try:
+        nested_map(rows[0], mapping, transreg=FailingRegistry(), row_index=7)
+        raise AssertionError("Expected CustomTransformError to be raised")
+    except CustomTransformError as error:
+        captured_error = error
+
+    assert captured_error is not None
+    error = captured_error
+    assert error.function_name == "title_case"
+    assert error.row_index == 7
+    assert error.context["mapping_path"] == "organizations.name"
+    assert isinstance(error.cause, RuntimeError)
+    assert error.__cause__ is error.cause
+
+
+def test_build_collections_applies_custom_transforms_registry():
+    collections = build_collections(
+        str(DATA_DIR),
+        custom_transforms_registry=TransformsRegistry(TRANSFORMS_MODULE),
+    )
+
+    assert collections[0][0] == "organization"
+    assert collections[0][1][0]["name"] == "Acme Nonprofit"
+    assert collections[0][1][0]["phone"] == "303-617-2300"
 
 
 if __name__ == "__main__":
@@ -95,4 +109,5 @@ if __name__ == "__main__":
     test_sort_names_on_split_list()
     test_no_transform_field_passthrough()
     test_transreg_none_skips_transforms()
-    print("\nAll tests passed.")
+    test_nested_map_wraps_user_transform_errors()
+    test_build_collections_applies_custom_transforms_registry()

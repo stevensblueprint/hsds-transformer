@@ -3,6 +3,7 @@ from typing import Any, Dict, List
 from glom import glom
 from .relations import HSDS_RELATIONS
 from .custom_transform.transforms_loader import TransformsRegistry
+from .custom_transform.custom_transform_error import CustomTransformError
 
 """
 NESTED_MAP: deals with layer 1 - essentially moving from a flat spreadsheet/csv into a nested format with potentially
@@ -10,7 +11,8 @@ different column/field names.
 """
 
 def nested_map(data: Any, mapping_spec: Dict[str, Any],
-               root_data=None, filter_spec=None, transreg: TransformsRegistry=None
+               root_data=None, filter_spec=None, transreg: TransformsRegistry=None,
+               row_index: int | None = None
                ) -> dict | list | None:
     """
     Process a mapping specification and transform data using glom
@@ -121,8 +123,20 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any],
         def apply_transform(val, value):
             """Apply a named custom transform from the registry if specified."""
             if transreg is not None and "transform" in value and value["transform"]:
-                transform_fn = transreg.get_transform(value["transform"])
-                val = transform_fn(val)
+                function_name = value["transform"]
+                transform_fn = transreg.get_transform(function_name)
+                try:
+                    val = transform_fn(val)
+                except CustomTransformError:
+                    raise
+                except Exception as exc:
+                    raise CustomTransformError(
+                        "Field transformation failed.",
+                        function_name=function_name,
+                        row_index=row_index,
+                        cause=exc,
+                        mapping_path=value.get("path"),
+                    ) from exc
             return val
 
         # Case 1: Value is a dictionary - could be a path specification or nested object
