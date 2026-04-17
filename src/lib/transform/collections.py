@@ -50,6 +50,11 @@ def build_collections(data_directory: str):
             continue
 
         input_name, object_type = match.groups() # Grabs the name and type of object for labeling in results
+
+        # Edge case where service_at_location has a key for both a child and parent
+        if object_type.lower() in ("serviceatlocation", "servicesatlocation"):
+            object_type = "service_at_location"
+
         input_file = data_directory / f"{input_name}.csv" # Uses the extracted name to find the corresponding input CSV file
 
         # Skips this mapping if the matching input CSV doesn't exist
@@ -161,7 +166,7 @@ def attach_original_to_targets(
     relations: List[Tuple[str, str]],
     *,
     id_field: str = "id",
-) -> None:
+) -> List[Tuple[str, Dict[str, Any]]]:
     """
     Attaches "original" to matching targets in collection_map based on relations
     Params: 
@@ -176,9 +181,11 @@ def attach_original_to_targets(
     Skips anything missing an ID or a match
     """
 
+    embedded_objects = []
+
     # If there are no relations to process, return
     if not relations:
-        return
+        return embedded_objects
 
     for target_collection, target_id in relations:
         # Skips empty/invalid ids
@@ -195,9 +202,20 @@ def attach_original_to_targets(
             # Skips if no corresponding dict
             continue
 
+        # Edge case where service_at_location has both service_id and location_id
+        if original_type == "service_at_location":
+            if target_collection == "service":
+                append_to_list_field(target, "service_at_locations", original)
+                embedded_objects.append(("service_at_location", original))
+            elif target_collection == "location":
+                original["location"] = target
+                embedded_objects.append(("location", target))
+            continue
+
         # SINGULAR EMBED CASE (HARD CODED)
         if (target_collection, original_type) in SINGULAR_CHILD_CASES:
             target[original_type] = original
+            embedded_objects.append((original_type, original))
             continue
 
         # By default we link using a list
@@ -213,6 +231,7 @@ def attach_original_to_targets(
         for candidate_key in list_key_candidates:
             if isinstance(target.get(candidate_key), list):
                 append_to_list_field(target, candidate_key, original)
+                embedded_objects.append((original_type, original))
                 appended = True
                 break
 
@@ -224,11 +243,10 @@ def attach_original_to_targets(
             else:
                 plural_key += "s"
 
-            # Reverse relationship where parent holds child ID check
-            if (target_collection, original_type) in SINGULAR_CHILD_CASES:
-                append_to_list_field(original, target_collection, target)
-            else:
-                append_to_list_field(target, plural_key, original)
+            append_to_list_field(target, plural_key, original)
+            embedded_objects.append((original_type, original))
+
+    return embedded_objects
 
 
 def generate_ids(data: Any, requestor_identifier: Optional[str] = None, visited: Optional[set] = None) -> None:
@@ -350,15 +368,11 @@ def searching_and_assigning(
             if not relations: # If object has no relation, skip it
                 continue
 
-            # Pass collection_map directly instead of the full collections list
-            attach_original_to_targets(collection_map, obj_type, original, relations)
+            embedded = attach_original_to_targets(collection_map, obj_type, original, relations)
 
-            # Checks to see if object was linked after attached
-            for target_collection, target_id in relations:
-                found = find_in_collection(collection_map, target_collection, target_id, "id") # Looks for target in collection
-                if found: # Once confirmed attached, stops checking relations
-                    to_delete[obj_type].append(original) # Adds to be deleted later
-                    break
+            for embedded_type, embedded_obj in embedded:
+                if embedded_obj not in to_delete[embedded_type]:
+                    to_delete[embedded_type].append(embedded_obj)
     
     # Goes through each collection type and removes objs that were attached
     for c_name, objs_to_remove in to_delete.items():

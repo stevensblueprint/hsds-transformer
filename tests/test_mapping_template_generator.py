@@ -6,7 +6,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from src.lib.generate_mapping import flatten_schema, write_mapping_template_csv
+from src.lib.maintenance.generate_mapping import flatten_schema, write_mapping_template_csv
 from src.lib.maintenance.parse_json import fetch_json_from_url
 
 ROOT = Path(__file__).resolve().parents[1]
