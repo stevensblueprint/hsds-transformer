@@ -11,6 +11,7 @@ HEADER = [
     "input_files_field",
     "split",
     "strip",
+    "transform",
     "description",
     "required",
 ]
@@ -26,4 +27,4 @@ def write_mapping_template_csv(rows: Iterable[FieldSpec], out_file: str) -> None
 
         for row in rows:
             required = "true" if row.required else "false"
-            writer.writerow([row.path, "", "", "", row.description, required])
+            writer.writerow([row.path, "", "", "", "", row.description, required])
