@@ -25,9 +25,6 @@ class MappingTemplateGeneratorTests(unittest.TestCase):
             "details",
             "details.summary",
             "details.notes",
-            "contacts[].email",
-            "contacts[].phone",
-            "contacts[].addresses[].line1",
         ]
         self.assertEqual(paths, expected)
 
@@ -37,7 +34,6 @@ class MappingTemplateGeneratorTests(unittest.TestCase):
         self.assertTrue(required["details.summary"])
         self.assertFalse(required["name"])
         self.assertFalse(required["details.notes"])
-        self.assertFalse(required["contacts[].email"])
 
     def test_writer_matches_golden_fixture(self) -> None:
         schema = json.loads((FIXTURES / "sample_schema.json").read_text(encoding="utf-8"))
@@ -55,8 +51,8 @@ class MappingTemplateGeneratorTests(unittest.TestCase):
         self.assertEqual(actual_lines, expected_lines)
 
 
-    def test_flatten_schema_filters_attributes_and_array_container_rows(self) -> None:
-        """Test filtering of attributes[] and generic array container rows."""
+    def test_flatten_schema_filters_all_array_paths(self) -> None:
+        """Test that any path containing [] is excluded."""
         schema = {
             "type": "object",
             "properties": {
@@ -92,27 +88,22 @@ class MappingTemplateGeneratorTests(unittest.TestCase):
         rows = flatten_schema(schema)
         paths = [row.path for row in rows]
 
-        # Should include attributes[].value
-        self.assertIn("attributes[].value", paths)
-        # Should NOT include attributes[] container rows
+        # Should NOT include any array-backed paths
         self.assertNotIn("attributes[]", paths)
-        # Should NOT include other attributes sub-fields
+        self.assertNotIn("attributes[].value", paths)
         self.assertNotIn("attributes[].id", paths)
         self.assertNotIn("attributes[].label", paths)
         self.assertNotIn("attributes[].url", paths)
-
-        # Should NOT include metadata[] container rows
         self.assertNotIn("metadata[]", paths)
-        # Metadata child rows should still be included
-        self.assertIn("metadata[].id", paths)
-        self.assertIn("metadata[].value", paths)
+        self.assertNotIn("metadata[].id", paths)
+        self.assertNotIn("metadata[].value", paths)
 
         # Regular fields should still be included
         self.assertIn("id", paths)
         self.assertIn("regular_field", paths)
 
-    def test_flatten_schema_filters_nested_attributes_and_array_container_rows(self) -> None:
-        """Test that nested array containers are filtered but child rows remain."""
+    def test_flatten_schema_filters_nested_array_paths(self) -> None:
+        """Test that nested paths containing [] are excluded."""
         schema = {
             "type": "object",
             "properties": {
@@ -150,26 +141,21 @@ class MappingTemplateGeneratorTests(unittest.TestCase):
         rows = flatten_schema(schema)
         paths = [row.path for row in rows]
 
-        # Nested attributes[].value should be included
-        self.assertIn("service.attributes[].value", paths)
-        # Nested attributes[] container rows should be excluded
+        # Nested array-backed paths should all be excluded
         self.assertNotIn("service.attributes[]", paths)
-        # Other nested attributes sub-fields should be excluded
+        self.assertNotIn("service.attributes[].value", paths)
         self.assertNotIn("service.attributes[].id", paths)
         self.assertNotIn("service.attributes[].label", paths)
-
-        # Nested metadata[] container rows should be excluded
         self.assertNotIn("service.metadata[]", paths)
-        # Nested metadata child rows should still be present
-        self.assertIn("service.metadata[].id", paths)
-        self.assertIn("service.metadata[].value", paths)
+        self.assertNotIn("service.metadata[].id", paths)
+        self.assertNotIn("service.metadata[].value", paths)
 
         # Regular fields should still work
         self.assertIn("id", paths)
         self.assertIn("service", paths)
         self.assertIn("service.name", paths)
 
-    def test_referenced_schema_keeps_children_but_skips_array_container_rows(self) -> None:
+    def test_referenced_schema_filters_all_array_paths(self) -> None:
         documents = {
             "https://example.com/schema/organization.json": {
                 "name": "organization",
@@ -230,12 +216,12 @@ class MappingTemplateGeneratorTests(unittest.TestCase):
         paths = [row.path for row in flatten_schema(schema)]
 
         self.assertIn("id", paths)
-        self.assertIn("attributes[].value", paths)
         self.assertNotIn("attributes[]", paths)
+        self.assertNotIn("attributes[].value", paths)
         self.assertNotIn("contacts[]", paths)
-        self.assertIn("contacts[].email", paths)
+        self.assertNotIn("contacts[].email", paths)
         self.assertNotIn("contacts[].addresses[]", paths)
-        self.assertIn("contacts[].addresses[].city", paths)
+        self.assertNotIn("contacts[].addresses[].city", paths)
 
     def test_compiled_and_referenced_schemas_produce_same_mapping_paths(self) -> None:
         documents = {

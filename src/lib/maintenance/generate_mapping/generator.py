@@ -13,37 +13,20 @@ class FieldSpec:
     required: bool
 
 
-def _is_array_container_path(path: str) -> bool:
-    """Return True when *path* represents an array container row."""
+def _has_array_path_segment(path: str) -> bool:
+    """Return True when *path* includes any array segment."""
 
-    return path.endswith("[]")
+    return "[]" in path
 
 
 def _should_include_field(path: str) -> bool:
     """Determine if a field should be included in the mapping template.
 
-    Filters out fields under 'attributes[]' except 'attributes[].value',
-    and removes rows that represent array containers (paths ending in ``[]``).
-
-    Uses path segment-based logic to handle nested paths like
-    'service.attributes[]'.
+    Filters out any field path containing ``[]`` so that array rows and all
+    array descendants are excluded from the template.
     """
-    parts = path.split(".")
-
-    # Filter out array container rows (e.g., addresses[]).
-    if _is_array_container_path(path):
+    if _has_array_path_segment(path):
         return False
-
-    # Check for attributes[] - only keep attributes[].value
-    for i, part in enumerate(parts):
-        if part == "attributes[]":
-            # Get segments after attributes[]
-            after = parts[i + 1:]
-            # Allow only attributes[].value
-            if after == ["value"]:
-                return True
-            # Filter out all other attributes[] sub-fields
-            return False
 
     return True
 
@@ -51,13 +34,7 @@ def _should_include_field(path: str) -> bool:
 def _should_skip_recursion(path: str) -> bool:
     """Return True when traversal should stop below *path*."""
 
-    parts = path.split(".")
-    for i, part in enumerate(parts):
-        if part == "attributes[]":
-            after = parts[i + 1 :]
-            if after and after != ["value"]:
-                return True
-    return False
+    return _has_array_path_segment(path)
 
 
 def flatten_schema(schema: dict[str, Any]) -> list[FieldSpec]:
@@ -67,9 +44,8 @@ def flatten_schema(schema: dict[str, Any]) -> list[FieldSpec]:
     ``FieldSpec`` also normalizes descriptions and tracks whether the field is
     required along the ancestor chain.
 
-    Fields under 'attributes[]' (except 'attributes[].value'), all fields
-    under 'metadata[]', and array container rows (``[]`` paths) are excluded
-    to keep the template concise.
+    Any field path containing ``[]`` is excluded so the template only includes
+    non-array paths.
     """
 
     if not isinstance(schema, dict):
@@ -148,10 +124,8 @@ def flatten_schema(schema: dict[str, Any]) -> list[FieldSpec]:
                     # Recurse into children only on the first encounter to
                     # avoid wasted duplicate walks when composition
                     # subschemas later re-visit the same subtree.
-                    # Note: this intentionally differs from
-                    # ``_should_include_field``. We do not emit ``attributes[]``
-                    # container rows, but we still recurse into them so
-                    # ``attributes[].value`` can be discovered.
+                    # When a path contains ``[]`` we stop recursion because the
+                    # template now excludes all array descendants as well.
                     if _should_skip_recursion(prop_path):
                         continue
                     if is_array:
