@@ -7,7 +7,7 @@ import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 
-from fastapi import FastAPI, File, HTTPException, Response, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Response, UploadFile
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -22,6 +22,7 @@ from api.utils import (
 )
 from api.tempdir import get_writable_temp_dir
 from lib.transform.collections import build_collections, searching_and_assigning
+from lib.transform.json_collections import build_collections_from_json
 from lib.transform.outputs import save_objects_to_json
 from api.model import HealthResponse
 
@@ -69,16 +70,27 @@ async def health(response: Response) -> HealthResponse:
     status_code=201,
     summary="Transform custom dataset into HSDS format",
     description=(
-        "Accepts a zip file containing input CSVs and *_mapping.csv files "
+        "Accepts a zip file containing input data and mapping files. "
+        "Use input_format to specify whether the input is csv (default) or json. "
         "Unzips, runs the transformer (build_collections → searching_and_assigning), and returns a zip of the transformed JSON files"
     ),
     response_class=StreamingResponse,
 )
 async def transform(
     zip_file: UploadFile = File(
-        ..., description="Zip file containing input and mapping CSVs"
-    )
+        ..., description="Zip file containing input data and mapping files"
+    ),
+    input_format: str = Form(
+        default="csv", description="Input data format: 'csv' or 'json'"
+    ),
 ) -> StreamingResponse:
+    # Validate input_format
+    input_format = input_format.lower()
+    if input_format not in ("csv", "json"):
+        raise HTTPException(
+            status_code=422,
+            detail="input_format must be 'csv' or 'json'",
+        )
     # Input validation: require a non-empty .zip file
     if not zip_file.filename or not zip_file.filename.lower().endswith(".zip"):
         raise HTTPException(status_code=422, detail="Must provide a zip file")
@@ -116,7 +128,10 @@ async def transform(
 
         # Run the transformer: build collections, then link parents/children
         try:
-            results = build_collections(input_dir)
+            if input_format == "json":
+                results = build_collections_from_json(input_dir)
+            else:
+                results = build_collections(input_dir)
         except ValueError as e:
             raise HTTPException(status_code=422, detail=str(e))
 
