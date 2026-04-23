@@ -13,6 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from api.middleware import RouterLoggingMiddleware
 from api.logger import configure_logger
+from api.tempdir import get_writable_temp_dir
 from lib.transform.collections import build_collections, searching_and_assigning
 from lib.transform.json_collections import build_collections_from_json
 from lib.transform.outputs import save_objects_to_json
@@ -97,8 +98,13 @@ async def transform(
     except zipfile.BadZipFile:
         raise HTTPException(status_code=422, detail="Invalid zip file")
 
+    try:
+        temp_root = get_writable_temp_dir()
+    except RuntimeError as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
     # Unzip into a temp directory
-    with tempfile.TemporaryDirectory() as input_dir:
+    with tempfile.TemporaryDirectory(dir=temp_root, prefix="hsds-input-") as input_dir:
         with zipfile.ZipFile(io.BytesIO(content), "r") as zf:
             zf.extractall(input_dir)
 
@@ -124,7 +130,7 @@ async def transform(
         results = searching_and_assigning(results)
 
         # Write each object to JSON files in another temp dir, then zip and return
-        with tempfile.TemporaryDirectory() as output_dir:
+        with tempfile.TemporaryDirectory(dir=temp_root, prefix="hsds-output-") as output_dir:
             save_objects_to_json(results, output_dir)
             buf = io.BytesIO()
             with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as out_zip:
