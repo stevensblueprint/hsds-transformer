@@ -60,6 +60,7 @@ python -m src.cli.main path\to\datadir
 - `-f [csv/json]` : (optional) specifies the type of ...
 - `-o [path\to\outputdir]` : (optional) specifies an output directory. Without specifying an output directory, the transformer will create one in your root directory or add the files to `output` if it already exists.
 - `--generate-ids [organization name or ID]` : (optional) will generate new standardized UUID-based IDs for all objects using the organization name or ID of the organization _doing the transformation_. Will store old ids in `attributes[].value`. By default, the transformer will preserves original IDs from the source data
+- `--transforms [path\to\custom_transform.py]` : (optional) if custom transforms are defined and specified in the mapping template, include this flag and the path to the `custom_transforms.py` file
 
 **Transform JSON files into HSDS compliant objects given associated mapping files**
 
