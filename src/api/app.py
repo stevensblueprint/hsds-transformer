@@ -170,7 +170,7 @@ async def transform(
 @app.post(
     "/transform/stream",
     status_code=201,
-    summary="Stage streamed JSON uploads for transform",
+    summary="Transform streamed JSON uploads into HSDS format",
     description=(
         "Accepts multipart uploads with repeated files parts, stages them in a "
         "request-scoped workspace, validates upload constraints, runs the JSON "
@@ -184,8 +184,12 @@ async def transform_stream(
         description="Repeated files parts containing source JSON and *_mapping.json",
     ),
 ) -> StreamingResponse:
-    temp_root = get_writable_temp_dir()
-    workspace_dir = Path(tempfile.mkdtemp(prefix="hsds-stream-"))
+    try:
+        temp_root = get_writable_temp_dir()
+    except RuntimeError as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+    workspace_dir = Path(tempfile.mkdtemp(dir=temp_root, prefix="hsds-stream-"))
     input_dir = workspace_dir / "input"
     output_dir = workspace_dir / "output"
 
@@ -197,9 +201,12 @@ async def transform_stream(
         )
         validate_staged_workspace(summary)
 
-        results = build_collections_from_json(str(input_dir))
-        results = searching_and_assigning(results)
+        try:
+            results = build_collections_from_json(str(input_dir))
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
 
+        results = searching_and_assigning(results)
         save_objects_to_json(results, output_dir)
 
         zip_fd = tempfile.NamedTemporaryFile(suffix=".zip", dir=temp_root, delete=False)
