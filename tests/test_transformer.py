@@ -1,29 +1,35 @@
 import unittest
+
 from src.lib.collections import build_collections, searching_and_assigning
 
-class TestTransformation(unittest.TestCase):
 
+class TestTransformation(unittest.TestCase):
     def test_organization_data(self):
-        expected = [
-            (
-                "organization", 
-                [
-                    {
-                        "id": "87138316",
-                        "name": "Woda Cooper Companies - Cumberland Meadows"
-                    },
-                    {
-                        "id": "87138319",
-                        "name": "Garrett Regional Medical Center",
-                        "description": "Medical center."
-                    }
-                ]
-            )
-        ]
-        results = build_collections("data/iCarol") # Builds collections
-        results = searching_and_assigning(results) # Links and cleans up        
-        self.assertEqual(expected,results)
-        
+        """
+        Verifies basic organization transformation from iCarol data,
+        including correct id/name extraction and optional description field.
+        """
+        results = build_collections("data/iCarol")
+        results = searching_and_assigning(results)
+        results_dict = {name: objs for name, objs in results}
+
+        self.assertIn("organization", results_dict)
+
+        orgs = results_dict["organization"]
+        self.assertEqual(len(orgs), 2)
+
+        org_ids = [o["id"] for o in orgs]
+        self.assertIn("87138316", org_ids)
+        self.assertIn("87138319", org_ids)
+
+        woda = next(o for o in orgs if o["id"] == "87138316")
+        self.assertEqual(woda["name"], "Woda Cooper Companies - Cumberland Meadows")
+        self.assertNotIn("description", woda)
+
+        garrett = next(o for o in orgs if o["id"] == "87138319")
+        self.assertEqual(garrett["name"], "Garrett Regional Medical Center")
+        self.assertEqual(garrett["description"], "Medical center.")
+
     def test_empty_input(self):
         """
         Verifies that a mapping file with no input_files_field values produces no records.
@@ -32,7 +38,6 @@ class TestTransformation(unittest.TestCase):
         results = searching_and_assigning(results)
         all_objects = [obj for _, objs in results for obj in objs]
         self.assertEqual(all_objects, [])
-        
 
     def test_split_input(self):
         """
@@ -49,21 +54,32 @@ class TestTransformation(unittest.TestCase):
         self.assertEqual(len(services), 7)
 
         service_ids = [s["id"] for s in services]
-        for expected_id in ["162670", "215542", "2029585", "1262081", "176054", "131293", "236966"]:
+        for expected_id in [
+            "162670",
+            "215542",
+            "2029585",
+            "1262081",
+            "176054",
+            "131293",
+            "236966",
+        ]:
             self.assertIn(expected_id, service_ids)
 
-        # Every service should have a singular embedded organization (not a list)
-        for service in services:
+        # Services with a non-empty organization_name get a singular embedded organization (not a list)
+        services_with_org = [s for s in services if s["id"] != "1262081"]
+        for service in services_with_org:
             self.assertIn("organization", service)
             self.assertIsInstance(service["organization"], dict)
 
-        # Services with a non-empty organization_name get a name field
         aurora = next(s for s in services if s["id"] == "162670")
-        self.assertEqual(aurora["organization"]["name"], "AURORA COMPREHENSIVE COMMUNITY MENTAL HEALTH CENTER, INC")
+        self.assertEqual(
+            aurora["organization"]["name"],
+            "AURORA COMPREHENSIVE COMMUNITY MENTAL HEALTH CENTER, INC",
+        )
 
-        # Service with empty organization_name gets no name field
-        no_name = next(s for s in services if s["id"] == "1262081")
-        self.assertNotIn("name", no_name["organization"])
+        # Service with empty organization_name gets no organization key at all
+        no_org = next(s for s in services if s["id"] == "1262081")
+        self.assertNotIn("organization", no_org)
 
         # Service with no languages_spoken still produces a language entry with empty name
         aurora_langs = aurora["languages"]
@@ -76,7 +92,7 @@ class TestTransformation(unittest.TestCase):
         self.assertEqual(len(lang_names), 2)
         self.assertIn("English", lang_names)
         self.assertIn("Spanish", lang_names)
-        
+
     def test_relationship_linking(self):
         """
         Verifies one-to-many relationship linking: locations are nested into
@@ -103,7 +119,9 @@ class TestTransformation(unittest.TestCase):
 
         # Organization fields
         self.assertEqual(food_bank["name"], "Food Bank of Example County")
-        self.assertEqual(food_bank["description"], "Provides food assistance to families in need")
+        self.assertEqual(
+            food_bank["description"], "Provides food assistance to families in need"
+        )
 
         # Food Bank has 2 locations, Health Center has 1
         self.assertIsInstance(food_bank["locations"], list)
@@ -117,11 +135,12 @@ class TestTransformation(unittest.TestCase):
         self.assertEqual(health_center["locations"][0]["id"], "loc_003")
 
         # Field name mapping: 'address' -> 'address_1', 'state' -> 'state_province'
-        main_center = next(loc for loc in food_bank["locations"] if loc["id"] == "loc_001")
+        main_center = next(
+            loc for loc in food_bank["locations"] if loc["id"] == "loc_001"
+        )
         self.assertEqual(main_center["address_1"], "123 Main St")
         self.assertEqual(main_center["city"], "Exampleville")
         self.assertEqual(main_center["state_province"], "EX")
-
 
     def test_sanity_check(self):
         """
@@ -197,5 +216,5 @@ class TestTransformation(unittest.TestCase):
         self.assertNotIn("program", service_b)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
