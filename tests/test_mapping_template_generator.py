@@ -23,17 +23,13 @@ class MappingTemplateGeneratorTests(unittest.TestCase):
             "id",
             "name",
             "details",
-            "details.summary",
-            "details.notes",
         ]
         self.assertEqual(paths, expected)
 
         required = {row.path: row.required for row in rows}
         self.assertTrue(required["id"])
         self.assertTrue(required["details"])
-        self.assertTrue(required["details.summary"])
         self.assertFalse(required["name"])
-        self.assertFalse(required["details.notes"])
 
     def test_writer_matches_golden_fixture(self) -> None:
         schema = json.loads((FIXTURES / "sample_schema.json").read_text(encoding="utf-8"))
@@ -51,8 +47,8 @@ class MappingTemplateGeneratorTests(unittest.TestCase):
         self.assertEqual(actual_lines, expected_lines)
 
 
-    def test_flatten_schema_filters_all_array_paths(self) -> None:
-        """Test that any path containing [] is excluded."""
+    def test_flatten_schema_defaults_to_root_fields_and_attributes_value(self) -> None:
+        """Default output keeps root fields plus attributes[].value only."""
         schema = {
             "type": "object",
             "properties": {
@@ -88,9 +84,11 @@ class MappingTemplateGeneratorTests(unittest.TestCase):
         rows = flatten_schema(schema)
         paths = [row.path for row in rows]
 
-        # Should NOT include any array-backed paths
+        # Should include the allowed attributes[].value exception
+        self.assertIn("attributes[].value", paths)
+
+        # Should NOT include array container rows or other bracketed children
         self.assertNotIn("attributes[]", paths)
-        self.assertNotIn("attributes[].value", paths)
         self.assertNotIn("attributes[].id", paths)
         self.assertNotIn("attributes[].label", paths)
         self.assertNotIn("attributes[].url", paths)
@@ -102,8 +100,8 @@ class MappingTemplateGeneratorTests(unittest.TestCase):
         self.assertIn("id", paths)
         self.assertIn("regular_field", paths)
 
-    def test_flatten_schema_filters_nested_array_paths(self) -> None:
-        """Test that nested paths containing [] are excluded."""
+    def test_flatten_schema_default_excludes_nested_children(self) -> None:
+        """Default output does not include nested children or bracketed paths."""
         schema = {
             "type": "object",
             "properties": {
@@ -141,9 +139,9 @@ class MappingTemplateGeneratorTests(unittest.TestCase):
         rows = flatten_schema(schema)
         paths = [row.path for row in rows]
 
-        # Nested array-backed paths should all be excluded
-        self.assertNotIn("service.attributes[]", paths)
+        # Nested children and bracketed paths should be excluded
         self.assertNotIn("service.attributes[].value", paths)
+        self.assertNotIn("service.attributes[]", paths)
         self.assertNotIn("service.attributes[].id", paths)
         self.assertNotIn("service.attributes[].label", paths)
         self.assertNotIn("service.metadata[]", paths)
@@ -153,9 +151,9 @@ class MappingTemplateGeneratorTests(unittest.TestCase):
         # Regular fields should still work
         self.assertIn("id", paths)
         self.assertIn("service", paths)
-        self.assertIn("service.name", paths)
+        self.assertNotIn("service.name", paths)
 
-    def test_referenced_schema_filters_all_array_paths(self) -> None:
+    def test_referenced_schema_keeps_array_descendants_but_filters_array_rows(self) -> None:
         documents = {
             "https://example.com/schema/organization.json": {
                 "name": "organization",
@@ -216,8 +214,8 @@ class MappingTemplateGeneratorTests(unittest.TestCase):
         paths = [row.path for row in flatten_schema(schema)]
 
         self.assertIn("id", paths)
+        self.assertIn("attributes[].value", paths)
         self.assertNotIn("attributes[]", paths)
-        self.assertNotIn("attributes[].value", paths)
         self.assertNotIn("contacts[]", paths)
         self.assertNotIn("contacts[].email", paths)
         self.assertNotIn("contacts[].addresses[]", paths)

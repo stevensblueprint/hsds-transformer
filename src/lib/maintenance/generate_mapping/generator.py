@@ -13,19 +13,22 @@ class FieldSpec:
     required: bool
 
 
-def _has_array_path_segment(path: str) -> bool:
-    """Return True when *path* includes any array segment."""
+def _is_root_attributes_value_path(path: str) -> bool:
+    """Return True for the root-level ``attributes[].value`` mapping row."""
 
-    return "[]" in path
+    return path == "attributes[].value"
 
 
 def _should_include_field(path: str) -> bool:
     """Determine if a field should be included in the mapping template.
 
-    Filters out any field path containing ``[]`` so that array rows and all
-    array descendants are excluded from the template.
+    Only root HSDS object fields are emitted, plus the special root-level
+    ``attributes[].value`` row.
     """
-    if _has_array_path_segment(path):
+    if _is_root_attributes_value_path(path):
+        return True
+
+    if "." in path or "[]" in path:
         return False
 
     return True
@@ -34,7 +37,7 @@ def _should_include_field(path: str) -> bool:
 def _should_skip_recursion(path: str) -> bool:
     """Return True when traversal should stop below *path*."""
 
-    return _has_array_path_segment(path)
+    return path != "attributes[]"
 
 
 def flatten_schema(schema: dict[str, Any]) -> list[FieldSpec]:
@@ -44,8 +47,9 @@ def flatten_schema(schema: dict[str, Any]) -> list[FieldSpec]:
     ``FieldSpec`` also normalizes descriptions and tracks whether the field is
     required along the ancestor chain.
 
-    Any field path containing ``[]`` is excluded so the template only includes
-    non-array paths.
+    The mapping template contains only the root HSDS object's direct fields,
+    excluding array container rows, plus ``attributes[].value`` when the root
+    object defines attributes.
     """
 
     if not isinstance(schema, dict):
@@ -124,8 +128,10 @@ def flatten_schema(schema: dict[str, Any]) -> list[FieldSpec]:
                     # Recurse into children only on the first encounter to
                     # avoid wasted duplicate walks when composition
                     # subschemas later re-visit the same subtree.
-                    # When a path contains ``[]`` we stop recursion because the
-                    # template now excludes all array descendants as well.
+                    # Continue walking through arrays/objects even when their
+                    # own row is filtered so allowed descendants like
+                    # ``attributes[].value`` and other non-container children
+                    # can still be discovered.
                     if _should_skip_recursion(prop_path):
                         continue
                     if is_array:

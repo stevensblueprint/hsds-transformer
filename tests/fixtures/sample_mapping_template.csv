@@ -3,5 +3,3 @@ path,input_files_field,split,strip,transform,description,required
 id,,,,,Identifier,true
 name,,,,,Name,false
 details,,,,,Details,true
-details.summary,,,,,Summary,true
-details.notes,,,,,Notes,false
