@@ -1,0 +1,220 @@
+import unittest
+
+from src.lib.collections import build_collections, searching_and_assigning
+
+
+class TestTransformation(unittest.TestCase):
+    def test_organization_data(self):
+        """
+        Verifies basic organization transformation from iCarol data,
+        including correct id/name extraction and optional description field.
+        """
+        results = build_collections("data/iCarol")
+        results = searching_and_assigning(results)
+        results_dict = {name: objs for name, objs in results}
+
+        self.assertIn("organization", results_dict)
+
+        orgs = results_dict["organization"]
+        self.assertEqual(len(orgs), 2)
+
+        org_ids = [o["id"] for o in orgs]
+        self.assertIn("87138316", org_ids)
+        self.assertIn("87138319", org_ids)
+
+        woda = next(o for o in orgs if o["id"] == "87138316")
+        self.assertEqual(woda["name"], "Woda Cooper Companies - Cumberland Meadows")
+        self.assertNotIn("description", woda)
+
+        garrett = next(o for o in orgs if o["id"] == "87138319")
+        self.assertEqual(garrett["name"], "Garrett Regional Medical Center")
+        self.assertEqual(garrett["description"], "Medical center.")
+
+    def test_empty_input(self):
+        """
+        Verifies that a mapping file with no input_files_field values produces no records.
+        """
+        results = build_collections("data/simple_mapping")
+        results = searching_and_assigning(results)
+        all_objects = [obj for _, objs in results for obj in objs]
+        self.assertEqual(all_objects, [])
+
+    def test_split_input(self):
+        """
+        Verifies that the split feature correctly splits comma-separated
+        language strings into individual language objects.
+        """
+        results = build_collections("data/split_test")
+        results = searching_and_assigning(results)
+        results_dict = {name: objs for name, objs in results}
+
+        self.assertIn("service", results_dict)
+
+        services = results_dict["service"]
+        self.assertEqual(len(services), 7)
+
+        service_ids = [s["id"] for s in services]
+        for expected_id in [
+            "162670",
+            "215542",
+            "2029585",
+            "1262081",
+            "176054",
+            "131293",
+            "236966",
+        ]:
+            self.assertIn(expected_id, service_ids)
+
+        # Services with a non-empty organization_name get a singular embedded organization (not a list)
+        services_with_org = [s for s in services if s["id"] != "1262081"]
+        for service in services_with_org:
+            self.assertIn("organization", service)
+            self.assertIsInstance(service["organization"], dict)
+
+        aurora = next(s for s in services if s["id"] == "162670")
+        self.assertEqual(
+            aurora["organization"]["name"],
+            "AURORA COMPREHENSIVE COMMUNITY MENTAL HEALTH CENTER, INC",
+        )
+
+        # Service with empty organization_name gets no organization key at all
+        no_org = next(s for s in services if s["id"] == "1262081")
+        self.assertNotIn("organization", no_org)
+
+        # Service with no languages_spoken still produces a language entry with empty name
+        aurora_langs = aurora["languages"]
+        self.assertEqual(len(aurora_langs), 1)
+        self.assertEqual(aurora_langs[0]["name"], "")
+
+        # The split feature: "{English,Spanish}" -> two language objects
+        trenza = next(s for s in services if s["id"] == "236966")
+        lang_names = [lang["name"] for lang in trenza["languages"]]
+        self.assertEqual(len(lang_names), 2)
+        self.assertIn("English", lang_names)
+        self.assertIn("Spanish", lang_names)
+
+    def test_relationship_linking(self):
+        """
+        Verifies one-to-many relationship linking: locations are nested into
+        their parent organizations, and field name mapping is applied correctly
+        (e.g. 'address' -> 'address_1', 'state' -> 'state_province').
+        """
+        results = build_collections("data/logger_test")
+        results = searching_and_assigning(results)
+        results_dict = {name: objs for name, objs in results}
+
+        # Organizations are present; locations have been consumed into them
+        self.assertIn("organization", results_dict)
+        self.assertEqual(results_dict.get("location", []), [])
+
+        orgs = results_dict["organization"]
+        self.assertEqual(len(orgs), 2)
+
+        org_ids = [o["id"] for o in orgs]
+        self.assertIn("org_001", org_ids)
+        self.assertIn("org_002", org_ids)
+
+        food_bank = next(o for o in orgs if o["id"] == "org_001")
+        health_center = next(o for o in orgs if o["id"] == "org_002")
+
+        # Organization fields
+        self.assertEqual(food_bank["name"], "Food Bank of Example County")
+        self.assertEqual(
+            food_bank["description"], "Provides food assistance to families in need"
+        )
+
+        # Food Bank has 2 locations, Health Center has 1
+        self.assertIsInstance(food_bank["locations"], list)
+        self.assertEqual(len(food_bank["locations"]), 2)
+        self.assertEqual(len(health_center["locations"]), 1)
+
+        # Location IDs are correctly assigned
+        food_bank_loc_ids = [loc["id"] for loc in food_bank["locations"]]
+        self.assertIn("loc_001", food_bank_loc_ids)
+        self.assertIn("loc_002", food_bank_loc_ids)
+        self.assertEqual(health_center["locations"][0]["id"], "loc_003")
+
+        # Field name mapping: 'address' -> 'address_1', 'state' -> 'state_province'
+        main_center = next(
+            loc for loc in food_bank["locations"] if loc["id"] == "loc_001"
+        )
+        self.assertEqual(main_center["address_1"], "123 Main St")
+        self.assertEqual(main_center["city"], "Exampleville")
+        self.assertEqual(main_center["state_province"], "EX")
+
+    def test_sanity_check(self):
+        """
+        Verifies a full multi-entity pipeline using data/sanity_check, covering:
+        - HTML strip (description)
+        - Split into array objects (languages)
+        - Aligned array mapping (phones with number + type)
+        - Attribute label generation (attributes[].value + label)
+        - Flat split into a list (tags)
+        - One-to-many linking (org -> services)
+        - Singular embedding (service -> program as dict, not list)
+        - Filter row exclusion (Status != Active rows dropped)
+        """
+        results = build_collections("data/sanity_check")
+        results = searching_and_assigning(results)
+        results_dict = {name: objs for name, objs in results}
+
+        # Services and programs are consumed; only organization remains at top level
+        self.assertIn("organization", results_dict)
+        self.assertEqual(results_dict.get("service", []), [])
+        self.assertEqual(results_dict.get("program", []), [])
+
+        orgs = results_dict["organization"]
+        self.assertEqual(len(orgs), 1)
+        org = orgs[0]
+
+        self.assertEqual(org["id"], "1")
+        self.assertEqual(org["name"], "Test Organization")
+
+        # HTML strip: <p>Clean Me</p> -> Clean Me
+        self.assertEqual(org["description"], "Clean Me")
+
+        # Split: "en,fr" -> two language objects
+        self.assertEqual(len(org["languages"]), 2)
+        lang_names = [lang["name"] for lang in org["languages"]]
+        self.assertIn("en", lang_names)
+        self.assertIn("fr", lang_names)
+
+        # Aligned arrays: Phone1/Phone2 zipped with Phone1Type/Phone2Type
+        self.assertEqual(len(org["phones"]), 2)
+        self.assertEqual(org["phones"][0]["number"], "555-0100")
+        self.assertEqual(org["phones"][0]["type"], "Office")
+        self.assertEqual(org["phones"][1]["number"], "555-0101")
+        self.assertEqual(org["phones"][1]["type"], "Mobile")
+
+        # Attributes with auto-generated label from column name
+        wifi = next(a for a in org["attributes"] if a["value"] == "HasWifi")
+        self.assertEqual(wifi["label"], "Feature1")
+        parking = next(a for a in org["attributes"] if a["value"] == "HasParking")
+        self.assertEqual(parking["label"], "Feature2")
+
+        # Flat split: "tagA,tagB" -> ["tagA", "tagB"]
+        self.assertIn("tagA", org["tags"])
+        self.assertIn("tagB", org["tags"])
+
+        # One-to-many: org has 2 services nested
+        self.assertIsInstance(org["services"], list)
+        self.assertEqual(len(org["services"]), 2)
+        service_ids = [s["id"] for s in org["services"]]
+        self.assertIn("101", service_ids)
+        self.assertIn("102", service_ids)
+
+        service_a = next(s for s in org["services"] if s["id"] == "101")
+        service_b = next(s for s in org["services"] if s["id"] == "102")
+
+        # Singular embedding: program embedded as dict inside service_a
+        self.assertIn("program", service_a)
+        self.assertIsInstance(service_a["program"], dict)
+        self.assertEqual(service_a["program"]["id"], "501")
+        self.assertEqual(service_a["program"]["name"], "Program X")
+
+        # Service with no program has no program key
+        self.assertNotIn("program", service_b)
+
+
+if __name__ == "__main__":
+    unittest.main()
