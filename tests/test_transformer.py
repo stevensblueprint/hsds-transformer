@@ -1,6 +1,6 @@
 import unittest
 
-from src.lib.collections import build_collections, searching_and_assigning
+from src.lib.transform.collections import build_collections, searching_and_assigning
 
 
 class TestTransformation(unittest.TestCase):
