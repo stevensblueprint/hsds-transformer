@@ -1,0 +1,5 @@
+path,input_field,split,strip,transform
+,,,,
+id,id,,,
+name,name,,,normalize_name
+phone,phone,,,clean_phone

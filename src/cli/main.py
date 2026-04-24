@@ -3,7 +3,7 @@ from pathlib import Path
 from ..lib.transform.outputs import save_objects_to_json
 from ..lib.transform.collections import build_collections, searching_and_assigning
 from ..lib.transform.logger import transformer_log
-from ..lib.custom_transform.transforms_loader import load_transforms_registry_if_available
+from ..lib.transform.custom_transform.transforms_loader import load_transforms_registry_if_available
 import click
 import sys
 
