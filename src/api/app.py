@@ -90,9 +90,20 @@ async def transform(
     # Input validation: require a non-empty .zip file
     if not zip_file.filename or not zip_file.filename.lower().endswith(".zip"):
         raise HTTPException(status_code=422, detail="Must provide a zip file")
-    content = await zip_file.read()
-    if len(content) > MAX_UPLOAD_SIZE_BYTES:
-        raise HTTPException(status_code=413, detail="Uploaded zip file is too large")
+    # reads the upload in chunks so oversized files can be rejected early
+    content_buffer = io.BytesIO()
+    total_size = 0
+
+    while chunk := await zip_file.read(1024 * 1024):
+        total_size += len(chunk)
+
+        if total_size > MAX_UPLOAD_SIZE_BYTES:
+            raise HTTPException(status_code=413, detail="Uploaded zip file is too large")
+
+        content_buffer.write(chunk)
+
+    # converts buffered chunks back into bytes for zip validation and extraction
+    content = content_buffer.getvalue()
     if not content:
         raise HTTPException(status_code=422, detail="Zip file is empty")
     try:
