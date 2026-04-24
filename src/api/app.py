@@ -157,21 +157,27 @@ async def transform(
 @app.post(
     "/transform/stream",
     status_code=201,
-    summary="Stage streamed JSON uploads for transform",
+    summary="Transform streamed JSON uploads into HSDS format",
     description=(
         "Accepts multipart uploads with repeated files parts, stages them in a "
-        "request-scoped workspace, validates upload constraints, and hands off "
-        "the staged input directory to the JSON collection build path placeholder."
+        "request-scoped workspace, validates upload constraints, runs the JSON "
+        "transformer, and returns a zip of the transformed JSON files."
     ),
-    response_class=JSONResponse,
+    response_class=StreamingResponse,
 )
 async def transform_stream(
     files: list[UploadFile] = File(
         ..., description="Repeated files parts containing source JSON and *_mapping.json"
     )
-) -> JSONResponse:
-    workspace_dir = Path(tempfile.mkdtemp(prefix="hsds-stream-"))
+) -> StreamingResponse:
+    try:
+        temp_root = get_writable_temp_dir()
+    except RuntimeError as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+    workspace_dir = Path(tempfile.mkdtemp(dir=temp_root, prefix="hsds-stream-"))
     input_dir = workspace_dir / "input"
+    output_dir = workspace_dir / "output"
 
     try:
         summary = await stage_multipart_uploads(
@@ -181,19 +187,27 @@ async def transform_stream(
         )
         validate_staged_workspace(summary)
 
-        # TODO(issue #117): Call the JSON collection build path with str(input_dir).
+        try:
+            results = build_collections_from_json(str(input_dir))
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
 
-        return JSONResponse(
+        results = searching_and_assigning(results)
+        save_objects_to_json(results, output_dir)
+
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as out_zip:
+            for p in output_dir.rglob("*"):
+                if p.is_file():
+                    arcname = p.relative_to(output_dir)
+                    out_zip.write(p, arcname)
+        buf.seek(0)
+
+        return StreamingResponse(
+            buf,
             status_code=201,
-            content={
-                "detail": "Upload staged successfully.",
-                "staged": {
-                    "total_files": summary.total_files,
-                    "source_files": summary.source_file_count,
-                    "mapping_files": summary.mapping_file_count,
-                    "total_bytes": summary.total_bytes,
-                },
-            },
+            media_type="application/zip",
+            headers={"Content-Disposition": "attachment; filename=transformed.zip"},
         )
     except UploadSizeLimitError as exc:
         raise HTTPException(status_code=413, detail=str(exc)) from exc
