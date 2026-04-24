@@ -193,9 +193,14 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any],
                     if "split" in value and value["split"]:
                         split_char = value["split"]
                         if isinstance(extracted_val, str):
-                            # Split on delimiter and strip brackets and whitespace
-                            parts = [part.strip() for part in extracted_val.split(split_char) if part.strip()]
-                            parts = [part.strip('{}') for part in parts]
+                            # Split on delimiter, clean wrappers, then filter blanks.
+                            # This prevents placeholders like "{}" from becoming
+                            # array items with empty string values.
+                            parts = []
+                            for part in extracted_val.split(split_char):
+                                cleaned = part.strip().strip('{}').strip()
+                                if cleaned:
+                                    parts.append(cleaned)
 
                             # If template is provided, wrap each part with that key (e.g., [{"name": "English"}, {"name": "Spanish"}])
                             if template:
