@@ -37,7 +37,7 @@ uv sync
 ```
 
 ## Running the command line tool
-
+### Transformation
 **Transforms CSVs into HSDS-compliant objects given proper associated mapping.**
 
 Move the csv files to be transformed with their associated mapping (csv) files into a directory (if you're testing in this repository, create a folder for your files in the data folder). See the current `data` folder for examples.
@@ -48,37 +48,31 @@ Make sure you're in the root folder.
 # macOS/Linux (bash/zsh)
 # Transform CSVs to HSDS JSON
 python3 -m src.cli.main path/to/datadir -f csv
-python3 -m src.cli.main path/to/datadir -f csv -o path/to/outputdir
 ```
 
 ```bash
 # Windows (PowerShell/cmd)
 # Transform CSVs to HSDS JSON
 python -m src.cli.main path\to\datadir
-python -m src.cli.main path\to\datadir -o path\to\outputdir
 ```
 
-Without specifying an output directory, the transformer will create one in your root directory or add the files to `output` if it already exists.
-
-Optionally, generate new UUID-based IDs for all objects using:
-
-`python -m src.cli.main path/to/datadir --generate-ids "Organization Name or ID"`
-
-By default, the transformer preserves original IDs from the source data. Use `--generate-ids` when you want to create new standardized IDs.
+#### Options: 
+- `-f [csv/json]` : (optional) specifies the type of ...
+- `-o [path\to\outputdir]` : (optional) specifies an output directory. Without specifying an output directory, the transformer will create one in your root directory or add the files to `output` if it already exists.
+- `--generate-ids [organization name or ID]` : (optional) will generate new standardized UUID-based IDs for all objects using the organization name or ID of the organization _doing the transformation_. Will store old ids in `attributes[].value`. By default, the transformer will preserves original IDs from the source data
 
 **Transform JSON files into HSDS compliant objects given associated mapping files**
 
 Move the json files and mapping files into a directory, see data/json_test for an example. 
 
-Make sure your in the root folder (of repo)
+Make sure you're in the root folder (of repo)
 
 ```bash
 python3 -m src.cli.main {path to datadir} -f json
 python3 -m src.cli.main {path to datadir} -f json -o {path to output}
 ```
 
-**Reverse transform (HSDS JSON to CSV inputs).**
-_NOTE Currently the actual reverse transformation is not implemented_
+### Reverse transform (HSDS JSON to CSV inputs).
 
 ```bash
 # macOS/Linux (bash/zsh)
@@ -96,40 +90,18 @@ The output directory is optional and defaults to `reverse_output`.
 
 To confirm that the transformer is functioning correctly, you can run it against the included `sanity_check` dataset.
 
-**Bash:**
-
 ```bash
+# macOS/Linux (bash/zsh)
 python3 -m src.cli.main data/sanity_check
 ```
 
-**Powershell:**
-
 ```powershell
+# Windows (PowerShell/cmd)
 python -m src.cli.main data\sanity_check
 ```
 
 ### Generate mapping template from schema (HSDS schema to CSV template).
-
-There are two ways to generate a mapping template:
-
-#### From a local schema file
-
-_NOTE: The local CLI entry point (`src.cli.generate_mapping`) is not yet implemented._
-
-This command will expect a local, **dereferenced** HSDS JSON schema file (no `$ref` resolution or URL fetching). It will write a CSV with a header row, an empty second row, and one row per schema path using dot notation and `[]` for arrays.
-
-Planned usage:
-
-- Powershell: `python -m src.cli.generate_mapping --schema-file path\to\schema.json`
-- Bash: `python3 -m src.cli.generate_mapping --schema-file path/to/schema.json`
-
-Output naming:
-
-- Default output filename is `{schema_name}_mapping_template.csv` if the schema has a `name` field.
-- Otherwise it falls back to `{schema_file_stem}_mapping_template.csv`.
-- Override with `--out path\to\output.csv`.
-
-#### From a GitHub URL
+**From a GitHub URL**
 
 This uses the `src.cli.maintenance` module with the `generate-mapping` subcommand. It validates the URL, fetches the schema, flattens it, and writes a mapping template CSV to your current working directory.
 
@@ -145,6 +117,18 @@ python3 -m src.cli.maintenance generate-mapping \
 ```
 
 If the target output file already exists, the command fails instead of overwriting it.
+
+## Running the api
+
+```bash
+# All Platforms
+# Start the FastAPI server
+uvicorn api.app:app --app-dir src --reload
+```
+
+If you deploy in an environment where default temp directories are not writable
+(for example, some ECS task configurations), set `HSDS_TMP_DIR` to a writable
+path before starting the API.
 
 ## BRIEF PROCESS EXPLANATION
 
@@ -180,15 +164,3 @@ mapping = {
 and then calling the nested_map function.
 
 Once the collections have been created, we search through each collection, linking parent and child objects together by ID and removing linked child objects from the collection, before outputting the final HSDS objects as JSON files.
-
-## Running the api
-
-```bash
-# All Platforms
-# Start the FastAPI server
-uvicorn api.app:app --app-dir src --reload
-```
-
-If you deploy in an environment where default temp directories are not writable
-(for example, some ECS task configurations), set `HSDS_TMP_DIR` to a writable
-path before starting the API.
