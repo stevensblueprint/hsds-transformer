@@ -18,9 +18,9 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from src.lib.parser import parse_input_csv, parse_nested_mapping
-from src.lib.mapper import nested_map
-from src.lib.custom_transform.transforms_loader import TransformsRegistry
+from src.lib.transform.parser import parse_input_csv, parse_nested_mapping
+from src.lib.transform.mapper import nested_map
+from src.lib.transform.custom_transform.transforms_loader import TransformsRegistry
 
 DATA_DIR = Path(__file__).parent.parent / "data" / "transform_test"
 TRANSFORMS_MODULE = DATA_DIR / "transforms.py"
