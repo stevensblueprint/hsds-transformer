@@ -18,6 +18,7 @@ from lib.transform.collections import build_collections, searching_and_assigning
 from lib.transform.json_collections import build_collections_from_json
 from lib.transform.outputs import save_objects_to_json
 from api.model import HealthResponse
+from api.validators import validate_no_duplicate_filenames, validate_json_transform_files
 
 
 configure_logger()
@@ -28,6 +29,9 @@ origins = [
 "http://localhost:5173",
 "https://hsds.sitblueprint.com"
 ]
+
+# Temporary upload limit. Change this later once the real production limit is decided.
+MAX_UPLOAD_SIZE_BYTES = 5 * 1024 * 1024
 
 # Adding CORS middleware
 app.add_middleware(
@@ -86,7 +90,20 @@ async def transform(
     # Input validation: require a non-empty .zip file
     if not zip_file.filename or not zip_file.filename.lower().endswith(".zip"):
         raise HTTPException(status_code=422, detail="Must provide a zip file")
-    content = await zip_file.read()
+    # reads the upload in chunks so oversized files can be rejected early
+    content_buffer = io.BytesIO()
+    total_size = 0
+
+    while chunk := await zip_file.read(1024 * 1024):
+        total_size += len(chunk)
+
+        if total_size > MAX_UPLOAD_SIZE_BYTES:
+            raise HTTPException(status_code=413, detail="Uploaded zip file is too large")
+
+        content_buffer.write(chunk)
+
+    # converts buffered chunks back into bytes for zip validation and extraction
+    content = content_buffer.getvalue()
     if not content:
         raise HTTPException(status_code=422, detail="Zip file is empty")
     try:
@@ -95,6 +112,7 @@ async def transform(
                 raise HTTPException(
                     status_code=422, detail="Zip file contains no files"
                 )
+            validate_no_duplicate_filenames(zf)
     except zipfile.BadZipFile:
         raise HTTPException(status_code=422, detail="Invalid zip file")
 
@@ -121,6 +139,7 @@ async def transform(
         # Run the transformer: build collections, then link parents/children
         try:
             if input_format == "json":
+                validate_json_transform_files(input_dir)
                 results = build_collections_from_json(input_dir)
             else:
                 results = build_collections(input_dir)
