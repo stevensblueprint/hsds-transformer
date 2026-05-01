@@ -13,5 +13,3 @@ transforms = {
     "normalize_name": normalize_name,
     "clean_phone": clean_phone,
 }
-
-hooks = {}

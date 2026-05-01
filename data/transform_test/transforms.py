@@ -24,5 +24,3 @@ transforms = {
     "format_phone": format_phone,
     "sort_names": sort_names,
 }
-
-hooks = {}
