@@ -68,7 +68,7 @@ By default, the transformer preserves original IDs from the source data. Use `--
 
 **Transform JSON files into HSDS compliant objects given associated mapping files**
 
-Move the json files and mapping files into a directory, see data/json_test for an example. 
+Move the json files and mapping files into a directory, see data/json_test for an example.
 
 Make sure your in the root folder (of repo)
 
@@ -187,6 +187,20 @@ Once the collections have been created, we search through each collection, linki
 # All Platforms
 # Start the FastAPI server
 uvicorn api.app:app --app-dir src --reload
+```
+
+### Streaming transform endpoint
+
+`POST /transform/stream` accepts `multipart/form-data` with repeated `files`
+parts containing source JSON files and their matching `*_mapping.json` files.
+The API stages the uploaded files in a temporary workspace, runs the JSON
+transformer, and returns `application/zip` with the transformed HSDS JSON files.
+
+```bash
+curl -X POST http://localhost:8000/transform/stream \
+  -F "files=@path/to/source.json" \
+  -F "files=@path/to/source_mapping.json" \
+  --output transformed.zip
 ```
 
 If you deploy in an environment where default temp directories are not writable
