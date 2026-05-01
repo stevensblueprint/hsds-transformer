@@ -189,6 +189,14 @@ Once the collections have been created, we search through each collection, linki
 uvicorn api.app:app --app-dir src --reload
 ```
 
+## Running Tests
+To run unit tests,
+
+```bash
+python -m src.cli.unit-tests --test {tests separated by space}
+```
+
+Available tests: all, test_transformer, test_sanity, test_mapping_template, test_mapping_cli
 ### Streaming transform endpoint
 
 `POST /transform/stream` accepts `multipart/form-data` with repeated `files`
@@ -203,18 +211,6 @@ curl -X POST http://localhost:8000/transform/stream \
   --output transformed.zip
 ```
 
-If you deploy in an environment where default temp directories are not writable
-(for example, some ECS task configurations), set `HSDS_TMP_DIR` to a writable
-path before starting the API.
-=======
-## Running Tests
-To run unit tests,
-
-```bash
-python -m src.cli.unit-tests --test {tests separated by space}
-```
-
-Available tests: all, test_transformer, test_sanity, test_mapping_template, test_mapping_cli
 If you deploy in an environment where default temp directories are not writable
 (for example, some ECS task configurations), set `HSDS_TMP_DIR` to a writable
 path before starting the API.
