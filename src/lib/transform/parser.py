@@ -157,6 +157,7 @@ def validate_mapping_against_parsed_data(
     input_rows: list[dict],
     filename: str,
     mapping_file: str,
+    input_extension: str = "csv",
 ) -> None:
     """
     Check that every column referenced in a mapping exists in the original file
@@ -215,4 +216,8 @@ def validate_mapping_against_parsed_data(
     if missing:
         # Finds any columns that the mapping wants that aren't in the file
         missing_str = ", ".join(missing)
-        raise ValueError(f"Invalid mapping: these columns are referenced in '{mapping_file}' for input '{filename}.csv' but do not exist in the input data: {missing_str}")
+        raise ValueError(
+            "Invalid mapping: these columns are referenced in "
+            f"'{mapping_file}' for input '{filename}.{input_extension}' "
+            f"but do not exist in the input data: {missing_str}"
+        )

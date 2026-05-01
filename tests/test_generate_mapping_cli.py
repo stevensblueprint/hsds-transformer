@@ -15,6 +15,18 @@ def _sample_schema(name: str = "Organization") -> dict:
         "properties": {
             "id": {"type": "string", "description": "Identifier"},
             "name": {"type": "string", "description": "Display name"},
+            "details": {
+                "type": "object",
+                "description": "Details",
+                "properties": {"summary": {"type": "string", "description": "Summary"}},
+            },
+            "contacts": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {"email": {"type": "string", "description": "Email"}},
+                },
+            },
         },
     }
 
@@ -39,6 +51,9 @@ def test_generate_mapping_writes_to_current_directory(monkeypatch, tmp_path: Pat
     contents = out_file.read_text(encoding="utf-8").splitlines()
     assert contents[0] == "path,input_files_field,split,strip,transform,description,required"
     assert contents[1] == ",,,,,,"
+    assert "details,,,,,Details,false" in contents
+    assert not any(line.startswith("details.summary,") for line in contents)
+    assert not any(line.startswith("contacts[]") for line in contents)
 
 
 def test_generate_mapping_sanitizes_schema_name(monkeypatch, tmp_path: Path) -> None:
