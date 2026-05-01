@@ -214,4 +214,3 @@ curl -X POST http://localhost:8000/transform/stream \
 If you deploy in an environment where default temp directories are not writable
 (for example, some ECS task configurations), set `HSDS_TMP_DIR` to a writable
 path before starting the API.
-
