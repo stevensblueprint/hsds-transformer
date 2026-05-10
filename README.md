@@ -193,7 +193,7 @@ uvicorn api.app:app --app-dir src --reload
 To run unit tests,
 
 ```bash
-python -m src.cli.unit_tests --test {tests separated by space}
+python -m src.cli.unit_tests --tests {tests separated by space}
 ```
 
 Available tests: all, test_transformer, test_sanity, test_mapping_template, test_mapping_cli
