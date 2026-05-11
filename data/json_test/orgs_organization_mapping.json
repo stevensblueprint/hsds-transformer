@@ -1,0 +1,16 @@
+{
+  "filter": {
+    "column": "Status",
+    "value": "Active"
+  },
+  "mappings": [
+    {"output_path": "id", "input_path": "ID"},
+    {"output_path": "name", "input_path": "Name"},
+    {"output_path": "description", "input_path": "Description", "strip": "<p>;</p>"},
+    {"output_path": "languages[].name", "input_path": "Languages", "split": ","},
+    {"output_path": "phones[].number", "input_path": "Phone1;Phone2"},
+    {"output_path": "phones[].type", "input_path": "Phone1Type;Phone2Type"},
+    {"output_path": "attributes[].value", "input_path": "Feature1;Feature2"},
+    {"output_path": "tags[]", "input_path": "Tags", "split": ","}
+  ]
+}

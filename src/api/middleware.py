@@ -6,8 +6,7 @@ from uuid import uuid4
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
-from .utils import AsyncIteratorWrapper
-
+from starlette.concurrency import iterate_in_threadpool
 
 def router_logging_middleware_factory(
     app: ASGIApp, *, logger: logging.Logger
@@ -52,30 +51,59 @@ class RouterLoggingMiddleware(BaseHTTPMiddleware):
         return request_logging
 
     async def _log_response(
-        self, call_next: Callable, request: Request, request_id: str
+    self, call_next: Callable, request: Request, request_id: str
     ) -> Tuple[Response, MutableMapping[str, Any]]:
         start_time = time.perf_counter()
         response = await self._execute_request(call_next, request, request_id)
         finish_time = time.perf_counter()
         execution_time = (finish_time - start_time) * 1000
 
+        # tries to parse content length
+        content_type = response.headers.get("content-type")
+        content_length_header = response.headers.get("content-length")
+
+        content_length = None
+        if content_length_header is not None:
+            try:
+                content_length = int(content_length_header)
+            except ValueError:
+                content_length = None # header exists but is weird, ignore
+
+        # base metadata that we log
         response_logging: Dict[str, Any] = {
             "status": "succeeded" if response.status_code < 400 else "failed",
             "status_code": response.status_code,
             "duration_ms": round(execution_time, 2),
+            "content_type": content_type,
+            "content_length": content_length,
+            "request_id": request_id,
         }
 
-        body_chunks = [section async for section in response.__dict__["body_iterator"]]
-        response.__setattr__("body_iterator", AsyncIteratorWrapper(body_chunks))
+        # normalize content type
+        lowered_content_type = content_type.lower() if content_type else ""
+        
+        # detects binary streaming response (we will not consume these)
+        is_binary_response = (
+            "application/zip" in lowered_content_type
+            or "application/octet-stream" in lowered_content_type
+            or "application/pdf" in lowered_content_type
+        )
+
+        # we dont read as it will consume
+        if is_binary_response:
+            return response, response_logging
+
+        # for normal (non binary) responses, we can safely log
+        resp_body = [section async for section in response.body_iterator]
+        response.body_iterator = iterate_in_threadpool(iter(resp_body))
+
+        raw = b"".join(resp_body)
 
         try:
-            parsed = json.loads(body_chunks[0].decode())
-        except (IndexError, json.JSONDecodeError, UnicodeDecodeError):
-            parsed = (
-                b"".join(body_chunks).decode(errors="ignore") if body_chunks else ""
-            )
+            response_logging["body"] = json.loads(raw) # trys to parse JSON
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            response_logging["body"] = raw.decode(errors="ignore") # failback to decode what we can
 
-        response_logging["body"] = parsed
         return response, response_logging
 
     async def _execute_request(

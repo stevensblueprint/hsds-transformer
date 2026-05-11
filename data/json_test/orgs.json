@@ -1,0 +1,16 @@
+[
+  {
+    "ID": "1",
+    "Name": "Test Organization",
+    "Description": "<p>Clean Me</p>",
+    "Status": "Active",
+    "Languages": "en,fr",
+    "Phone1": "555-0100",
+    "Phone2": "555-0101",
+    "Phone1Type": "Office",
+    "Phone2Type": "Mobile",
+    "Feature1": "HasWifi",
+    "Feature2": "HasParking",
+    "Tags": "tagA,tagB"
+  }
+]

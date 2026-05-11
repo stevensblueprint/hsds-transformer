@@ -13,32 +13,31 @@ class FieldSpec:
     required: bool
 
 
+def _is_root_attributes_value_path(path: str) -> bool:
+    """Return True for the root-level ``attributes[].value`` mapping row."""
+
+    return path == "attributes[].value"
+
+
 def _should_include_field(path: str) -> bool:
     """Determine if a field should be included in the mapping template.
 
-    Filters out fields under 'attributes[]' except 'attributes[].value',
-    and filters out all fields under 'metadata[]' to reduce template size.
-    Uses path segment-based logic to handle nested paths like 'service.attributes[]'.
+    Only root HSDS object fields are emitted, plus the special root-level
+    ``attributes[].value`` row.
     """
-    parts = path.split(".")
+    if _is_root_attributes_value_path(path):
+        return True
 
-    # Check for metadata[] - filter out all fields under metadata[]
-    for i, part in enumerate(parts):
-        if part == "metadata[]":
-            return False
-
-    # Check for attributes[] - only keep attributes[] itself and attributes[].value
-    for i, part in enumerate(parts):
-        if part == "attributes[]":
-            # Get segments after attributes[]
-            after = parts[i + 1:]
-            # Allow if no segments after (just attributes[] itself) or only "value"
-            if not after or after == ["value"]:
-                return True
-            # Filter out all other attributes[] sub-fields
-            return False
+    if "." in path or "[]" in path:
+        return False
 
     return True
+
+
+def _should_skip_recursion(path: str) -> bool:
+    """Return True when traversal should stop below *path*."""
+
+    return path != "attributes[]"
 
 
 def flatten_schema(schema: dict[str, Any]) -> list[FieldSpec]:
@@ -48,8 +47,9 @@ def flatten_schema(schema: dict[str, Any]) -> list[FieldSpec]:
     ``FieldSpec`` also normalizes descriptions and tracks whether the field is
     required along the ancestor chain.
 
-    Fields under 'attributes[]' (except 'attributes[].value') and all fields
-    under 'metadata[]' are excluded to keep the template concise.
+    The mapping template contains only the root HSDS object's direct fields,
+    excluding array container rows, plus ``attributes[].value`` when the root
+    object defines attributes.
     """
 
     if not isinstance(schema, dict):
@@ -110,41 +110,29 @@ def flatten_schema(schema: dict[str, Any]) -> list[FieldSpec]:
                 part = f"{prop_name}[]" if is_array else prop_name
                 prop_path = join(prefix, part)
 
-                # Skip fields that should be excluded from the template
-                if not _should_include_field(prop_path):
-                    continue
-
                 required_here = prop_name in required_set
                 effective_required = ancestors_required and required_here
+                include_field = _should_include_field(prop_path)
 
                 if prop_path not in seen:
                     seen.add(prop_path)
-                    rows.append(
-                        FieldSpec(
-                            path=prop_path,
-                            description=normalize_desc(prop_schema.get("description")),
-                            required=effective_required,
+                    if include_field:
+                        rows.append(
+                            FieldSpec(
+                                path=prop_path,
+                                description=normalize_desc(prop_schema.get("description")),
+                                required=effective_required,
+                            )
                         )
-                    )
 
                     # Recurse into children only on the first encounter to
                     # avoid wasted duplicate walks when composition
                     # subschemas later re-visit the same subtree.
-                    # Skip recursion for attributes[] children (except value) and
-                    # all metadata[] fields using segment-based logic.
-                    parts = prop_path.split(".")
-                    should_skip = False
-                    for i, part in enumerate(parts):
-                        if part == "attributes[]":
-                            after = parts[i + 1:]
-                            # Skip if we've gone past attributes[] (not value)
-                            if after and after != ["value"]:
-                                should_skip = True
-                                break
-                        if part == "metadata[]":
-                            should_skip = True
-                            break
-                    if should_skip:
+                    # Continue walking through arrays/objects even when their
+                    # own row is filtered so allowed descendants like
+                    # ``attributes[].value`` and other non-container children
+                    # can still be discovered.
+                    if _should_skip_recursion(prop_path):
                         continue
                     if is_array:
                         items = prop_schema.get("items")
