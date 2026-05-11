@@ -147,7 +147,6 @@ async def transform(
         # Run the transformer: build collections, then link parents/children
         try:
             if input_format == "json":
-                validate_json_transform_files(input_dir)
                 results = build_collections_from_json(input_dir)
             else:
                 results = build_collections(input_dir)
@@ -205,7 +204,8 @@ async def transform_stream(
             max_upload_bytes=MAX_MULTIPART_UPLOAD_BYTES,
         )
         validate_staged_workspace(summary)
-
+        validate_json_transform_files(str(input_dir))
+        
         try:
             results = build_collections_from_json(str(input_dir))
         except ValueError as exc:
