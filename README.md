@@ -48,21 +48,20 @@ Make sure you're in the root folder.
 ```bash
 # macOS/Linux (bash/zsh)
 # Transform CSVs to HSDS JSON
-python3 -m src.cli.main path/to/datadir -f csv
-python3 -m src.cli.main path/to/datadir -f csv -o path/to/outputdir
+python3 -m src.cli.main path/to/datadir 
 ```
 
 ```Powershell
 # Windows (PowerShell/cmd)
 # Transform CSVs to HSDS JSON
 python -m src.cli.main path\to\datadir
-python -m src.cli.main path\to\datadir -o path\to\outputdir
 ```
 
 Options:
 - _-o path/to/output/directory_: (optional) specifies an output directory. Without specifying, the transformer will create one in your root directory or add the files to `output` if it already exists.
-- _-f {json/csv}_: (optional) specifies a file type for the input/mapping files. Can be either csv or json.
+- _-f {json/csv}_: (optional) specifies a file type for the input/mapping files. Defaults to csv but can be either csv or json.
 - _--generate-ids {organization name/id}_: (optional) generates new standardized UUID-5 ids based on the name/id of the organization doing the transforming. Stores the old id in the attributes field. by default, preserves original IDs from the source data.
+- _--transforms path\to\custom\_transforms.py_: (optional) enables the user to load their custom transform functions. If no `custom_transforms.py` file is specified, the transformer will run normally.
 
 ### Reverse Transformation
 **Reverse transform (HSDS JSON to CSV inputs).**
