@@ -38,12 +38,7 @@ class TransformsRegistry:
 
     def __init__(self, module_path: Path):
         """
-        Loads custom transforms module, loads transforms and hooks
-
-        Module must define:
-            transforms: dict
-            hooks     : dict
-
+        Loads custom transforms module. Module must define a `transforms` dict.
         TODO: Implement error handling
         """
 
@@ -53,8 +48,6 @@ class TransformsRegistry:
         spec.loader.exec_module(module)
 
         self._transforms = module.transforms
-        self._hooks      = module.hooks
-
 
     def get_transform(self, name: str) -> Callable:
         """
@@ -63,9 +56,3 @@ class TransformsRegistry:
         """
         return self._transforms[name]
 
-    def get_hook(self, stage: str) -> Callable:
-        """
-        Retrieves broad row-level or collection-level hooks.
-        TODO: Implement error handling
-        """
-        return self._hooks[stage]
