@@ -100,3 +100,16 @@ def test_sanity_check_relational():
 
     # Check Service B has no program
     assert "program" not in service_b
+
+
+def test_split_test_omits_empty_split_items():
+    collections = build_collections(str(DATA_DIR / "split_test"))
+    services = dict(collections)["service"]
+    services_by_id = {service["id"]: service for service in services}
+
+    assert "languages" not in services_by_id["131293"]
+    assert "languages" not in services_by_id["162670"]
+    assert services_by_id["236966"]["languages"] == [
+        {"name": "English"},
+        {"name": "Spanish"},
+    ]

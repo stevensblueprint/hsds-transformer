@@ -207,6 +207,7 @@ def build_collections_from_json(data_directory: str) -> List[Tuple[str, List[Dic
             input_rows=input_rows,
             filename=input_name,
             mapping_file=mapping_file.name,
+            input_extension="json",
         )
 
         objects = []

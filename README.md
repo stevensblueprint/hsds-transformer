@@ -133,6 +133,21 @@ If the target output file already exists, the command fails instead of overwriti
 uvicorn api.app:app --app-dir src --reload
 ```
 
+### Streaming transform endpoint
+`POST /transform` accept a zip file containing input and mapping files and returns a zip file with the transformed HSDS JSON files.  
+
+`POST /transform/stream` accepts `multipart/form-data` with repeated `files`
+parts containing source JSON files and their matching `*_mapping.json` files.
+The API stages the uploaded files in a temporary workspace, runs the JSON
+transformer, and returns `application/zip` with the transformed HSDS JSON files.
+
+```bash
+curl -X POST http://localhost:8000/transform/stream \
+  -F "files=@path/to/source.json" \
+  -F "files=@path/to/source_mapping.json" \
+  --output transformed.zip
+```
+
 If you deploy in an environment where default temp directories are not writable
 (for example, some ECS task configurations), set `HSDS_TMP_DIR` to a writable
 path before starting the API.

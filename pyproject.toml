@@ -18,6 +18,9 @@ build-backend = "hatchling.build"
 packages = ["src"]
 
 [project.optional-dependencies]
+dev = [
+    "pytest>=9.0.3",
+]
 api = [
     "fastapi>=0.116.1",
     "uvicorn>=0.35.0",
