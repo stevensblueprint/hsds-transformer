@@ -81,10 +81,8 @@ class TestTransformation(unittest.TestCase):
         no_org = next(s for s in services if s["id"] == "1262081")
         self.assertNotIn("organization", no_org)
 
-        # Service with no languages_spoken still produces a language entry with empty name
-        aurora_langs = aurora["languages"]
-        self.assertEqual(len(aurora_langs), 1)
-        self.assertEqual(aurora_langs[0]["name"], "")
+        # Service with no languages_spoken gets no languages key (blank filtered)
+        self.assertNotIn("languages", aurora)
 
         # The split feature: "{English,Spanish}" -> two language objects
         trenza = next(s for s in services if s["id"] == "236966")
