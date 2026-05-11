@@ -97,7 +97,11 @@ def build_collections(data_directory: str):
             if mapped_dictionary is not None:
                 objects.append(mapped_dictionary)
 
-        results.append((object_type, objects)) # Adds tuple of object type and list of dictionaries. For example: ("organization", [{x}, {y}, ...])
+        existing = next((r for r in results if r[0] == object_type), None)
+        if existing:
+            existing[1].extend(objects)
+        else:
+            results.append([object_type, objects]) # Adds tuple of object type and list of dictionaries. For example: ("organization", [{x}, {y}, ...])
         transformer_log.log(f"  {object_type}: {len(objects)} object(s) from {input_file.name}")
 
     # Summary of build_collections
