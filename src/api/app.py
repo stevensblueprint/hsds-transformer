@@ -25,6 +25,7 @@ from api.utils import (
 from lib.transform.collections import build_collections, searching_and_assigning
 from lib.transform.json_collections import build_collections_from_json
 from lib.transform.outputs import save_objects_to_json
+from api.validators import validate_no_duplicate_filenames, validate_json_transform_files
 
 configure_logger()
 
@@ -43,6 +44,9 @@ APP_START_MONOTONIC = time.monotonic()
 MAX_MULTIPART_UPLOAD_BYTES = 50 * 1024 * 1024
 
 origins = ["http://localhost:5173", "https://hsds.sitblueprint.com"]
+
+# Temporary upload limit. Change this later once the real production limit is decided.
+MAX_UPLOAD_SIZE_BYTES = 5 * 1024 * 1024
 
 # Adding CORS middleware
 app.add_middleware(
@@ -102,7 +106,20 @@ async def transform(
     # Input validation: require a non-empty .zip file
     if not zip_file.filename or not zip_file.filename.lower().endswith(".zip"):
         raise HTTPException(status_code=422, detail="Must provide a zip file")
-    content = await zip_file.read()
+    # reads the upload in chunks so oversized files can be rejected early
+    content_buffer = io.BytesIO()
+    total_size = 0
+
+    while chunk := await zip_file.read(1024 * 1024):
+        total_size += len(chunk)
+
+        if total_size > MAX_UPLOAD_SIZE_BYTES:
+            raise HTTPException(status_code=413, detail="Uploaded zip file is too large")
+
+        content_buffer.write(chunk)
+
+    # converts buffered chunks back into bytes for zip validation and extraction
+    content = content_buffer.getvalue()
     if not content:
         raise HTTPException(status_code=422, detail="Zip file is empty")
     try:
@@ -111,6 +128,7 @@ async def transform(
                 raise HTTPException(
                     status_code=422, detail="Zip file contains no files"
                 )
+            validate_no_duplicate_filenames(zf)
     except zipfile.BadZipFile:
         raise HTTPException(status_code=422, detail="Invalid zip file")
 
@@ -200,7 +218,8 @@ async def transform_stream(
             max_upload_bytes=MAX_MULTIPART_UPLOAD_BYTES,
         )
         validate_staged_workspace(summary)
-
+        validate_json_transform_files(str(input_dir))
+        
         try:
             results = build_collections_from_json(str(input_dir))
         except ValueError as exc:
@@ -213,7 +232,7 @@ async def transform_stream(
         zip_path = Path(zip_fd.name)
         zip_fd.close()
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as out_zip:
-            for p in Path(output_dir).rglob("*"):
+            for p in output_dir.rglob("*"):
                 if p.is_file():
                     arcname = p.relative_to(output_dir)
                     out_zip.write(p, arcname)
@@ -223,14 +242,13 @@ async def transform_stream(
 
         return StreamingResponse(
             _iter_and_cleanup(zip_path),
+            status_code=201,
             media_type="application/zip",
             headers={"Content-Disposition": "attachment; filename=transformed.zip"},
         )
     except UploadSizeLimitError as exc:
         raise HTTPException(status_code=413, detail=str(exc)) from exc
     except UploadValidationError as exc:
-        raise HTTPException(status_code=422, detail=str(exc)) from exc
-    except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     finally:
         shutil.rmtree(workspace_dir, ignore_errors=True)

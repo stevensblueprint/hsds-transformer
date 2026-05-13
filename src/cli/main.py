@@ -4,7 +4,7 @@ from ..lib.transform.outputs import save_objects_to_json
 from ..lib.transform.collections import build_collections, searching_and_assigning
 from ..lib.transform.json_collections import build_collections_from_json
 from ..lib.transform.logger import transformer_log
-from ..lib.custom_transform.transforms_loader import load_transforms_registry_if_available
+from ..lib.transform.custom_transform.transforms_loader import load_transforms_registry_if_available
 import click
 import sys
 
@@ -25,12 +25,6 @@ def main(data_dictionary, output_dir, generate_ids, transforms, input_format):
         # Clear any previous log entries from prior runs
         transformer_log.clear()
 
-        # Build collections from the specified input format
-        if input_format == 'json':
-            results = build_collections_from_json(data_dictionary)
-        else:
-            results = build_collections(data_dictionary)
-
         transforms_registry = load_transforms_registry_if_available(transforms)
         if transforms is None:
             transformer_log.log("Custom transforms: not used (no --transforms path).")
@@ -42,7 +36,16 @@ def main(data_dictionary, output_dir, generate_ids, transforms, input_format):
             transformer_log.log(
                 f"Custom transforms: loaded from {transforms.resolve()}."
             )
-            
+
+        # Build collections from the specified input format
+        if input_format == 'json':
+            results = build_collections_from_json(data_dictionary)
+        else:
+            results = build_collections(
+            data_dictionary,
+            custom_transforms_registry=transforms_registry,
+        )  # Builds collections
+        
         results = searching_and_assigning(results, requestor_identifier=generate_ids) # Links and cleans up, passes transformer_id
 
         # Save individual JSON files

@@ -1,11 +1,11 @@
-"""Custom exception for failures in user-provided transform/hook code."""
+"""Custom exception for failures in user-provided transform code."""
 
 from typing import Any
 
 
 class CustomTransformError(Exception):
     """
-    Raised when an error occurs inside the user's custom transform or hook code.
+    Raised when an error occurs inside the user's custom transform code.
 
     Use this in a try/except around user code so callers can distinguish
     user-script failures from transformer codebase failures. When re-raising,
