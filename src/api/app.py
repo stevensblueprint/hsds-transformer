@@ -173,16 +173,20 @@ async def transform(
             )
             zip_path = Path(zip_fd.name)
             zip_fd.close()
-            with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as out_zip:
-                for p in Path(output_dir).rglob("*"):
-                    if p.is_file():
-                        arcname = p.relative_to(output_dir)
-                        out_zip.write(p, arcname)
-            return StreamingResponse(
-                _iter_and_cleanup(zip_path),
-                media_type="application/zip",
-                headers={"Content-Disposition": "attachment; filename=transformed.zip"},
-            )
+            try:
+                with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as out_zip:
+                    for p in Path(output_dir).rglob("*"):
+                        if p.is_file():
+                            arcname = p.relative_to(output_dir)
+                            out_zip.write(p, arcname)
+                return StreamingResponse(
+                    _iter_and_cleanup(zip_path),
+                    media_type="application/zip",
+                    headers={"Content-Disposition": "attachment; filename=transformed.zip"},
+                )
+            except Exception:
+                zip_path.unlink(missing_ok=True)
+                raise
 
 
 @app.post(
@@ -231,21 +235,25 @@ async def transform_stream(
         zip_fd = tempfile.NamedTemporaryFile(suffix=".zip", dir=temp_root, delete=False)
         zip_path = Path(zip_fd.name)
         zip_fd.close()
-        with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as out_zip:
-            for p in output_dir.rglob("*"):
-                if p.is_file():
-                    arcname = p.relative_to(output_dir)
-                    out_zip.write(p, arcname)
+        try:
+            with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as out_zip:
+                for p in output_dir.rglob("*"):
+                    if p.is_file():
+                        arcname = p.relative_to(output_dir)
+                        out_zip.write(p, arcname)
 
-        # Clean up workspace now; zip file lives outside it
-        shutil.rmtree(workspace_dir, ignore_errors=True)
+            # Clean up workspace now; zip file lives outside it
+            shutil.rmtree(workspace_dir, ignore_errors=True)
 
-        return StreamingResponse(
-            _iter_and_cleanup(zip_path),
-            status_code=201,
-            media_type="application/zip",
-            headers={"Content-Disposition": "attachment; filename=transformed.zip"},
-        )
+            return StreamingResponse(
+                _iter_and_cleanup(zip_path),
+                status_code=201,
+                media_type="application/zip",
+                headers={"Content-Disposition": "attachment; filename=transformed.zip"},
+            )
+        except Exception:
+            zip_path.unlink(missing_ok=True)
+            raise
     except UploadSizeLimitError as exc:
         raise HTTPException(status_code=413, detail=str(exc)) from exc
     except UploadValidationError as exc:
