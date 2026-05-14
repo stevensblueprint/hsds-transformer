@@ -30,11 +30,10 @@ def validate_json_transform_files(input_dir: str) -> None:
     has_mapping_file = False
 
     for file_path in files:
-        if file_path.suffix.lower() == ".json":
-            has_json_file = True
-
-        if file_path.name.lower().endswith("_mapping.csv"):
+        if file_path.name.lower().endswith("_mapping.json"):
             has_mapping_file = True
+        elif file_path.suffix.lower() == ".json":
+            has_json_file = True
 
     if not has_json_file:
         raise HTTPException(status_code=422, detail="JSON input file is missing")
