@@ -1,0 +1,3 @@
+id,location_id,service_id,organization_id,contact_id,service_at_location_id,number,extension,type,language,description,department
+3733e828-58e5-4ff5-9dc6-ae24f92a0f56,30b84570-64a1-11e6-8b77-86f30ca893d3,,,,,(0123) 4567 8900,42,voice,"en, es",Roz Bernstein Main Office,
+7ed24899-52fb-4e7b-9e25-8d665bec23ea,,,18997068-649c-11e6-8b77-86f30ca893d3,,,(223) 346 12361,,voice,en,Example Cross Trust Support Line,
