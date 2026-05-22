@@ -8,35 +8,42 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import FastAPI, File, Form, HTTPException, Response, UploadFile
-from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse, StreamingResponse
 
-from api.middleware import RouterLoggingMiddleware
 from api.logger import configure_logger
+from api.middleware import RouterLoggingMiddleware
+from api.model import HealthResponse
+from api.tempdir import get_writable_temp_dir
 from api.utils import (
     UploadSizeLimitError,
     UploadValidationError,
     stage_multipart_uploads,
     validate_staged_workspace,
 )
-from api.tempdir import get_writable_temp_dir
 from lib.transform.collections import build_collections, searching_and_assigning
 from lib.transform.json_collections import build_collections_from_json
 from lib.transform.outputs import save_objects_to_json
-from api.model import HealthResponse
 from api.validators import validate_no_duplicate_filenames, validate_json_transform_files
 
-
 configure_logger()
+
+
+def _iter_and_cleanup(path: Path):
+    """Yield file contents in chunks, then delete the file."""
+    try:
+        with path.open("rb") as f:
+            yield from iter(lambda: f.read(64 * 1024), b"")
+    finally:
+        path.unlink(missing_ok=True)
+
+
 app = FastAPI(title="HSDS Transformer API", version="0.1.0")
 APP_START_MONOTONIC = time.monotonic()
 MAX_MULTIPART_UPLOAD_BYTES = 50 * 1024 * 1024
 
-origins = [
-"http://localhost:5173",
-"https://hsds.sitblueprint.com"
-]
+origins = ["http://localhost:5173", "https://hsds.sitblueprint.com"]
 
 # Temporary upload limit. Change this later once the real production limit is decided.
 MAX_UPLOAD_SIZE_BYTES = 5 * 1024 * 1024
@@ -44,13 +51,14 @@ MAX_UPLOAD_SIZE_BYTES = 5 * 1024 * 1024
 # Adding CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins, # Specify allowed origins
-    allow_credentials=True, # Allow cookies and credentials
-    allow_methods=["*"], # Allow all HTTP methods
-    allow_headers=["*"], # Allow all headers
+    allow_origins=origins,  # Specify allowed origins
+    allow_credentials=True,  # Allow cookies and credentials
+    allow_methods=["*"],  # Allow all HTTP methods
+    allow_headers=["*"],  # Allow all headers
 )
 
 app.add_middleware(RouterLoggingMiddleware, logger=logging.getLogger("hsds.api"))
+
 
 @app.get(
     "/health",
@@ -147,7 +155,7 @@ async def transform(
         # Run the transformer: build collections, then link parents/children
         try:
             if input_format == "json":
-                results = build_collections_from_json(input_dir)
+                results = build_collections_from_json(str(input_dir))
             else:
                 results = build_collections(input_dir)
         except ValueError as e:
@@ -156,20 +164,29 @@ async def transform(
         results = searching_and_assigning(results)
 
         # Write each object to JSON files in another temp dir, then zip and return
-        with tempfile.TemporaryDirectory(dir=temp_root, prefix="hsds-output-") as output_dir:
+        with tempfile.TemporaryDirectory(
+            dir=temp_root, prefix="hsds-output-"
+        ) as output_dir:
             save_objects_to_json(results, output_dir)
-            buf = io.BytesIO()
-            with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as out_zip:
-                for p in Path(output_dir).rglob("*"):
-                    if p.is_file():
-                        arcname = p.relative_to(output_dir)
-                        out_zip.write(p, arcname)
-            buf.seek(0)
-            return StreamingResponse(
-                buf,
-                media_type="application/zip",
-                headers={"Content-Disposition": "attachment; filename=transformed.zip"},
+            zip_fd = tempfile.NamedTemporaryFile(
+                suffix=".zip", dir=temp_root, delete=False
             )
+            zip_path = Path(zip_fd.name)
+            zip_fd.close()
+            try:
+                with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as out_zip:
+                    for p in Path(output_dir).rglob("*"):
+                        if p.is_file():
+                            arcname = p.relative_to(output_dir)
+                            out_zip.write(p, arcname)
+                return StreamingResponse(
+                    _iter_and_cleanup(zip_path),
+                    media_type="application/zip",
+                    headers={"Content-Disposition": "attachment; filename=transformed.zip"},
+                )
+            except Exception:
+                zip_path.unlink(missing_ok=True)
+                raise
 
 
 @app.post(
@@ -179,14 +196,15 @@ async def transform(
     description=(
         "Accepts multipart uploads with repeated files parts, stages them in a "
         "request-scoped workspace, validates upload constraints, runs the JSON "
-        "transformer, and returns a zip of the transformed JSON files."
+        "collection build path, and returns a zip of transformed JSON files"
     ),
     response_class=StreamingResponse,
 )
 async def transform_stream(
     files: list[UploadFile] = File(
-        ..., description="Repeated files parts containing source JSON and *_mapping.json"
-    )
+        ...,
+        description="Repeated files parts containing source JSON and *_mapping.json",
+    ),
 ) -> StreamingResponse:
     try:
         temp_root = get_writable_temp_dir()
@@ -214,20 +232,28 @@ async def transform_stream(
         results = searching_and_assigning(results)
         save_objects_to_json(results, output_dir)
 
-        buf = io.BytesIO()
-        with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as out_zip:
-            for p in output_dir.rglob("*"):
-                if p.is_file():
-                    arcname = p.relative_to(output_dir)
-                    out_zip.write(p, arcname)
-        buf.seek(0)
+        zip_fd = tempfile.NamedTemporaryFile(suffix=".zip", dir=temp_root, delete=False)
+        zip_path = Path(zip_fd.name)
+        zip_fd.close()
+        try:
+            with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as out_zip:
+                for p in output_dir.rglob("*"):
+                    if p.is_file():
+                        arcname = p.relative_to(output_dir)
+                        out_zip.write(p, arcname)
 
-        return StreamingResponse(
-            buf,
-            status_code=201,
-            media_type="application/zip",
-            headers={"Content-Disposition": "attachment; filename=transformed.zip"},
-        )
+            # Clean up workspace now; zip file lives outside it
+            shutil.rmtree(workspace_dir, ignore_errors=True)
+
+            return StreamingResponse(
+                _iter_and_cleanup(zip_path),
+                status_code=201,
+                media_type="application/zip",
+                headers={"Content-Disposition": "attachment; filename=transformed.zip"},
+            )
+        except Exception:
+            zip_path.unlink(missing_ok=True)
+            raise
     except UploadSizeLimitError as exc:
         raise HTTPException(status_code=413, detail=str(exc)) from exc
     except UploadValidationError as exc:
