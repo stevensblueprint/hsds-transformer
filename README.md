@@ -70,7 +70,7 @@ By default, the transformer preserves original IDs from the source data. Use `--
 
 Move the json files and mapping files into a directory, see data/json_test for an example.
 
-Make sure your in the root folder (of repo)
+Make sure your in the root folder (of repo).
 
 ```bash
 python3 -m src.cli.main {path to datadir} -f json
