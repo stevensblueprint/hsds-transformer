@@ -181,6 +181,7 @@ async def transform(
                             out_zip.write(p, arcname)
                 return StreamingResponse(
                     _iter_and_cleanup(zip_path),
+                    status_code=201,
                     media_type="application/zip",
                     headers={"Content-Disposition": "attachment; filename=transformed.zip"},
                 )
