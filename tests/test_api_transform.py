@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient
 
 from api.app import app
 
+
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 
 
