@@ -4,7 +4,7 @@ import shutil
 import tempfile
 import time
 import zipfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from fastapi import FastAPI, File, Form, HTTPException, Response, UploadFile
@@ -22,10 +22,13 @@ from api.utils import (
     stage_multipart_uploads,
     validate_staged_workspace,
 )
+from api.validators import (
+    validate_json_transform_files,
+    validate_no_duplicate_filenames,
+)
 from lib.transform.collections import build_collections, searching_and_assigning
 from lib.transform.json_collections import build_collections_from_json
 from lib.transform.outputs import save_objects_to_json
-from api.validators import validate_no_duplicate_filenames, validate_json_transform_files
 
 configure_logger()
 
@@ -72,7 +75,7 @@ async def health(response: Response) -> HealthResponse:
         status="ok",
         service=app.title,
         version=app.version,
-        timestamp_utc=datetime.now(timezone.utc),
+        timestamp_utc=datetime.now(UTC),
         uptime_seconds=round(time.monotonic() - APP_START_MONOTONIC, 3),
     )
 
@@ -89,7 +92,7 @@ async def health(response: Response) -> HealthResponse:
     response_class=StreamingResponse,
 )
 async def transform(
-    zip_file: UploadFile = File(
+    zip_file: UploadFile = File(  # noqa: B008
         ..., description="Zip file containing input data and mapping files"
     ),
     input_format: str = Form(
@@ -168,7 +171,7 @@ async def transform(
             dir=temp_root, prefix="hsds-output-"
         ) as output_dir:
             save_objects_to_json(results, output_dir)
-            zip_fd = tempfile.NamedTemporaryFile(
+            zip_fd = tempfile.NamedTemporaryFile(  # noqa: SIM115
                 suffix=".zip", dir=temp_root, delete=False
             )
             zip_path = Path(zip_fd.name)
@@ -202,7 +205,7 @@ async def transform(
     response_class=StreamingResponse,
 )
 async def transform_stream(
-    files: list[UploadFile] = File(
+    files: list[UploadFile] = File(  # noqa: B008
         ...,
         description="Repeated files parts containing source JSON and *_mapping.json",
     ),
@@ -233,7 +236,9 @@ async def transform_stream(
         results = searching_and_assigning(results)
         save_objects_to_json(results, output_dir)
 
-        zip_fd = tempfile.NamedTemporaryFile(suffix=".zip", dir=temp_root, delete=False)
+        zip_fd = tempfile.NamedTemporaryFile(  # noqa: SIM115
+            suffix=".zip", dir=temp_root, delete=False
+        )
         zip_path = Path(zip_fd.name)
         zip_fd.close()
         try:

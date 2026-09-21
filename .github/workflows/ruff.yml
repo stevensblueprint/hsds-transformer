@@ -14,4 +14,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install ruff
       - name: Run Ruff
-        run: ruff check --output-format=github .
+        run: |
+          files=$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}" -- '*.py')
+          if [ -n "$files" ]; then
+            ruff check --output-format=github $files
+          fi
