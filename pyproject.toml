@@ -20,6 +20,7 @@ packages = ["src"]
 [project.optional-dependencies]
 dev = [
     "pytest>=9.0.3",
+    "httpx>=0.28.1,<1",
 ]
 api = [
     "fastapi>=0.116.1",
@@ -28,5 +29,8 @@ api = [
 ]
 
 [tool.pytest.ini_options]
-pythonpath = ["."]
+pythonpath = [".", "src"]
 
+[tool.ruff.lint]
+# Preserve the pre-0.16 defaults; adopt broader rules in a separate cleanup.
+select = ["E4", "E7", "E9", "F"]

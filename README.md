@@ -189,7 +189,20 @@ Once the collections have been created, we search through each collection, linki
 uvicorn api.app:app --app-dir src --reload
 ```
 
+Successful transformations from both `POST /transform` (CSV or JSON ZIP uploads)
+and `POST /transform/stream` (JSON multipart uploads) return **201 Created** with
+an `application/zip` response and
+`Content-Disposition: attachment; filename=transformed.zip`.
+
 ## Running Tests
+
+Run the endpoint contract regression tests using the checked-in CSV and JSON fixtures:
+
+```bash
+uv sync --extra api --extra dev
+uv run --extra api --extra dev pytest tests/test_api_transform.py
+```
+
 To run unit tests,
 
 ```bash
