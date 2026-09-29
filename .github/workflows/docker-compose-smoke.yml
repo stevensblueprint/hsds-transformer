@@ -1,0 +1,40 @@
+name: Docker Compose smoke test
+
+on: [push, pull_request]
+
+jobs:
+  compose-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Start API and wait for health check
+        run: docker compose up --build --wait --wait-timeout 60 -d
+
+      - name: Check health endpoint
+        run: curl --fail --show-error http://localhost:8000/health
+
+      - name: Transform sample CSV ZIP
+        run: |
+          curl --fail --show-error --output transformed.zip \
+            --form "zip_file=@data/sal_example.zip" \
+            --form "input_format=csv" \
+            http://localhost:8000/transform
+          python - <<'PY'
+          import zipfile
+
+          with zipfile.ZipFile("transformed.zip") as archive:
+              names = archive.namelist()
+              assert names, "transform response ZIP is empty"
+              assert archive.testzip() is None, "transform response ZIP is corrupt"
+              assert any(name.startswith("organization_") for name in names), names
+          PY
+
+      - name: Show API logs
+        if: always()
+        run: docker compose logs api
+
+      - name: Stop API
+        if: always()
+        run: docker compose down
