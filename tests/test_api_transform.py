@@ -70,3 +70,11 @@ def test_transform_openapi_success_status(client, endpoint):
     responses = response.json()["paths"][endpoint]["post"]["responses"]
     assert "201" in responses
     assert "200" not in responses
+
+
+def test_health_returns_ok(client):
+    response = client.get("/health")
+
+    assert response.status_code == 200
+    assert response.headers["cache-control"] == "no-store"
+    assert response.json()["status"] == "ok"

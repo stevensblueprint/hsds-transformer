@@ -11,6 +11,26 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Compose smoke test
+        run: |
+          docker compose up --build -d
+          for i in $(seq 1 15); do
+            if curl --fail -s http://localhost:8000/health; then
+              echo "API is healthy"
+              break
+            fi
+            if [ "$i" -eq 15 ]; then
+              echo "API did not become healthy in time"
+              docker compose logs api
+              exit 1
+            fi
+            sleep 2
+          done
+          curl --fail -X POST http://localhost:8000/transform \
+            -F "zip_file=@data/sal_example.zip" \
+            --output "$RUNNER_TEMP/transformed.zip"
+          docker compose down
+
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
         with:
