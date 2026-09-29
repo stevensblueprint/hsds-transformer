@@ -9,3 +9,13 @@ services:
       APP_MODULE: api.app:app
       PORT: "8000"
     restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import json, urllib.request; response = urllib.request.urlopen('http://127.0.0.1:8000/health'); raise SystemExit(0 if json.load(response).get('status') == 'ok' else 1)"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
