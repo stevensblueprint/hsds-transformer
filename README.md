@@ -137,6 +137,50 @@ and `POST /transform/stream` (JSON multipart uploads) return **201 Created** wit
 an `application/zip` response and
 `Content-Disposition: attachment; filename=transformed.zip`.
 
+### Running with Docker Compose
+
+The container runs the same `api.app:app` module as the local `uvicorn`
+command above; `APP_MODULE` is defined once in the Dockerfile and Compose
+does not override it.
+
+```bash
+# macOS/Linux (bash/zsh)
+# Build and start the API container
+docker compose up --build -d
+
+# Verify the container is healthy
+curl --fail http://localhost:8000/health
+
+# Exercise the transform endpoint through the running container
+curl -X POST http://localhost:8000/transform \
+  -F "zip_file=@data/sal_example.zip" \
+  --output transformed.zip
+
+# Inspect logs if something looks wrong
+docker compose logs api
+
+# Tear down
+docker compose down
+```
+
+```bash
+# Windows (PowerShell/cmd)
+# Build and start the API container
+docker compose up --build -d
+
+# Verify the container is healthy
+curl.exe --fail http://localhost:8000/health
+
+# Exercise the transform endpoint through the running container
+curl.exe -X POST http://localhost:8000/transform -F "zip_file=@data/sal_example.zip" --output transformed.zip
+
+# Inspect logs if something looks wrong
+docker compose logs api
+
+# Tear down
+docker compose down
+```
+
 ### Endpoint regression tests
 
 Run the endpoint contract regression tests using the checked-in CSV and JSON fixtures:
