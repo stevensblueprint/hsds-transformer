@@ -2,10 +2,9 @@ services:
   api:
     build:
       context: .
-    container_name: openreferral-validator
+    container_name: hsds-transformer-api
     ports:
       - "8000:8000"
     environment:
-      APP_MODULE: api.main:app
       PORT: "8000"
     restart: unless-stopped

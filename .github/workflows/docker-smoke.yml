@@ -1,0 +1,35 @@
+name: Docker Smoke Test
+
+on: push
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Start API with Docker Compose
+        run: docker compose up --build -d
+      - name: Wait for /health
+        run: |
+          for i in $(seq 1 15); do
+            if curl --fail -s http://localhost:8000/health; then
+              echo "API is healthy"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "API did not become healthy in time"
+          exit 1
+      - name: Transform sample CSV zip
+        run: |
+          curl --fail -X POST http://localhost:8000/transform \
+            -F "zip_file=@data/sal_example.zip" \
+            --output "$RUNNER_TEMP/transformed.zip"
+          unzip -t "$RUNNER_TEMP/transformed.zip"
+      - name: Show container logs
+        if: failure()
+        run: docker compose logs api
+      - name: Stop containers
+        if: always()
+        run: docker compose down
