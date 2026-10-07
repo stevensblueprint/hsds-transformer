@@ -263,3 +263,113 @@ class TestJsonIntegration:
         result_dict = {name: objs for name, objs in result}
         assert "organization" in result_dict
         assert len(result_dict["organization"]) == 1
+
+
+def _write_json_source(directory, source, records, object_type="organization", filter_spec=None):
+    (directory / f"{source}.json").write_text(json.dumps(records))
+    mapping = {
+        "mappings": [
+            {"output_path": field, "input_path": field}
+            for field in ("id", "name")
+        ],
+    }
+    if filter_spec is not None:
+        mapping["filter"] = filter_spec
+    (directory / f"{source}_{object_type}_mapping.json").write_text(json.dumps(mapping))
+
+
+@pytest.mark.parametrize("source_count", [2, 3])
+def test_repeated_json_types_survive_build_link_and_write(tmp_path, source_count):
+    from src.lib.transform.outputs import save_objects_to_json
+
+    expected = [
+        {"id": chr(ord("a") + index), "name": f"Organization {index}"}
+        for index in range(source_count)
+    ]
+    for record in expected:
+        _write_json_source(tmp_path, record["id"], [record])
+
+    collections = build_collections_from_json(str(tmp_path))
+    assert [name for name, _ in collections] == ["organization"]
+    assert sorted(collections[0][1], key=lambda obj: obj["id"]) == expected
+
+    linked = searching_and_assigning(collections)
+    assert [name for name, _ in linked] == ["organization"]
+    assert sorted(linked[0][1], key=lambda obj: obj["id"]) == expected
+
+    output = tmp_path / "output"
+    save_objects_to_json(linked, str(output))
+    files = sorted(output.glob("*.json"))
+    assert [file.name for file in files] == [
+        f"organization_{record['id']}.json" for record in expected
+    ]
+    assert [json.loads(file.read_text()) for file in files] == expected
+
+
+@pytest.mark.parametrize("empty_first", [True, False])
+@pytest.mark.parametrize("filtered", [True, False])
+def test_empty_or_filtered_json_source_does_not_replace_other_sources(
+    tmp_path, monkeypatch, empty_first, filtered,
+):
+    expected = [{"id": "a", "name": "Alpha"}, {"id": "b", "name": "Beta"}]
+    empty_records = [{"id": "excluded", "name": "Excluded", "status": "inactive"}] if filtered else []
+    filter_spec = {"column": "status", "value": "active"} if filtered else None
+    sources = [
+        ("a", [expected[0]], None),
+        ("b", [expected[1]], None),
+    ]
+    sources.insert(0 if empty_first else 2, ("empty", empty_records, filter_spec))
+    for source, records, source_filter in sources:
+        _write_json_source(tmp_path, source, records, filter_spec=source_filter)
+
+    # Explicitly exercise both discovery orders; filesystem order is unspecified.
+    mapping_files = [tmp_path / f"{source}_organization_mapping.json" for source, _, _ in sources]
+    monkeypatch.setattr(Path, "glob", lambda self, pattern: iter(mapping_files))
+    collections = build_collections_from_json(str(tmp_path))
+    assert [name for name, _ in collections] == ["organization"]
+    assert sorted(collections[0][1], key=lambda obj: obj["id"]) == expected
+    linked = searching_and_assigning(collections)
+    assert [name for name, _ in linked] == ["organization"]
+    assert sorted(linked[0][1], key=lambda obj: obj["id"]) == expected
+
+
+def test_repeated_json_ids_are_preserved_for_shared_integrity_validation(tmp_path):
+    # Collection accumulation must not choose a winner or hide duplicate IDs.
+    expected = [{"id": "same", "name": "Alpha"}, {"id": "same", "name": "Beta"}]
+    for source, record in zip(("a", "b"), expected):
+        _write_json_source(tmp_path, source, [record])
+
+    collections = build_collections_from_json(str(tmp_path))
+    assert [name for name, _ in collections] == ["organization"]
+    assert sorted(collections[0][1], key=lambda obj: obj["name"]) == expected
+    linked = searching_and_assigning(collections)
+    assert len(linked) == 1
+    assert sorted(linked[0][1], key=lambda obj: obj["name"]) == expected
+
+
+def test_repeated_json_types_match_csv_object_graph(tmp_path):
+    import csv
+    from src.lib.transform.collections import build_collections
+
+    for source, object_type, record in [
+        ("a", "organization", {"id": "a", "name": "Alpha"}),
+        ("b", "organization", {"id": "b", "name": "Beta"}),
+        ("c", "location", {"id": "c", "name": "Center"}),
+    ]:
+        _write_json_source(tmp_path, source, [record], object_type=object_type)
+        with (tmp_path / f"{source}.csv").open("w", newline="") as file:
+            writer = csv.DictWriter(file, fieldnames=["id", "name"])
+            writer.writeheader()
+            writer.writerow(record)
+        (tmp_path / f"{source}_{object_type}_mapping.csv").write_text(
+            "path,input_files_field\n,\nid,id\nname,name\n"
+        )
+
+    def canonical(collections):
+        assert len({name for name, _ in collections}) == len(collections)
+        return sorted((name, sorted(objects, key=lambda obj: obj["id"])) for name, objects in collections)
+
+    json_collections = build_collections_from_json(str(tmp_path))
+    csv_collections = build_collections(str(tmp_path))
+    assert canonical(json_collections) == canonical(csv_collections)
+    assert canonical(searching_and_assigning(json_collections)) == canonical(searching_and_assigning(csv_collections))

@@ -160,7 +160,8 @@ def build_collections_from_json(data_directory: str) -> List[Tuple[str, List[Dic
     """
     JSON counterpart to build_collections(). Discovers *_mapping.json files,
     pairs them with <input_name>.json source files, validates, transforms,
-    and returns the same [(object_type, [dicts])] structure.
+    and returns the same [(object_type, [dicts])] structure, with one collection
+    per object type across all source files.
 
     Returns an empty list if no JSON mapping files are found (not an error).
     Raises ValueError for validation failures.
@@ -224,7 +225,12 @@ def build_collections_from_json(data_directory: str) -> List[Tuple[str, List[Dic
             if mapped_dictionary is not None:
                 objects.append(mapped_dictionary)
 
-        results.append((object_type, objects))
+        # Match CSV accumulation: the linker expects one collection per type.
+        existing = next((result for result in results if result[0] == object_type), None)
+        if existing is not None:
+            existing[1].extend(objects)
+        else:
+            results.append((object_type, objects))
         transformer_log.log(f"  {object_type}: {len(objects)} object(s) from {input_file.name}")
 
     if results:
