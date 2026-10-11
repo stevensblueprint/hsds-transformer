@@ -1,40 +1,31 @@
 # HSDS Transformer
 
-## Setup
+## Development setup
 
-### Environment Setup
+### Dependency setup
 
-```bash
-# macOS/Linux (bash/zsh)
-# Create a virtualenv
-python3 -m venv .venv
-
-# Activate the virtualenv
-source .venv/bin/activate
-
-# Install dependencies using pip or uv
-pip3 install -r requirements.txt
-
-# OR
-pip3 install uv
-uv sync
-```
+Use Python 3.13 or newer and uv 0.11.21. Install uv with `python3 -m pip install uv==0.11.21` on macOS/Linux or `python -m pip install uv==0.11.21` on Windows. Run the following from the repository root. `uv` creates `.venv` when needed.
 
 ```bash
-# Windows (PowerShell/cmd)
-# Create a virtualenv
-python -m venv .venv
+# Core CLI environment
+uv sync --locked --no-default-groups
 
-# Activate the virtualenv
-.venv\Scripts\activate
+# API runtime without developer or audit tools
+uv sync --locked --no-default-groups --extra api
 
-# Install dependencies using pip or uv
-pip install -r requirements.txt
-
-# OR
-pip install uv
-uv sync
+# Development environment: API, tests, and Ruff
+uv sync --locked --extra api
 ```
+
+`pyproject.toml` declares direct dependencies and `uv.lock` is the authoritative resolution. The default `dev` group is included in the development command. The `requirements.txt` file is a generated pip compatibility export that includes API and development dependencies. Do not edit it by hand. Regenerate it with:
+
+```bash
+uv export --locked --format requirements.txt --extra api --no-default-groups --group dev --no-emit-project --output-file requirements.txt
+```
+
+For pip-only environments, install the generated export with `python -m pip install -r requirements.txt`.
+
+The locked core and API runtime was audited with `pip-audit==2.10.1` on 2026-10-11. The audit found no known vulnerabilities, so there are no advisory IDs or affected package paths to report. Tests still emit a Starlette deprecation warning for using `httpx` with `TestClient`; it is not a vulnerability finding and remains in place.
 
 ## Running the command line tool
 
@@ -93,19 +84,17 @@ python -m src.cli.main data\sanity_check
 ```
 
 ### Unit Tests
-Additionally, run unit tests for various features.
+Run the full pytest suite with the locked development dependencies:
 
-**Bash:**
 ```bash
-python -m src.cli.unit_tests --tests {tests separated by space}
+uv run --locked --extra api python -m pytest tests/ -v
 ```
 
-**Powershell:**
-```Powershell
-python -m src.cli.unit_tests --tests {tests separated by space}
-```
+Run Ruff with the version from the lock:
 
-Available tests: all, test_transformer, test_sanity, test_mapping_template, test_mapping_cli
+```bash
+uv run --locked --extra api ruff check .
+```
 
 ### Generate mapping template from schema (HSDS schema to CSV template).
 **From a GitHub URL**
@@ -186,8 +175,7 @@ docker compose down
 Run the endpoint contract regression tests using the checked-in CSV and JSON fixtures:
 
 ```bash
-uv sync --extra api --extra dev
-uv run --extra api --extra dev pytest tests/test_api_transform.py
+uv run --locked --extra api python -m pytest tests/test_api_transform.py -v
 ```
 
 ### Streaming transform endpoint

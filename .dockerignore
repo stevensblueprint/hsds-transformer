@@ -48,6 +48,5 @@ htmlcov/
 .nix/
 .nix-channels/
 flake.lock
-uv.lock
 
 data/
