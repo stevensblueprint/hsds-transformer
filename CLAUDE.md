@@ -9,7 +9,20 @@ The HSDS Transformer converts arbitrary CSV datasets into JSON files compliant w
 ## Core Commands
 
 ### Environment Setup
-See [README.md#dependency-setup](README.md#dependency-setup) for the pinned uv version, locked core/API/development commands, and generated pip export instructions.
+```bash
+# Create and activate virtual environment
+python3 -m venv .venv
+source .venv/bin/activate  # macOS/Linux
+# or
+.venv\Scripts\activate  # Windows
+
+# Install dependencies (preferred method)
+pip3 install uv==0.11.21
+uv sync --locked --extra api
+
+# Alternative: install with pip
+pip3 install -r requirements.txt
+```
 
 ### Running the CLI Transformer
 ```bash
@@ -159,7 +172,7 @@ data/           # Sample datasets and mappings for testing
 - **glom**: Deep data transformation and path-based extraction
 - **Click**: CLI framework
 - **FastAPI & Uvicorn**: Web API framework and server
-- **uv**: Dependency manager; see the README for the pinned version and setup commands.
+- **uv**: Recommended package and environment manager
 
 ## API Details
 
@@ -172,6 +185,6 @@ data/           # Sample datasets and mappings for testing
 ## Notes
 
 - Reverse transformation (`src/cli/reverse_transform.py`) is work in progress
-- Tests use pytest in `tests/`; see the README for the locked test command.
+- No formal test framework currently exists; sample data in `data/` directory serves as test cases
 - Recent development has focused on API endpoint and handling of unzipped files
 - The project uses position-based CSV parsing (via csv.reader/DictReader) not pandas

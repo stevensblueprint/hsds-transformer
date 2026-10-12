@@ -10,7 +10,33 @@
 ## Build, Test, and Development Commands
 
 ### Environment Setup
-See [README.md#dependency-setup](README.md#dependency-setup) for the pinned uv version, locked core/API/development commands, and generated pip export instructions.
+```bash
+# macOS/Linux (bash/zsh)
+# Create and activate virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
+
+# Install dependencies (preferred method)
+pip3 install uv==0.11.21
+uv sync --locked --extra api
+
+# Alternative: install with pip
+pip3 install -r requirements.txt
+```
+
+```bash
+# Windows (PowerShell/cmd)
+# Create and activate virtual environment
+python -m venv .venv
+.venv\Scripts\activate
+
+# Install dependencies (preferred method)
+pip install uv==0.11.21
+uv sync --locked --extra api
+
+# Alternative: install with pip
+pip install -r requirements.txt
+```
 
 ### Running the CLI
 ```bash
@@ -47,7 +73,8 @@ uvicorn api.app:app --app-dir src --reload
 - Keep transformations explicit; avoid hidden side effects in mapping or relation logic.
 
 ## Testing Guidelines
-- Tests use pytest in `tests/`. Run them with `uv run --locked --extra api python -m pytest tests/ -v`.
+- No dedicated test framework or test directory is present.
+- If you add tests, prefer `tests/` with `pytest`-style naming like `test_parser.py` and document how to run them.
 
 ## Commit & Pull Request Guidelines
 - Recent history uses short, action-oriented subjects (e.g., `fix handling of unzipped files`) plus GitHub merge commits.
