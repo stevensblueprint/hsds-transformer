@@ -25,12 +25,7 @@ The **HSDS Transformer** is a Python-based utility designed to convert custom CS
 ## Building and Running
 
 ### Environment Setup
-The project uses uv 0.11.21 for dependency management.
-
-```bash
-# Install dependencies (All Platforms)
-uv sync --locked --extra api
-```
+See [README.md#dependency-setup](README.md#dependency-setup) for the pinned uv version, locked core/API/development commands, and generated pip export instructions.
 
 ### CLI Usage
 **Transform CSVs to HSDS JSON:**
