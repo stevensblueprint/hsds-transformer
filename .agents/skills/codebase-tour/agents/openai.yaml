@@ -1,0 +1,4 @@
+interface:
+  display_name: "Codebase Tour"
+  short_description: "Trace a feature through code, tests, and checks"
+  default_prompt: "Use $codebase-tour to help with this Blueprint task."
