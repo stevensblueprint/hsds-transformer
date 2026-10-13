@@ -175,3 +175,16 @@ def test_existing_custom_error_is_preserved(tmp_path):
     with pytest.raises(CustomTransformError) as caught:
         nested_map({"a": "hello"}, MAPPINGS[1], transreg=Registry())
     assert caught.value is original
+
+@pytest.mark.parametrize("blank", [None, ""])
+def test_parent_index_omits_blank_transform_results(tmp_path, blank):
+    mapping = {"items": [{
+        "name": {"path": ["a", "b"]},
+        "nested": {"value": {"path": ["a", "b"], "transform": "clean"}},
+    }]}
+    reg = registry(tmp_path, f"transforms = {{'clean': lambda value: {blank!r} if value == 'hello' else value.upper()}}")
+    result = nested_map({"a": "hello", "b": "world"}, mapping, transreg=reg)
+    assert result == {"items": [
+        {"name": "hello"},
+        {"name": "world", "nested": [{"value": "WORLD"}]},
+    ]}

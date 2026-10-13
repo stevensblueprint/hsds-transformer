@@ -271,7 +271,9 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any],
                                 try:
                                     val = glom(root_data, p, default=None)
                                     if val != "" and val is not None:
-                                        item[k] = apply_transform(val, path_array_items[k], p)
+                                        transformed = apply_transform(val, path_array_items[k], p)
+                                        if not is_blank(transformed):
+                                            item[k] = transformed
                                 except CustomTransformError:
                                     raise
                                 except Exception:
