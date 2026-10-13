@@ -16,28 +16,28 @@ See [README.md#dependency-setup](README.md#dependency-setup) for the pinned uv v
 ```bash
 # macOS/Linux (bash/zsh)
 # Transform CSVs into HSDS JSON
-python3 -m src.cli.main path/to/datadir
-python3 -m src.cli.main path/to/datadir -o path/to/outputdir
+uv run --locked --extra api python3 -m src.cli.main path/to/datadir
+uv run --locked --extra api python3 -m src.cli.main path/to/datadir -o path/to/outputdir
 
 # Reverse transform (currently WIP)
-python3 -m src.cli.reverse_transform --mapping-dir path/to/mappings --hsds-dir path/to/hsds-json --output-dir path/to/output
+uv run --locked --extra api python3 -m src.cli.reverse_transform --mapping-dir path/to/mappings --hsds-dir path/to/hsds-json --output-dir path/to/output
 ```
 
 ```bash
 # Windows (PowerShell/cmd)
 # Transform CSVs into HSDS JSON
-python -m src.cli.main path\to\datadir
-python -m src.cli.main path\to\datadir -o path\to\outputdir
+uv run --locked --extra api python -m src.cli.main path\to\datadir
+uv run --locked --extra api python -m src.cli.main path\to\datadir -o path\to\outputdir
 
 # Reverse transform (currently WIP)
-python -m src.cli.reverse_transform --mapping-dir path\to\mappings --hsds-dir path\to\hsds-json --output-dir path\to\output
+uv run --locked --extra api python -m src.cli.reverse_transform --mapping-dir path\to\mappings --hsds-dir path\to\hsds-json --output-dir path\to\output
 ```
 
 ### Running the API
 ```bash
 # All Platforms
 # Run the FastAPI server locally
-uvicorn api.app:app --app-dir src --reload
+uv run --locked --extra api uvicorn api.app:app --app-dir src --reload
 ```
 
 ## Coding Style & Naming Conventions

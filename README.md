@@ -39,13 +39,13 @@ Make sure you're in the root folder.
 ```bash
 # macOS/Linux (bash/zsh)
 # Transform CSVs to HSDS JSON
-python3 -m src.cli.main path/to/datadir
+uv run --locked --extra api python3 -m src.cli.main path/to/datadir
 ```
 
 ```Powershell
 # Windows (PowerShell/cmd)
 # Transform CSVs to HSDS JSON
-python -m src.cli.main path\to\datadir
+uv run --locked --extra api python -m src.cli.main path\to\datadir
 ```
 
 Options:
@@ -59,12 +59,12 @@ Options:
 
 ```bash
 # macOS/Linux (bash/zsh)
-python3 -m src.cli.reverse_transform --mapping-dir path/to/mappings --hsds-dir path/to/hsds-json --output-dir path/to/output
+uv run --locked --extra api python3 -m src.cli.reverse_transform --mapping-dir path/to/mappings --hsds-dir path/to/hsds-json --output-dir path/to/output
 ```
 
 ```bash
 # Windows (PowerShell/cmd)
-python -m src.cli.reverse_transform --mapping-dir path\to\mappings --hsds-dir path\to\hsds-json --output-dir path\to\output
+uv run --locked --extra api python -m src.cli.reverse_transform --mapping-dir path\to\mappings --hsds-dir path\to\hsds-json --output-dir path\to\output
 ```
 
 The output directory is optional and defaults to `reverse_output`.
@@ -75,12 +75,12 @@ To confirm that the transformer is functioning correctly, you can run it against
 
 **Bash:**
 ```bash
-python3 -m src.cli.main data/sanity_check
+uv run --locked --extra api python3 -m src.cli.main data/sanity_check
 ```
 
 **Powershell:**
 ```Powershell
-python -m src.cli.main data\sanity_check
+uv run --locked --extra api python -m src.cli.main data\sanity_check
 ```
 
 ### Unit Tests
@@ -100,13 +100,13 @@ uv run --locked --extra api ruff check .
 **From a GitHub URL**
 This uses the `src.cli.maintenance` module with the `generate-mapping` subcommand. It validates the URL, fetches the schema, flattens it, and writes a mapping template CSV to your current working directory.
 
-- Bash: `python3 -m src.cli.maintenance generate-mapping --github-url <github-url>`
-- Powershell: `python -m src.cli.maintenance generate-mapping --github-url <github-url>`
+- Bash: `uv run --locked --extra api python3 -m src.cli.maintenance generate-mapping --github-url <github-url>`
+- Powershell: `uv run --locked --extra api python -m src.cli.maintenance generate-mapping --github-url <github-url>`
 
 The output file is named `{schema_name}_mapping_template.csv` (using the schema's `name` field), after sanitizing to a safe lowercase filename. If `name` is missing/empty after sanitization, it falls back to `{filename}_mapping_template.csv` from the URL path. For example:
 
 ```bash
-python3 -m src.cli.maintenance generate-mapping \
+uv run --locked --extra api python3 -m src.cli.maintenance generate-mapping \
   --github-url "https://raw.githubusercontent.com/openreferral/specification/refs/heads/3.2/schema/compiled/organization.json"
 # → writes organization_mapping_template.csv to the current directory
 ```
@@ -118,7 +118,7 @@ If the target output file already exists, the command fails instead of overwriti
 ```bash
 # All Platforms
 # Start the FastAPI server
-uvicorn api.app:app --app-dir src --reload
+uv run --locked --extra api uvicorn api.app:app --app-dir src --reload
 ```
 
 Successful transformations from both `POST /transform` (CSV or JSON ZIP uploads)
