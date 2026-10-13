@@ -82,7 +82,10 @@ def test_preflight_across_json_source_files(tmp_path, duplicate):
     if not duplicate:
         (source / "second.json").write_text('[{"id": ""}]', encoding="utf-8")
     groups = build_collections_from_json(str(source))
-    assert len(groups) == 2
+    records = [record for object_type, items in groups for record in items
+               if object_type == "organization"]
+    assert len(records) == 2
+    assert sum(record.get("id") == "same" for record in records) == (2 if duplicate else 1)
     output = tmp_path / "output"
     with pytest.raises(ValueError, match="Duplicate output target" if duplicate else "Missing nonempty output ID"):
         save_objects_to_json(groups, output)
