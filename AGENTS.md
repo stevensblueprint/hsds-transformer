@@ -73,8 +73,19 @@ uvicorn api.app:app --app-dir src --reload
 - Keep transformations explicit; avoid hidden side effects in mapping or relation logic.
 
 ## Testing Guidelines
-- No dedicated test framework or test directory is present.
-- If you add tests, prefer `tests/` with `pytest`-style naming like `test_parser.py` and document how to run them.
+- Tests use `pytest` and live in `tests/`; follow the existing `test_*.py` naming. `pyproject.toml` configures the import paths.
+- From the repository root in an activated Python 3.13+ environment, use the same dependencies and checks as CI:
+  ```bash
+  python -m pip install -r requirements.txt
+  python -m pip install ruff==0.16.8
+  ruff check --output-format=github .
+  python -m pytest tests/ -v
+  ```
+- `.github/workflows/ruff.yml` pins Ruff; `pyproject.toml` selects `E4`, `E7`, `E9`, and `F`. `.github/workflows/unit-tests.yml` runs pytest with Python 3.13.
+- For the uv setup, include the API and test dependencies with `uv sync --extra api --extra dev`, then run `uv run --extra api --extra dev pytest tests/ -v` (Ruff is installed separately above).
+- Choose checks for the changed behavior: use a focused regression test while iterating, then the suite for code changes. For CLI/API or packaging changes, also exercise the affected path with checked-in sample data and inspect the output. `.github/workflows/docker-smoke.yml` provides a Docker health/transform smoke recipe; archive validity alone does not prove the transformed contents are correct.
+- Cover malformed input, repeated requests, or interrupted work when the change affects those cases. A docs-only change can use source/command consistency checks and `git diff --check`; record omitted runtime checks.
+- Report the checked commit (and any uncommitted changes), commands, observed results, and evidence paths. Mark each check `PASS`, `FAIL`, or `NOT RUN` with the reason for failures or omissions; distinguish unit/static checks from end-to-end behavior.
 
 ## Commit & Pull Request Guidelines
 - Recent history uses short, action-oriented subjects (e.g., `fix handling of unzipped files`) plus GitHub merge commits.
