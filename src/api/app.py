@@ -167,7 +167,10 @@ async def transform(
         with tempfile.TemporaryDirectory(
             dir=temp_root, prefix="hsds-output-"
         ) as output_dir:
-            save_objects_to_json(results, output_dir)
+            try:
+                save_objects_to_json(results, output_dir)
+            except ValueError as exc:
+                raise HTTPException(status_code=422, detail=str(exc)) from exc
             zip_fd = tempfile.NamedTemporaryFile(
                 suffix=".zip", dir=temp_root, delete=False
             )
@@ -231,7 +234,10 @@ async def transform_stream(
             raise HTTPException(status_code=422, detail=str(exc)) from exc
 
         results = searching_and_assigning(results)
-        save_objects_to_json(results, output_dir)
+        try:
+            save_objects_to_json(results, output_dir)
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
 
         zip_fd = tempfile.NamedTemporaryFile(suffix=".zip", dir=temp_root, delete=False)
         zip_path = Path(zip_fd.name)
