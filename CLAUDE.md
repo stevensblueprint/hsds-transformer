@@ -49,7 +49,7 @@ python -m src.cli.reverse_transform --mapping-dir path\to\mappings --hsds-dir pa
 ```bash
 # All Platforms
 # Start FastAPI server
-uvicorn api.app:app --app-dir src --reload
+uvicorn src.api.app:app --reload
 
 # API endpoint: POST /transform
 # Accepts: .zip file with CSVs and mapping files
