@@ -391,6 +391,8 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any],
                 if isinstance(val, dict) and "path" in val and "split" in val:
                     # Process the path spec with split, passing the key as template to wrap results.
                     processed = process_value(val, array_context=True, template=key, attributes_context=attributes_context, parent_index=parent_index)
+                    if is_blank(processed):
+                        return []
                     return processed if isinstance(processed, list) else [processed]
             
             # Sub-Case 2b: Process items with array_context=True, 

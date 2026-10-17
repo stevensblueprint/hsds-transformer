@@ -39,7 +39,6 @@ uv run --locked --extra api python -m src.cli.reverse_transform --mapping-dir pa
 # Run the FastAPI server locally
 uv run --locked --extra api uvicorn api.app:app --app-dir src --reload
 ```
-
 ## Coding Style & Naming Conventions
 - Use Python 3.13+ and standard library idioms (project uses `glom` and `click`).
 - Follow existing module naming and file structure under `src/`.
@@ -47,7 +46,12 @@ uv run --locked --extra api uvicorn api.app:app --app-dir src --reload
 - Keep transformations explicit; avoid hidden side effects in mapping or relation logic.
 
 ## Testing Guidelines
-- Tests use pytest in `tests/`. Run them with `uv run --locked --extra api python -m pytest tests/ -v`.
+- Tests use pytest in `tests/` and follow the existing `test_*.py` naming. `pyproject.toml` configures import paths.
+- From the repository root, use the locked API and development dependencies:
+  - `uv sync --locked --extra api`
+  - `uv run --locked --extra api python -m pytest tests/ -v`
+  - `uv run --locked --extra api ruff check .`
+- Run focused regressions while iterating, then the full suite. For CLI/API or packaging changes, run the relevant smoke checks and builds. Record the commands and results.
 
 ## Commit & Pull Request Guidelines
 - Recent history uses short, action-oriented subjects (e.g., `fix handling of unzipped files`) plus GitHub merge commits.
