@@ -1,7 +1,7 @@
 {
   "manifest_version": 1,
   "ticket": "BLU-28 (P1-02a)",
-  "generated_from_commit": "242b283820baabd6bb34862f064fcab91a9f2ec9",
+  "generated_from_commit": "b8f77b9907abb4c1b763244e065fe455e44f0b4c",
   "generator": "scripts/inventory_corpus.py",
   "status_note": "Facts only. 'observed' is current behaviour, not approved expectation. classification/permission/reviewer fields are intentionally unconfirmed.",
   "counts": {
@@ -3056,9 +3056,7 @@
       ],
       "sources_without_mapping": [],
       "mappings_without_source": [],
-      "subdirectories": [
-        "__pycache__"
-      ],
+      "subdirectories": [],
       "observed": {
         "note": "observed behaviour at this commit; NOT an approved expected result",
         "status": "ok",

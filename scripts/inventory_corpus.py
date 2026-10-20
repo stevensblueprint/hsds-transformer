@@ -46,6 +46,18 @@ sys.path.insert(0, str(ROOT))
 MAPPING_RE = re.compile(r"^(.+)_([A-Za-z0-9]+)_mapping\.(csv|json)$")
 STANDARD_MAPPING_HEADER = ["path", "input_files_field"]
 
+# Directories that are generated as a side effect of *running* this script
+# (e.g. observe() dynamically imports a dataset's transforms.py, which makes
+# Python write a __pycache__ next to it) rather than being part of the
+# checked-in corpus. These must be excluded from enumeration, or the set of
+# "subdirectories" recorded for a dataset depends on whether the script has
+# already been run once in this checkout, breaking --check reproducibility.
+IGNORED_SUBDIR_NAMES = {"__pycache__"}
+
+
+def _is_inventoried_dir(name: str) -> bool:
+    return name not in IGNORED_SUBDIR_NAMES and not name.startswith(".")
+
 # Facts taken from the BLU-28 / BLU-14 ticket text, kept separate from anything
 # the script measures. These are the ticket's claims, not conclusions.
 TICKET_NOTES = {
@@ -383,7 +395,15 @@ def blank_review_fields() -> dict:
 
 def directory_entry(path: Path) -> dict:
     files = {p.name: p.read_bytes() for p in sorted(path.iterdir()) if p.is_file()}
-    subdirs = sorted(p.name for p in path.iterdir() if p.is_dir())
+    # Enumerate subdirectories before observe() runs: observe() dynamically
+    # imports transforms.py (if present), which can cause Python to create a
+    # __pycache__ directory here as a side effect. That cache is excluded via
+    # _is_inventoried_dir() regardless of enumeration order, so the recorded
+    # "subdirectories" list is identical whether or not the cache already
+    # existed from a prior run.
+    subdirs = sorted(
+        p.name for p in path.iterdir() if p.is_dir() and _is_inventoried_dir(p.name)
+    )
     analysis = analyse_files(files)
     observed = observe(path)
     entry = {
@@ -562,7 +582,7 @@ def git_commit() -> str:
 
 
 def build_manifest() -> dict:
-    dirs = sorted(p for p in DATA.iterdir() if p.is_dir() and not p.name.startswith("."))
+    dirs = sorted(p for p in DATA.iterdir() if p.is_dir() and _is_inventoried_dir(p.name))
     zips = sorted(p for p in DATA.iterdir() if p.is_file() and p.suffix == ".zip")
     dir_files = {d.name: {p.name: p.read_bytes() for p in d.iterdir() if p.is_file()} for d in dirs}
     entries = [directory_entry(d) for d in dirs] + [zip_entry(z, dir_files) for z in zips]
@@ -580,6 +600,19 @@ def build_manifest() -> dict:
     }
 
 
+# Fields that record provenance about *when/where* the manifest was generated
+# rather than facts about the corpus itself. These are expected to legitimately
+# differ between two reproducible runs (e.g. generated on different commits
+# with an unchanged corpus), so they're excluded from the --check comparison.
+NON_REPRODUCIBLE_FIELDS = {"generated_from_commit"}
+
+
+def _comparable(manifest: dict) -> dict:
+    """Manifest dict with non-reproducible provenance fields stripped, for
+    use when comparing two generations for corpus-level equality."""
+    return {k: v for k, v in manifest.items() if k not in NON_REPRODUCIBLE_FIELDS}
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--out", type=Path, default=DEFAULT_OUT)
@@ -587,13 +620,28 @@ def main() -> int:
                     help="regenerate and fail if the file on disk differs (reproducibility check)")
     args = ap.parse_args()
 
-    text = json.dumps(build_manifest(), indent=2, ensure_ascii=False) + "\n"
+    manifest = build_manifest()
+    text = json.dumps(manifest, indent=2, ensure_ascii=False) + "\n"
     if args.check:
-        current = args.out.read_text(encoding="utf-8") if args.out.exists() else ""
-        if current != text:
+        if not args.out.exists():
+            print(f"{args.out} does not exist; run without --check to generate it", file=sys.stderr)
+            return 1
+        try:
+            current = json.loads(args.out.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            print(f"{args.out} is not valid JSON ({exc}); re-run without --check", file=sys.stderr)
+            return 1
+        # Compare both sides after an equivalent JSON round-trip (rather than
+        # the freshly built `manifest` dict directly): JSON has no integer
+        # keys, so e.g. row_length_minus_header_length's int keys become
+        # strings once read back from disk. Parsing `text` the same way keeps
+        # the comparison fair instead of spuriously failing on that asymmetry.
+        new = json.loads(text)
+        if _comparable(current) != _comparable(new):
             print(f"{args.out} is out of date; re-run without --check", file=sys.stderr)
             return 1
-        print(f"{args.out} is up to date")
+        print(f"{args.out} is up to date (ignoring provenance fields: "
+              f"{', '.join(sorted(NON_REPRODUCIBLE_FIELDS))})")
         return 0
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(text, encoding="utf-8")
