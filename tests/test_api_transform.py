@@ -138,3 +138,56 @@ def test_output_identity_errors_return_422(client, tmp_path, endpoint, input_for
     assert "record 2" in detail
     assert "content-disposition" not in response.headers
     assert list(tmp_path.iterdir()) == []
+
+
+@pytest.mark.parametrize("endpoint", ["/transform", "/transform/stream"])
+@pytest.mark.parametrize("failure", [None, "write", "readback"])
+def test_output_publication_requests_cleanup_and_retry(tmp_path, monkeypatch, endpoint, failure):
+    from lib.transform import outputs
+
+    monkeypatch.setenv("HSDS_TMP_DIR", str(tmp_path))
+    paths = sorted((DATA_DIR / "json_test").glob("*.json"))
+    contents = {path.name: path.read_bytes() for path in paths}
+    records = json.loads(contents["orgs.json"])
+    records.append({**records[0], "ID": "2"})
+    contents["orgs.json"] = json.dumps(records).encode("utf-8")
+    if endpoint == "/transform":
+        upload = io.BytesIO()
+        with zipfile.ZipFile(upload, "w") as archive:
+            for name, content in contents.items():
+                archive.writestr(name, content)
+        kwargs = {
+            "data": {"input_format": "json"},
+            "files": {"zip_file": ("input.zip", upload.getvalue(), "application/zip")},
+        }
+    else:
+        kwargs = {"files": [
+            ("files", (name, content, "application/json")) for name, content in contents.items()
+        ]}
+    real_dump = outputs.json.dump
+    writes = 0
+
+    def dump(record, stream, **options):
+        nonlocal writes
+        writes += 1
+        if writes == 2 and failure:
+            if failure == "write":
+                raise OSError("injected disk failure")
+            stream.write("{broken")
+            return
+        real_dump(record, stream, **options)
+
+    with TestClient(app, raise_server_exceptions=False) as client:
+        with monkeypatch.context() as patch:
+            patch.setattr(outputs.json, "dump", dump)
+            response = client.post(endpoint, **kwargs)
+        assert response.status_code == (500 if failure else 201)
+        assert list(tmp_path.iterdir()) == []
+        # Fresh requests succeed after both ordinary success and failed publication.
+        response = client.post(endpoint, **kwargs)
+        assert response.status_code == 201
+        with zipfile.ZipFile(io.BytesIO(response.content)) as archive:
+            assert set(archive.namelist()) == {"organization_1.json", "organization_2.json"}
+            assert json.loads(archive.read("organization_1.json"))["name"] == "Test Organization"
+            assert all(json.loads(archive.read(name))["id"] for name in archive.namelist())
+        assert list(tmp_path.iterdir()) == []
