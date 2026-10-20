@@ -164,6 +164,23 @@ If the target output file already exists, the command fails instead of overwriti
 uvicorn api.app:app --app-dir src --reload
 ```
 
+ZIP uploads to `POST /transform` are limited to 5 MiB compressed, 1,000 members
+(including directory entries), 20 MiB per expanded file, 50 MiB total expanded
+bytes, and a 100:1 expanded/compressed ratio per member. These provisional
+budgets bound disk use and extraction work: the total is ten times the upload
+cap, individual files cannot consume the whole budget, and the member cap
+bounds archive entries. They are conservative service defaults, not measured
+production capacity. Split larger datasets; for highly compressible data, use
+stored compression (subject to the 5 MiB upload cap).
+
+Metadata is checked before extraction, and streamed bytes are checked before
+writing beyond a budget. Budget violations return **413**; invalid paths,
+encrypted entries, unsupported compression, conflicting paths, and corrupt
+entries return **422**. Only regular files/directories with stored or deflated
+compression are accepted. Absolute paths, parent traversal, backslashes, and
+link entries are rejected. Failed extraction removes the request workspace and
+creates no response ZIP. Normal nested folders remain supported.
+
 Successful transformations from both `POST /transform` (CSV or JSON ZIP uploads)
 and `POST /transform/stream` (JSON multipart uploads) return **201 Created** with
 an `application/zip` response and

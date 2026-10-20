@@ -129,3 +129,29 @@ def test_exact_budget_boundary(tmp_path):
         extract_zip(archive, tmp_path, ZipLimits(
             max_members=1, max_file_bytes=4, max_total_bytes=4, max_ratio=1))
     assert (tmp_path / "a").read_bytes() == b"abcd"
+
+
+def test_duplicate_basename_still_rejected(client, tmp_path):
+    response = post(client, archive_bytes([("a/source.csv", b"a"), ("b/source.csv", b"b")]))
+    assert response.status_code == 422
+    assert "Duplicate filename" in response.json()["detail"]
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_actual_byte_limit_is_checked_before_write(monkeypatch, tmp_path):
+    from api.zip_upload import ZipLimits, extract_zip
+    from fastapi import HTTPException
+
+    with zipfile.ZipFile(io.BytesIO(archive_bytes([("a", b"x")]))) as archive:
+        monkeypatch.setattr(archive, "open", lambda *_: io.BytesIO(b"abcd"))
+        with pytest.raises(HTTPException) as error:
+            extract_zip(archive, tmp_path, ZipLimits(max_file_bytes=3))
+    assert error.value.status_code == 413
+    assert (tmp_path / "a").read_bytes() == b""
+
+
+def test_overlong_member_path_rejected_without_echoing_input(client, tmp_path):
+    response = post(client, archive_bytes([("x" * 256, b"a")]))
+    assert response.status_code == 422
+    assert response.json()["detail"] == "Zip member path is too long; shorten folder and file names"
+    assert list(tmp_path.iterdir()) == []

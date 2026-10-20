@@ -1,5 +1,6 @@
 """Bounded extraction into a fresh, request-owned temporary directory."""
 
+import errno
 import stat
 import zipfile
 import zlib
@@ -12,7 +13,7 @@ from fastapi import HTTPException
 @dataclass(frozen=True)
 class ZipLimits:
     # Provisional budgets: 10x the compressed upload cap in total, with a
-    # smaller per-file cap and finite inode/expansion work per request.
+    # smaller per-file cap and finite member/expansion work per request.
     max_members: int = 1000
     max_file_bytes: int = 20 * 1024 * 1024
     max_total_bytes: int = 50 * 1024 * 1024
@@ -100,3 +101,7 @@ def extract_zip(archive: zipfile.ZipFile, destination: Path, limits: ZipLimits) 
         raise HTTPException(422, "Invalid or unsupported zip entry; recreate the zip") from exc
     except (FileExistsError, IsADirectoryError, NotADirectoryError) as exc:
         raise HTTPException(422, "Conflicting zip member paths; rename entries") from exc
+    except OSError as exc:
+        if exc.errno == errno.ENAMETOOLONG:
+            raise HTTPException(422, "Zip member path is too long; shorten folder and file names") from exc
+        raise
