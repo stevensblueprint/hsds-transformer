@@ -3,7 +3,7 @@ import re
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
-from .parser import validate_mapping_against_parsed_data
+from .parser import validate_mapping_against_parsed_data, validate_mapping_target
 from .mapper import nested_map
 from .custom_transform.transforms_loader import validate_mapping_transforms
 from .logger import transformer_log
@@ -138,6 +138,9 @@ def parse_json_mapping(mapping_file: str, filename: str) -> tuple[dict, dict | N
 
         for j, part in enumerate(parts):
             is_last = j == len(parts) - 1
+            validate_mapping_target(
+                current_level, part, is_last, output_path, mapping_file
+            )
 
             if part.endswith("[]"):
                 key = part[:-2]

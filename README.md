@@ -79,6 +79,12 @@ name, or declaration without a registry fails the run. There is no silent-skip o
 legacy fallback; older mappings relying on skipping must remove the declaration
 or supply its implementation.
 
+CSV and JSON mappings also reject conflicting output paths before processing
+records. Duplicate destinations, a leaf alongside its descendant (such as
+`value` and `value.nested`), and inconsistent object/array declarations now fail
+with the mapping file and offending output path. Remove or disambiguate these
+declarations instead of relying on their order to choose a winner.
+
 Runtime failures retain the transform name, source and mapping files, zero-based
 parsed record index, input path, and original exception. Existing blank-value
 omission and split behavior are preserved; transforms on split leaves receive the

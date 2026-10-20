@@ -188,3 +188,41 @@ def test_parent_index_omits_blank_transform_results(tmp_path, blank):
         {"name": "hello"},
         {"name": "world", "nested": [{"value": "WORLD"}]},
     ]}
+
+
+@pytest.mark.parametrize("fmt", ["csv", "json"])
+@pytest.mark.parametrize("reverse", [False, True])
+@pytest.mark.parametrize("paths", [
+    ("value", "value.nested"),
+    ("value[]", "value[].nested"),
+    ("value", "value"),
+    ("value[]", "value[]"),
+    ("value.child", "value[].other"),
+])
+def test_cli_rejects_conflicting_output_paths(tmp_path, fmt, reverse, paths):
+    """Neither declaration order may hide a transform or replace a mapping."""
+    _, mapping = dataset(tmp_path, fmt, name="")
+    entries = [(paths[0], ""), (paths[1], "unavailable")]
+    if reverse:
+        entries.reverse()
+    if fmt == "json":
+        mapping.write_text(json.dumps({"mappings": [
+            {"output_path": "id", "input_path": "id"},
+            *[{"output_path": path, "input_path": "name", "transform": transform}
+              for path, transform in entries],
+        ]}), encoding="utf-8")
+    else:
+        with mapping.open("w", newline="", encoding="utf-8") as file:
+            csv.writer(file).writerows([
+                ["path", "input_field", "split", "strip", "transform"],
+                ["", "", "", "", ""],
+                ["id", "id", "", "", ""],
+                *[[path, "name", "", "", transform] for path, transform in entries],
+            ])
+    output = tmp_path / "output"
+    result = CliRunner().invoke(main, [str(tmp_path), "-f", fmt, "-o", str(output)])
+    assert result.exit_code != 0
+    assert "Conflicting output paths" in result.output
+    assert mapping.name in result.output
+    assert entries[-1][0] in result.output
+    assert not output.exists()

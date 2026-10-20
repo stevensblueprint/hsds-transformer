@@ -2,6 +2,27 @@ import csv
 import os
 from typing import Any, Dict
 
+
+def validate_mapping_target(current_level, part, is_last, output_path, mapping_file):
+    """Reject duplicate leaves, leaf/parent conflicts and object/array mismatches."""
+    is_array = part.endswith("[]")
+    key = part[:-2] if is_array else part
+    if key not in current_level:
+        return
+
+    existing = current_level[key]
+    expected_type = list if is_array else dict
+    conflict = is_last or not isinstance(existing, expected_type)
+    if not conflict:
+        child = existing[0] if is_array else existing
+        conflict = "path" in child
+    if conflict:
+        raise ValueError(
+            f"Conflicting output paths near {output_path!r} "
+            f"in mapping file '{mapping_file}'."
+        )
+
+
 def parse_input_csv(input_file, filename) -> list:
     """
     Takes a csv file and return a list of dictionaries of the form: 
@@ -101,6 +122,9 @@ def parse_nested_mapping(mapping_file, filename) -> tuple[dict, dict | None]:
             # Loop through each part of the path to create the nested structure
             for i, part in enumerate(parts):
                 is_last = (i == len(parts) - 1)
+                validate_mapping_target(
+                    current_level, part, is_last, path, mapping_file
+                )
 
                 # Case A: The path part indicates a list through "[]"
                 if part.endswith('[]'):
