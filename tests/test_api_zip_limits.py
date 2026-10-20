@@ -155,3 +155,24 @@ def test_overlong_member_path_rejected_without_echoing_input(client, tmp_path):
     assert response.status_code == 422
     assert response.json()["detail"] == "Zip member path is too long; shorten folder and file names"
     assert list(tmp_path.iterdir()) == []
+
+
+@pytest.mark.parametrize("header", ["version", "central_utf8", "local_utf8"])
+def test_malformed_zip_headers_rejected_and_cleaned(client, tmp_path, header):
+    import struct
+
+    content = bytearray(archive_bytes([("a.csv", b"a,b\n1")]))
+    central = content.index(b"PK\x01\x02")
+    if header == "version":
+        struct.pack_into("<H", content, central + 6, 100)
+    else:
+        flags, filename = (central + 8, central + 46) if header == "central_utf8" else (6, 30)
+        struct.pack_into("<H", content, flags, 0x800)
+        content[filename] = 0xff
+    response = post(client, bytes(content))
+    assert response.status_code == 422
+    assert response.json()["detail"] in (
+        "Invalid zip file", "Invalid or unsupported zip entry; recreate the zip"
+    )
+    assert "content-disposition" not in response.headers
+    assert list(tmp_path.iterdir()) == []

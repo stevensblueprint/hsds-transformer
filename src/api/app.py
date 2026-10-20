@@ -132,7 +132,7 @@ async def transform(
                 )
             validate_zip_budget(zf, ZIP_LIMITS)
             validate_no_duplicate_filenames(zf)
-    except zipfile.BadZipFile:
+    except (zipfile.BadZipFile, NotImplementedError, UnicodeDecodeError):
         raise HTTPException(status_code=422, detail="Invalid zip file")
 
     try:

@@ -97,7 +97,7 @@ def extract_zip(archive: zipfile.ZipFile, destination: Path, limits: ZipLimits) 
                     output.write(chunk)
                 if written != info.file_size:
                     raise HTTPException(422, "Zip entry size mismatch; recreate the zip")
-    except (zipfile.BadZipFile, EOFError, zlib.error, NotImplementedError, RuntimeError) as exc:
+    except (zipfile.BadZipFile, EOFError, zlib.error, NotImplementedError, UnicodeDecodeError, RuntimeError) as exc:
         raise HTTPException(422, "Invalid or unsupported zip entry; recreate the zip") from exc
     except (FileExistsError, IsADirectoryError, NotADirectoryError) as exc:
         raise HTTPException(422, "Conflicting zip member paths; rename entries") from exc
