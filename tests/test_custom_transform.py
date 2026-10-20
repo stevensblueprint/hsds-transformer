@@ -2,6 +2,7 @@
 Tests for custom transform application in process_value / nested_map.
 """
 
+import pytest
 import os
 import sys
 from pathlib import Path
@@ -55,15 +56,10 @@ def test_no_transform_field_passthrough():
     assert result["id"] == "org-001"
 
 
-def test_transreg_none_skips_transforms():
+def test_transreg_none_rejects_declared_transforms():
     rows, mapping = load_test_data()
-    result = nested_map(rows[0], mapping, transreg=None)
-
-    assert result["name"] == "acme nonprofit"
-    assert result["phone"] == "3036172300"
-
-    names = [t["name"] for t in result["tags"]]
-    assert names == ["tagC", "tagA", "tagB"]
+    with pytest.raises(ValueError, match="No custom transform registry"):
+        nested_map(rows[0], mapping, transreg=None)
 
 
 def test_nested_map_wraps_user_transform_errors():
@@ -108,6 +104,6 @@ if __name__ == "__main__":
     test_strip_then_format_phone()
     test_sort_names_on_split_list()
     test_no_transform_field_passthrough()
-    test_transreg_none_skips_transforms()
+    test_transreg_none_rejects_declared_transforms()
     test_nested_map_wraps_user_transform_errors()
     test_build_collections_applies_custom_transforms_registry()

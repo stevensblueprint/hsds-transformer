@@ -61,7 +61,39 @@ Options:
 - _-o path/to/output/directory_: (optional) specifies an output directory. Without specifying, the transformer will create one in your root directory or add the files to `output` if it already exists.
 - _-f {json/csv}_: (optional) specifies a file type for the input/mapping files. Defaults to csv but can be either csv or json.
 - _--generate-ids {organization name/id}_: (optional) generates new standardized UUID-5 ids based on the name/id of the organization doing the transforming. Stores the old id in the attributes field. by default, preserves original IDs from the source data.
-- _--transforms path\to\custom\_transforms.py_: (optional) enables the user to load their custom transform functions. If no `custom_transforms.py` file is specified, the transformer will run normally.
+- _--transforms path\to\custom\_transforms.py_: (optional) enables the user to load their custom transform functions. Omitting this option is supported only when mappings declare no custom transforms.
+
+### Custom transform compatibility policy
+
+CSV and JSON CLI runs execute named transforms from a local Python module:
+
+```python
+transforms = {"uppercase": str.upper}
+```
+
+Use `--transforms path/to/transforms.py` with either input format. The module must
+define a dictionary with nonempty string names and callable values. All declared
+names are checked before any records are transformed, including declarations on
+blank values or filtered records. A missing module, malformed registry, missing
+name, or declaration without a registry fails the run. There is no silent-skip or
+legacy fallback; older mappings relying on skipping must remove the declaration
+or supply its implementation.
+
+CSV and JSON mappings also reject conflicting output paths before processing
+records. Duplicate destinations, a leaf alongside its descendant (such as
+`value` and `value.nested`), and inconsistent object/array declarations now fail
+with the mapping file and offending output path. Remove or disambiguate these
+declarations instead of relying on their order to choose a winner.
+
+Runtime failures retain the transform name, source and mapping files, zero-based
+parsed record index, input path, and original exception. Existing blank-value
+omission and split behavior are preserved; transforms on split leaves receive the
+existing split result, and aligned input paths are transformed individually.
+The API does not load uploaded Python modules; mappings requiring unavailable
+custom transforms are rejected. Local modules execute Python during import and
+must come from a trusted source.
+
+Run regression tests with `python -m pytest tests/`.
 
 ### Reverse Transformation
 **Reverse transform (HSDS JSON to CSV inputs).**
