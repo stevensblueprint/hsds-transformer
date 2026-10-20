@@ -233,3 +233,24 @@ curl -X POST http://localhost:8000/transform/stream \
 If you deploy in an environment where default temp directories are not writable
 (for example, some ECS task configurations), set `HSDS_TMP_DIR` to a writable
 path before starting the API.
+
+### Output identity validation (BLU-31)
+
+Before creating the output directory or writing any files, the JSON writer checks
+all supplied groups for nonempty IDs and duplicate output filenames. Missing,
+null, empty, whitespace-only, and other false-valued IDs raise `ValueError`.
+Duplicate errors identify both group/record positions. IDs are not generated,
+trimmed, or deduplicated by the writer; valid output names and JSON stay unchanged.
+An invalid identity anywhere in the supplied groups leaves existing files intact.
+
+This is writer-level validation. BLU-16 must preserve repeated entity-type groups
+through `searching_and_assigning` so all source records reach this check through
+the CLI/API. Until that fix lands, earlier same-type source groups can still be
+lost upstream. This change does not resolve that separate issue.
+
+Existing-file replacement, stale-output handling, atomic publication, I/O-failure
+rollback, and artifact accounting remain BLU-23 work. This preflight does not
+promise atomic writes or enforce final HSDS ID formats.
+
+Run the focused checks with `python -m pytest tests/test_outputs.py`; run the full
+suite with `python -m pytest tests/` and lint with `uvx ruff==0.16.8 check .`.
