@@ -16,6 +16,7 @@ from api.logger import configure_logger
 from api.middleware import RouterLoggingMiddleware
 from api.model import HealthResponse
 from api.tempdir import get_writable_temp_dir
+from api.zip_upload import ZipLimits, extract_zip, validate_zip_budget
 from api.utils import (
     UploadSizeLimitError,
     UploadValidationError,
@@ -47,6 +48,7 @@ origins = ["http://localhost:5173", "https://hsds.sitblueprint.com"]
 
 # Temporary upload limit. Change this later once the real production limit is decided.
 MAX_UPLOAD_SIZE_BYTES = 5 * 1024 * 1024
+ZIP_LIMITS = ZipLimits()
 
 # Adding CORS middleware
 app.add_middleware(
@@ -128,8 +130,9 @@ async def transform(
                 raise HTTPException(
                     status_code=422, detail="Zip file contains no files"
                 )
+            validate_zip_budget(zf, ZIP_LIMITS)
             validate_no_duplicate_filenames(zf)
-    except zipfile.BadZipFile:
+    except (zipfile.BadZipFile, NotImplementedError, UnicodeDecodeError):
         raise HTTPException(status_code=422, detail="Invalid zip file")
 
     try:
@@ -140,7 +143,7 @@ async def transform(
     # Unzip into a temp directory
     with tempfile.TemporaryDirectory(dir=temp_root, prefix="hsds-input-") as input_dir:
         with zipfile.ZipFile(io.BytesIO(content), "r") as zf:
-            zf.extractall(input_dir)
+            extract_zip(zf, Path(input_dir), ZIP_LIMITS)
 
         # Handle case where zip creates a single top-level folder
         extracted_items = list(Path(input_dir).iterdir())
