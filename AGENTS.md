@@ -96,3 +96,29 @@ uvicorn api.app:app --app-dir src --reload
 - Input directories must include both source CSVs and their mapping CSVs.
 - The transformer outputs HSDS JSON to `output/` by default.
 - The API `POST /transform` expects a `.zip` containing CSVs and mappings and returns a `.zip` of HSDS JSON.
+
+## Repository Skills
+
+Reusable task guidance lives in `.agents/skills/`. Read the matching `SKILL.md`
+when it applies; the skills supplement this file and do not grant publication,
+merge, or deployment permission. Testing Guidelines above remain the source for
+backend verification commands. Use only skills relevant to the current task.
+
+| Skill | Use it for |
+| --- | --- |
+| [blueprint-knowledge](.agents/skills/blueprint-knowledge/SKILL.md) | Preserve sourced domain facts and decisions in existing documentation |
+| [coding-standards](.agents/skills/coding-standards/SKILL.md) | Apply conventions supported by this checkout and its configuration |
+| [pr-description](.agents/skills/pr-description/SKILL.md) | Describe the final diff and actual verification evidence |
+| [demo](.agents/skills/demo/SKILL.md) | Exercise a public flow and retain observed results |
+| [blueprint-research](.agents/skills/blueprint-research/SKILL.md) | Answer a technical question with sources and explicit uncertainty |
+| [codebase-tour](.agents/skills/codebase-tour/SKILL.md) | Trace one feature through entry points, implementation, and tests |
+| [regression-test](.agents/skills/regression-test/SKILL.md) | Reproduce a defect with meaningful behavior tests |
+| [verify-change](.agents/skills/verify-change/SKILL.md) | Select proportionate checks and report their evidence |
+
+In Codex, invoke a skill by name, for example: `Use $blueprint-research to explain
+how mapping files become HSDS JSON`, `Use $verify-change on this diff`, or
+`Use $pr-description to draft a description from this diff and verification report`.
+If the client does not discover repository skills, ask it to read the linked
+`SKILL.md` directly. No global installation or additional tool stack is needed.
+See [provenance and retained upstream notices](.agents/SOURCES.md) for the recovered
+Blueprint collection and its selected pstack and Matt Pocock adaptations.

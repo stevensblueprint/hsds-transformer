@@ -1,0 +1,4 @@
+interface:
+  display_name: "PR Description"
+  short_description: "Draft PRs from the diff and observed evidence"
+  default_prompt: "Use $pr-description to help with this Blueprint task."

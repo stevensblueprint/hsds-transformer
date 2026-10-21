@@ -1,0 +1,4 @@
+interface:
+  display_name: "Verify Change"
+  short_description: "Plan checks by risk and hand off exact evidence"
+  default_prompt: "Use $verify-change to help with this Blueprint task."
