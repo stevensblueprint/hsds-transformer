@@ -17,8 +17,9 @@ import zipfile
 import pytest
 from fastapi.testclient import TestClient
 
-from api.app import app
-from lib.transform.logger import transformer_log
+from src.api.app import app
+from src.lib.transform.logger import transformer_log
+
 
 # Uppercase and hyphen never occur in tempfile's random names or pytest's
 # tmp_path, so these markers can only reach the log via the uploaded filenames.
