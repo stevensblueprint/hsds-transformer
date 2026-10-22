@@ -12,20 +12,20 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 
-from api.logger import configure_logger
-from api.middleware import RouterLoggingMiddleware
-from api.model import HealthResponse
-from api.tempdir import get_writable_temp_dir
-from api.utils import (
+from .logger import configure_logger
+from .middleware import RouterLoggingMiddleware
+from .model import HealthResponse
+from .tempdir import get_writable_temp_dir
+from .utils import (
     UploadSizeLimitError,
     UploadValidationError,
     stage_multipart_uploads,
     validate_staged_workspace,
 )
-from lib.transform.collections import build_collections, searching_and_assigning
-from lib.transform.json_collections import build_collections_from_json
-from lib.transform.outputs import save_objects_to_json
-from api.validators import validate_no_duplicate_filenames, validate_json_transform_files
+from ..lib.transform.collections import build_collections, searching_and_assigning
+from ..lib.transform.json_collections import build_collections_from_json
+from ..lib.transform.outputs import save_objects_to_json
+from .validators import validate_no_duplicate_filenames, validate_json_transform_files
 
 configure_logger()
 

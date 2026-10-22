@@ -160,7 +160,7 @@ an `application/zip` response and
 
 ### Running with Docker Compose
 
-The container runs the same `api.app:app` module as the local `uvicorn`
+The container runs the same `src.api.app:app` module as the local `uvicorn`
 command above; `APP_MODULE` is defined once in the Dockerfile and Compose
 does not override it.
 

@@ -16,7 +16,7 @@ COPY --chown=nonroot:nonroot . .
 
 USER nonroot
 
-ENV APP_MODULE=api.app:app \
+ENV APP_MODULE=src.api.app:app \
     PORT=8000
 EXPOSE 8000
 
