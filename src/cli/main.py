@@ -4,6 +4,7 @@ from ..lib.transform.outputs import save_objects_to_json
 from ..lib.transform.collections import build_collections, searching_and_assigning
 from ..lib.transform.json_collections import build_collections_from_json
 from ..lib.transform.logger import transformer_log
+from ..lib.transform.custom_transform.custom_transform_error import CustomTransformError
 from ..lib.transform.custom_transform.transforms_loader import load_transforms_registry_if_available
 import click
 import sys
@@ -17,7 +18,7 @@ import sys
     '--transforms',
     type=click.Path(exists=False, dir_okay=False, file_okay=True, path_type=Path),
     default=None,
-    help='Path to a Python module defining custom transforms (optional; omitted or missing file runs without them)',
+    help='Path to a Python module defining custom transforms (required when mappings declare transforms)',
 )
 
 def main(data_dictionary, output_dir, generate_ids, transforms, input_format):
@@ -28,10 +29,6 @@ def main(data_dictionary, output_dir, generate_ids, transforms, input_format):
         transforms_registry = load_transforms_registry_if_available(transforms)
         if transforms is None:
             transformer_log.log("Custom transforms: not used (no --transforms path).")
-        elif transforms_registry is None:
-            transformer_log.log(
-                f"Custom transforms: not used (path not found or not a file: {transforms})."
-            )
         else:
             transformer_log.log(
                 f"Custom transforms: loaded from {transforms.resolve()}."
@@ -39,12 +36,14 @@ def main(data_dictionary, output_dir, generate_ids, transforms, input_format):
 
         # Build collections from the specified input format
         if input_format == 'json':
-            results = build_collections_from_json(data_dictionary)
+            results = build_collections_from_json(
+                data_dictionary, custom_transforms_registry=transforms_registry
+            )
         else:
             results = build_collections(
-            data_dictionary,
-            custom_transforms_registry=transforms_registry,
-        )  # Builds collections
+                data_dictionary,
+                custom_transforms_registry=transforms_registry,
+            )
         
         results = searching_and_assigning(results, requestor_identifier=generate_ids) # Links and cleans up, passes transformer_id
 
@@ -58,7 +57,7 @@ def main(data_dictionary, output_dir, generate_ids, transforms, input_format):
         # Print the log instead of results
         click.echo(transformer_log.get_log())
 
-    except ValueError as e:
+    except (ValueError, CustomTransformError) as e:
         click.echo(f"Error: {str(e)}", err=True)
         sys.exit(1)
     except Exception as e:

@@ -80,6 +80,30 @@ def test_health_returns_ok(client):
     assert response.json()["status"] == "ok"
 
 
+@pytest.mark.parametrize("input_format", ["csv", "json"])
+def test_api_rejects_unavailable_transform_without_importing_upload(client, input_format, tmp_path):
+    sentinel = tmp_path / "executed.txt"
+    script = f"from pathlib import Path\nPath({str(sentinel)!r}).write_text('executed')\ntransforms = {{'uppercase': str.upper}}"
+    if input_format == "json":
+        source = json.dumps([{"id": "org-1", "name": "hello"}])
+        mapping = json.dumps({"mappings": [
+            {"output_path": "name", "input_path": "name", "transform": "uppercase"}
+        ]})
+    else:
+        source = "id,name\norg-1,hello\n"
+        mapping = "path,input_field,split,strip,transform\n,,,,\nname,name,,,uppercase\n"
+    upload = io.BytesIO()
+    with zipfile.ZipFile(upload, "w") as archive:
+        archive.writestr(f"organizations.{input_format}", source)
+        archive.writestr(f"organizations_organization_mapping.{input_format}", mapping)
+        archive.writestr("transforms.py", script)
+    response = client.post("/transform", data={"input_format": input_format},
+        files={"zip_file": ("input.zip", upload.getvalue(), "application/zip")})
+    assert response.status_code == 422
+    assert "uppercase" in response.json()["detail"]
+    assert not sentinel.exists()
+
+
 @pytest.mark.parametrize("endpoint,input_format", [
     ("/transform", "csv"), ("/transform", "json"), ("/transform/stream", "json"),
 ])

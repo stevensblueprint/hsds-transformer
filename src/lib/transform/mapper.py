@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Any, Dict, List
 from glom import glom
 from .relations import HSDS_RELATIONS
-from .custom_transform.transforms_loader import TransformsRegistry
+from .custom_transform.transforms_loader import TransformsRegistry, validate_mapping_transforms
 from .custom_transform.custom_transform_error import CustomTransformError
 
 """
@@ -12,12 +12,15 @@ different column/field names.
 
 def nested_map(data: Any, mapping_spec: Dict[str, Any],
                root_data=None, filter_spec=None, transreg: TransformsRegistry=None,
-               row_index: int | None = None
+               row_index: int | None = None,
+               source_file: str | None = None, mapping_file: str | None = None
                ) -> dict | list | None:
     """
     Process a mapping specification and transform data using glom
     Fixed to always use the root data for path resolution - so the path doesn't get lost during 
     """
+    validate_mapping_transforms(mapping_spec, transreg, source_file=source_file, mapping_file=mapping_file)
+
     if not isinstance(data, (dict, list, tuple)):
         """
         Checking to ensure data is the correct type
@@ -120,12 +123,12 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any],
             
             return extracted_val
 
-        def apply_transform(val, value):
+        def apply_transform(val, value, input_path=None):
             """Apply a named custom transform from the registry if specified."""
             if transreg is not None and "transform" in value and value["transform"]:
                 function_name = value["transform"]
-                transform_fn = transreg.get_transform(function_name)
                 try:
+                    transform_fn = transreg.get_transform(function_name)
                     val = transform_fn(val)
                 except CustomTransformError:
                     raise
@@ -135,7 +138,9 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any],
                         function_name=function_name,
                         row_index=row_index,
                         cause=exc,
-                        mapping_path=value.get("path"),
+                        mapping_path=input_path if input_path is not None else value.get("path"),
+                        source_file=source_file,
+                        mapping_file=mapping_file,
                     ) from exc
             return val
 
@@ -156,8 +161,10 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any],
                             val = apply_strip(val, value)
                             if val == "" or val is None:
                                 return None
-                            val = apply_transform(val, value)
+                            val = apply_transform(val, value, p)
                             return val
+                        except CustomTransformError:
+                            raise
                         except Exception:
                             return None
                     
@@ -172,8 +179,10 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any],
                             if val == "" or val is None:
                                 val = None
                             else:
-                                val = apply_transform(val, value)
+                                val = apply_transform(val, value, p)
                             extracted_values.append(val)
+                        except CustomTransformError:
+                            raise
                         except Exception:
                             # If path extraction fails, store None to maintain index alignment
                             extracted_values.append(None)
@@ -262,7 +271,11 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any],
                                 try:
                                     val = glom(root_data, p, default=None)
                                     if val != "" and val is not None:
-                                        item[k] = val
+                                        transformed = apply_transform(val, path_array_items[k], p)
+                                        if not is_blank(transformed):
+                                            item[k] = transformed
+                                except CustomTransformError:
+                                    raise
                                 except Exception:
                                     pass
                         # Process regular items with the same parent_index
@@ -282,7 +295,11 @@ def nested_map(data: Any, mapping_spec: Dict[str, Any],
                             try:
                                 val = glom(root_data, p, default=None)
                                 # Store None for empty strings to maintain index alignment
+                                if val != "" and val is not None:
+                                    val = apply_transform(val, path_array_items[k], p)
                                 aligned_values[k].append(val if val != "" else None)
+                            except CustomTransformError:
+                                raise
                             except Exception:
                                 # Path extraction failed - store None to preserve index structure
                                 aligned_values[k].append(None)

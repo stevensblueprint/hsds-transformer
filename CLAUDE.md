@@ -9,47 +9,34 @@ The HSDS Transformer converts arbitrary CSV datasets into JSON files compliant w
 ## Core Commands
 
 ### Environment Setup
-```bash
-# Create and activate virtual environment
-python3 -m venv .venv
-source .venv/bin/activate  # macOS/Linux
-# or
-.venv\Scripts\activate  # Windows
-
-# Install dependencies (preferred method)
-pip3 install uv
-uv sync
-
-# Alternative: install with pip
-pip3 install -r requirements.txt
-```
+See [README.md#dependency-setup](README.md#dependency-setup) for the pinned uv version, locked core/API/development commands, and generated pip export instructions.
 
 ### Running the CLI Transformer
 ```bash
 # macOS/Linux (bash/zsh)
 # Transform CSVs to HSDS JSON
-python3 -m src.cli.main path/to/datadir
-python3 -m src.cli.main path/to/datadir -o path/to/outputdir
+uv run --locked --extra api python3 -m src.cli.main path/to/datadir
+uv run --locked --extra api python3 -m src.cli.main path/to/datadir -o path/to/outputdir
 
 # Reverse transform (WIP - not fully implemented)
-python3 -m src.cli.reverse_transform --mapping-dir path/to/mappings --hsds-dir path/to/hsds-json --output-dir path/to/output
+uv run --locked --extra api python3 -m src.cli.reverse_transform --mapping-dir path/to/mappings --hsds-dir path/to/hsds-json --output-dir path/to/output
 ```
 
 ```bash
 # Windows (PowerShell/cmd)
 # Transform CSVs to HSDS JSON
-python -m src.cli.main path\to\datadir
-python -m src.cli.main path\to\datadir -o path\to\outputdir
+uv run --locked --extra api python -m src.cli.main path\to\datadir
+uv run --locked --extra api python -m src.cli.main path\to\datadir -o path\to\outputdir
 
 # Reverse transform (WIP - not fully implemented)
-python -m src.cli.reverse_transform --mapping-dir path\to\mappings --hsds-dir path\to\hsds-json --output-dir path\to\output
+uv run --locked --extra api python -m src.cli.reverse_transform --mapping-dir path\to\mappings --hsds-dir path\to\hsds-json --output-dir path\to\output
 ```
 
 ### Running the API
 ```bash
 # All Platforms
 # Start FastAPI server
-uvicorn src.api.app:app --reload
+uv run --locked --extra api uvicorn api.app:app --app-dir src --reload
 
 # API endpoint: POST /transform
 # Accepts: .zip file with CSVs and mapping files
@@ -172,7 +159,7 @@ data/           # Sample datasets and mappings for testing
 - **glom**: Deep data transformation and path-based extraction
 - **Click**: CLI framework
 - **FastAPI & Uvicorn**: Web API framework and server
-- **uv**: Recommended package and environment manager
+- **uv**: Dependency manager; see the README for the pinned version and setup commands.
 
 ## API Details
 
@@ -185,6 +172,6 @@ data/           # Sample datasets and mappings for testing
 ## Notes
 
 - Reverse transformation (`src/cli/reverse_transform.py`) is work in progress
-- No formal test framework currently exists; sample data in `data/` directory serves as test cases
+- Tests use pytest in `tests/`; see the README for the locked test command.
 - Recent development has focused on API endpoint and handling of unzipped files
 - The project uses position-based CSV parsing (via csv.reader/DictReader) not pandas

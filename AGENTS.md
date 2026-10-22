@@ -10,62 +10,35 @@
 ## Build, Test, and Development Commands
 
 ### Environment Setup
-```bash
-# macOS/Linux (bash/zsh)
-# Create and activate virtual environment
-python3 -m venv .venv
-source .venv/bin/activate
-
-# Install dependencies (preferred method)
-pip3 install uv
-uv sync
-
-# Alternative: install with pip
-pip3 install -r requirements.txt
-```
-
-```bash
-# Windows (PowerShell/cmd)
-# Create and activate virtual environment
-python -m venv .venv
-.venv\Scripts\activate
-
-# Install dependencies (preferred method)
-pip install uv
-uv sync
-
-# Alternative: install with pip
-pip install -r requirements.txt
-```
+See [README.md#dependency-setup](README.md#dependency-setup) for the pinned uv version, locked core/API/development commands, and generated pip export instructions.
 
 ### Running the CLI
 ```bash
 # macOS/Linux (bash/zsh)
 # Transform CSVs into HSDS JSON
-python3 -m src.cli.main path/to/datadir
-python3 -m src.cli.main path/to/datadir -o path/to/outputdir
+uv run --locked --extra api python3 -m src.cli.main path/to/datadir
+uv run --locked --extra api python3 -m src.cli.main path/to/datadir -o path/to/outputdir
 
 # Reverse transform (currently WIP)
-python3 -m src.cli.reverse_transform --mapping-dir path/to/mappings --hsds-dir path/to/hsds-json --output-dir path/to/output
+uv run --locked --extra api python3 -m src.cli.reverse_transform --mapping-dir path/to/mappings --hsds-dir path/to/hsds-json --output-dir path/to/output
 ```
 
 ```bash
 # Windows (PowerShell/cmd)
 # Transform CSVs into HSDS JSON
-python -m src.cli.main path\to\datadir
-python -m src.cli.main path\to\datadir -o path\to\outputdir
+uv run --locked --extra api python -m src.cli.main path\to\datadir
+uv run --locked --extra api python -m src.cli.main path\to\datadir -o path\to\outputdir
 
 # Reverse transform (currently WIP)
-python -m src.cli.reverse_transform --mapping-dir path\to\mappings --hsds-dir path\to\hsds-json --output-dir path\to\output
+uv run --locked --extra api python -m src.cli.reverse_transform --mapping-dir path\to\mappings --hsds-dir path\to\hsds-json --output-dir path\to\output
 ```
 
 ### Running the API
 ```bash
 # All Platforms
 # Run the FastAPI server locally
-uvicorn src.api.app:app --reload
+uv run --locked --extra api uvicorn api.app:app --app-dir src --reload
 ```
-
 ## Coding Style & Naming Conventions
 - Use Python 3.13+ and standard library idioms (project uses `glom` and `click`).
 - Follow existing module naming and file structure under `src/`.
@@ -73,19 +46,12 @@ uvicorn src.api.app:app --reload
 - Keep transformations explicit; avoid hidden side effects in mapping or relation logic.
 
 ## Testing Guidelines
-- Tests use `pytest` and live in `tests/`; follow the existing `test_*.py` naming. `pyproject.toml` configures the import paths.
-- From the repository root in an activated Python 3.13+ environment, use the same dependencies and checks as CI:
-  ```bash
-  python -m pip install -r requirements.txt
-  python -m pip install ruff==0.16.8
-  ruff check --output-format=github .
-  python -m pytest tests/ -v
-  ```
-- `.github/workflows/ruff.yml` pins Ruff; `pyproject.toml` selects `E4`, `E7`, `E9`, and `F`. `.github/workflows/unit-tests.yml` runs pytest with Python 3.13.
-- For the uv setup, include the API and test dependencies with `uv sync --extra api --extra dev`, then run `uv run --extra api --extra dev pytest tests/ -v` (Ruff is installed separately above).
-- Choose checks for the changed behavior: use a focused regression test while iterating, then the suite for code changes. For CLI/API or packaging changes, also exercise the affected path with checked-in sample data and inspect the output. `.github/workflows/docker-smoke.yml` provides a Docker health/transform smoke recipe; archive validity alone does not prove the transformed contents are correct.
-- Cover malformed input, repeated requests, or interrupted work when the change affects those cases. A docs-only change can use source/command consistency checks and `git diff --check`; record omitted runtime checks.
-- Report the checked commit (and any uncommitted changes), commands, observed results, and evidence paths. Mark each check `PASS`, `FAIL`, or `NOT RUN` with the reason for failures or omissions; distinguish unit/static checks from end-to-end behavior.
+- Tests use pytest in `tests/` and follow the existing `test_*.py` naming. `pyproject.toml` configures import paths.
+- From the repository root, use the locked API and development dependencies:
+  - `uv sync --locked --extra api`
+  - `uv run --locked --extra api python -m pytest tests/ -v`
+  - `uv run --locked --extra api ruff check .`
+- Run focused regressions while iterating, then the full suite. For CLI/API or packaging changes, run the relevant smoke checks and builds. Record the commands and results.
 
 ## Commit & Pull Request Guidelines
 - Recent history uses short, action-oriented subjects (e.g., `fix handling of unzipped files`) plus GitHub merge commits.

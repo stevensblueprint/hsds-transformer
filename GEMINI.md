@@ -25,22 +25,17 @@ The **HSDS Transformer** is a Python-based utility designed to convert custom CS
 ## Building and Running
 
 ### Environment Setup
-The project uses `uv` for dependency management.
-
-```bash
-# Install dependencies (All Platforms)
-uv sync
-```
+See [README.md#dependency-setup](README.md#dependency-setup) for the pinned uv version, locked core/API/development commands, and generated pip export instructions.
 
 ### CLI Usage
 **Transform CSVs to HSDS JSON:**
 
 ```bash
 # macOS/Linux (bash/zsh)
-python3 -m src.cli.main path/to/datadir [-o path/to/outputdir]
+uv run --locked --extra api python3 -m src.cli.main path/to/datadir [-o path/to/outputdir]
 
 # Windows (PowerShell/cmd)
-python -m src.cli.main path\to\datadir [-o path\to\outputdir]
+uv run --locked --extra api python -m src.cli.main path\to\datadir [-o path\to\outputdir]
 ```
 
 - `<data_directory>`: Should contain your input CSVs and their mapping CSVs.
@@ -50,17 +45,17 @@ python -m src.cli.main path\to\datadir [-o path\to\outputdir]
 
 ```bash
 # macOS/Linux (bash/zsh)
-python3 -m src.cli.reverse_transform --mapping-dir <mapping_dir> --hsds-dir <hsds_json_dir>
+uv run --locked --extra api python3 -m src.cli.reverse_transform --mapping-dir <mapping_dir> --hsds-dir <hsds_json_dir>
 
 # Windows (PowerShell/cmd)
-python -m src.cli.reverse_transform --mapping-dir <mapping_dir> --hsds-dir <hsds_json_dir>
+uv run --locked --extra api python -m src.cli.reverse_transform --mapping-dir <mapping_dir> --hsds-dir <hsds_json_dir>
 ```
 
 ### API Usage
 ```bash
 # All Platforms
 # Start the FastAPI server
-uvicorn src.api.app:app --reload
+uv run --locked --extra api uvicorn api.app:app --app-dir src --reload
 ```
 - Endpoint: `POST /transform` accepts a `.zip` file containing CSVs and mappings and returns a `.zip` of HSDS JSON files.
 
