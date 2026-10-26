@@ -5,7 +5,7 @@ from .mapper import nested_map, get_process_order
 from .relationships import identify_parent_relationships
 from .logger import transformer_log
 from .relations import HSDS_RELATIONS
-from .custom_transform.transforms_loader import TransformsRegistry
+from .custom_transform.transforms_loader import TransformsRegistry, validate_mapping_transforms
 from typing import Dict, List, Tuple, Any, Optional
 from uuid import UUID, uuid5
 
@@ -46,6 +46,7 @@ def build_collections(
             raise ValueError(f"No mapping files (*_mapping.csv) found in '{data_directory}'.")
 
     # Goes through every CSV file in the folder that ends with "_mapping.csv"
+    prepared = []
     for mapping_file in mapping_files:
         match = re.match(r"(.+)_([A-Za-z0-9]+)_mapping\.csv", mapping_file.name) # Parses and extracts name before "_mapping" using regex
 
@@ -58,6 +59,11 @@ def build_collections(
         # Edge case where service_at_location has a key for both a child and parent
         if object_type.lower() in ("serviceatlocation", "servicesatlocation"):
             object_type = "service_at_location"
+
+        mapping, filter_spec = parse_nested_mapping(str(mapping_file), input_name)
+        validate_mapping_transforms(
+            mapping, custom_transforms_registry, mapping_file=mapping_file.name
+        )
 
         input_file = data_directory / f"{input_name}.csv" # Uses the extracted name to find the corresponding input CSV file
 
@@ -72,9 +78,6 @@ def build_collections(
             print(f"Warning: Input file '{input_file.name}' is empty or has no valid rows. Skipping.")
             continue
 
-        # Parses the mapping file into a nested structure and optional filter
-        mapping, filter_spec = parse_nested_mapping(str(mapping_file), input_name)
-
         if not mapping:
             print(f"Warning: Mapping file '{mapping_file.name}' is empty or invalid. Skipping.")
             continue
@@ -86,6 +89,9 @@ def build_collections(
             mapping_file=mapping_file.name,
         )
 
+        prepared.append((input_file, mapping_file, input_name, object_type, input_rows, mapping, filter_spec))
+
+    for input_file, mapping_file, input_name, object_type, input_rows, mapping, filter_spec in prepared:
         objects = [] # Converted object list
 
         # Build a glom path-based filter for nested_map, if it was provided
@@ -103,6 +109,7 @@ def build_collections(
                 filter_spec=nested_map_filter,
                 transreg=custom_transforms_registry,
                 row_index=row_index,
+                source_file=str(input_file), mapping_file=str(mapping_file),
             )
             if mapped_dictionary is not None:
                 objects.append(mapped_dictionary)

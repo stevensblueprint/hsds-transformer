@@ -4,9 +4,9 @@ from urllib.parse import urlparse
 
 import click
 
-from src.lib.maintenance.parse_json import fetch_json_from_url
-from src.lib.maintenance.generate_mapping import flatten_schema, write_mapping_template_csv
-from src.lib.maintenance.generate_relations import generate_relations_dict, write_relations_file
+from ..lib.maintenance.parse_json import fetch_json_from_url
+from ..lib.maintenance.generate_mapping import flatten_schema, write_mapping_template_csv
+from ..lib.maintenance.generate_relations import generate_relations_dict, write_relations_file
 
 
 # url validation checking

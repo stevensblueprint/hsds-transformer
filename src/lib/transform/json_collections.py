@@ -3,8 +3,9 @@ import re
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
-from .parser import validate_mapping_against_parsed_data
+from .parser import validate_mapping_against_parsed_data, validate_mapping_target
 from .mapper import nested_map
+from .custom_transform.transforms_loader import validate_mapping_transforms
 from .logger import transformer_log
 
 
@@ -137,6 +138,9 @@ def parse_json_mapping(mapping_file: str, filename: str) -> tuple[dict, dict | N
 
         for j, part in enumerate(parts):
             is_last = j == len(parts) - 1
+            validate_mapping_target(
+                current_level, part, is_last, output_path, mapping_file
+            )
 
             if part.endswith("[]"):
                 key = part[:-2]
@@ -156,11 +160,12 @@ def parse_json_mapping(mapping_file: str, filename: str) -> tuple[dict, dict | N
     return mapping, filter_spec
 
 
-def build_collections_from_json(data_directory: str) -> List[Tuple[str, List[Dict[str, Any]]]]:
+def build_collections_from_json(data_directory: str, custom_transforms_registry=None) -> List[Tuple[str, List[Dict[str, Any]]]]:
     """
     JSON counterpart to build_collections(). Discovers *_mapping.json files,
     pairs them with <input_name>.json source files, validates, transforms,
-    and returns the same [(object_type, [dicts])] structure.
+    and returns the same [(object_type, [dicts])] structure, with one collection
+    per object type across all source files.
 
     Returns an empty list if no JSON mapping files are found (not an error).
     Raises ValueError for validation failures.
@@ -176,6 +181,7 @@ def build_collections_from_json(data_directory: str) -> List[Tuple[str, List[Dic
     transformer_log.log(f"Input directory: {data_directory}")
     transformer_log.log(f"Found {len(json_mapping_files)} JSON mapping file(s)")
 
+    prepared = []
     for mapping_file in json_mapping_files:
         match = re.match(r"(.+)_([A-Za-z0-9]+)_mapping\.json", mapping_file.name)
         if not match:
@@ -186,6 +192,11 @@ def build_collections_from_json(data_directory: str) -> List[Tuple[str, List[Dic
         if object_type.lower() in ("serviceatlocation", "servicesatlocation"):
             object_type = "service_at_location"
 
+        mapping, filter_spec = parse_json_mapping(str(mapping_file), input_name)
+        validate_mapping_transforms(
+            mapping, custom_transforms_registry, mapping_file=mapping_file.name
+        )
+
         input_file = data_directory / f"{input_name}.json"
         if not input_file.exists():
             continue
@@ -195,8 +206,6 @@ def build_collections_from_json(data_directory: str) -> List[Tuple[str, List[Dic
         if not input_rows:
             print(f"Warning: JSON input file '{input_file.name}' is empty or has no valid records. Skipping.")
             continue
-
-        mapping, filter_spec = parse_json_mapping(str(mapping_file), input_name)
 
         if not mapping:
             print(f"Warning: JSON mapping file '{mapping_file.name}' is empty or invalid. Skipping.")
@@ -210,6 +219,9 @@ def build_collections_from_json(data_directory: str) -> List[Tuple[str, List[Dic
             input_extension="json",
         )
 
+        prepared.append((input_file, mapping_file, input_name, object_type, input_rows, mapping, filter_spec))
+
+    for input_file, mapping_file, input_name, object_type, input_rows, mapping, filter_spec in prepared:
         objects = []
 
         nested_map_filter = None
@@ -219,12 +231,21 @@ def build_collections_from_json(data_directory: str) -> List[Tuple[str, List[Dic
             if column_name and match_value is not None:
                 nested_map_filter = {"path": f"{input_name}.{column_name}", "value": match_value}
 
-        for row in input_rows:
-            mapped_dictionary = nested_map(row, mapping, filter_spec=nested_map_filter)
+        for row_index, row in enumerate(input_rows):
+            mapped_dictionary = nested_map(
+                row, mapping, filter_spec=nested_map_filter,
+                transreg=custom_transforms_registry, row_index=row_index,
+                source_file=str(input_file), mapping_file=str(mapping_file),
+            )
             if mapped_dictionary is not None:
                 objects.append(mapped_dictionary)
 
-        results.append((object_type, objects))
+        # Match CSV accumulation: the linker expects one collection per type.
+        existing = next((result for result in results if result[0] == object_type), None)
+        if existing is not None:
+            existing[1].extend(objects)
+        else:
+            results.append((object_type, objects))
         transformer_log.log(f"  {object_type}: {len(objects)} object(s) from {input_file.name}")
 
     if results:

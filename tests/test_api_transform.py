@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-from api.app import app
+from src.api.app import app
 
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 
@@ -78,3 +78,63 @@ def test_health_returns_ok(client):
     assert response.status_code == 200
     assert response.headers["cache-control"] == "no-store"
     assert response.json()["status"] == "ok"
+
+
+@pytest.mark.parametrize("input_format", ["csv", "json"])
+def test_api_rejects_unavailable_transform_without_importing_upload(client, input_format, tmp_path):
+    sentinel = tmp_path / "executed.txt"
+    script = f"from pathlib import Path\nPath({str(sentinel)!r}).write_text('executed')\ntransforms = {{'uppercase': str.upper}}"
+    if input_format == "json":
+        source = json.dumps([{"id": "org-1", "name": "hello"}])
+        mapping = json.dumps({"mappings": [
+            {"output_path": "name", "input_path": "name", "transform": "uppercase"}
+        ]})
+    else:
+        source = "id,name\norg-1,hello\n"
+        mapping = "path,input_field,split,strip,transform\n,,,,\nname,name,,,uppercase\n"
+    upload = io.BytesIO()
+    with zipfile.ZipFile(upload, "w") as archive:
+        archive.writestr(f"organizations.{input_format}", source)
+        archive.writestr(f"organizations_organization_mapping.{input_format}", mapping)
+        archive.writestr("transforms.py", script)
+    response = client.post("/transform", data={"input_format": input_format},
+        files={"zip_file": ("input.zip", upload.getvalue(), "application/zip")})
+    assert response.status_code == 422
+    assert "uppercase" in response.json()["detail"]
+    assert not sentinel.exists()
+
+
+@pytest.mark.parametrize("endpoint,input_format", [
+    ("/transform", "csv"), ("/transform", "json"), ("/transform/stream", "json"),
+])
+@pytest.mark.parametrize("duplicate", [False, True])
+def test_output_identity_errors_return_422(client, tmp_path, endpoint, input_format, duplicate):
+    second_id = "same" if duplicate else ""
+    if input_format == "json":
+        source = json.dumps([{"id": "same"}, {"id": second_id}])
+        mapping = json.dumps({"mappings": [{"output_path": "id", "input_path": "id"}]})
+    else:
+        source = f"id,name\nsame,First\n{second_id},Second\n"
+        mapping = "path,input_field,split,strip,transform\n,,,,\nid,id,,,\n"
+    files = {
+        f"organizations.{input_format}": source,
+        f"organizations_organization_mapping.{input_format}": mapping,
+    }
+    if endpoint == "/transform":
+        upload = io.BytesIO()
+        with zipfile.ZipFile(upload, "w") as archive:
+            for name, content in files.items():
+                archive.writestr(name, content)
+        response = client.post(endpoint, data={"input_format": input_format},
+            files={"zip_file": ("input.zip", upload.getvalue(), "application/zip")})
+    else:
+        response = client.post(endpoint, files=[
+            ("files", (name, content, "application/json")) for name, content in files.items()
+        ])
+    assert response.status_code == 422
+    detail = response.json()["detail"]
+    assert ("Duplicate output target" if duplicate else "Missing nonempty output ID") in detail
+    assert "organization" in detail
+    assert "record 2" in detail
+    assert "content-disposition" not in response.headers
+    assert list(tmp_path.iterdir()) == []
