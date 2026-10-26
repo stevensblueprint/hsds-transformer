@@ -55,7 +55,7 @@ uv run --locked --extra api python -m src.cli.reverse_transform --mapping-dir <m
 ```bash
 # All Platforms
 # Start the FastAPI server
-uv run --locked --extra api uvicorn api.app:app --app-dir src --reload
+uv run --locked --extra api uvicorn src.api.app:app --reload
 ```
 - Endpoint: `POST /transform` accepts a `.zip` file containing CSVs and mappings and returns a `.zip` of HSDS JSON files.
 

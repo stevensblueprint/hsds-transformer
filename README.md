@@ -6,6 +6,8 @@
 
 Use Python 3.13 or newer and uv 0.11.21. Install uv with `python3 -m pip install uv==0.11.21` on macOS/Linux or `python -m pip install uv==0.11.21` on Windows. Run the following from the repository root. `uv` creates `.venv` when needed.
 
+On Windows, pip may install `uv.exe` to `%APPDATA%\Python\Python313\Scripts`, which is not on PATH by default. If `uv` is not found, add that folder to PATH or run uv as `python -m uv` (for example, `python -m uv sync --locked --extra api`).
+
 ```bash
 # Core CLI environment
 uv sync --locked --no-default-groups
@@ -150,7 +152,17 @@ If the target output file already exists, the command fails instead of overwriti
 ```bash
 # All Platforms
 # Start the FastAPI server
-uv run --locked --extra api uvicorn api.app:app --app-dir src --reload
+uv run --locked --extra api uvicorn src.api.app:app --reload
+```
+
+In a second terminal, verify the server is healthy:
+
+```bash
+# macOS/Linux
+curl --fail http://localhost:8000/health
+
+# Windows (PowerShell)
+curl.exe --fail http://localhost:8000/health
 ```
 
 Successful transformations from both `POST /transform` (CSV or JSON ZIP uploads)
@@ -246,5 +258,6 @@ Existing-file replacement, stale-output handling, atomic publication, I/O-failur
 rollback, and artifact accounting remain BLU-23 work. This preflight does not
 promise atomic writes or enforce final HSDS ID formats.
 
-Run the focused checks with `python -m pytest tests/test_outputs.py`; run the full
-suite with `python -m pytest tests/` and lint with `uvx ruff==0.16.8 check .`.
+Run the focused checks with `uv run --locked --extra api python -m pytest tests/test_outputs.py`;
+run the full suite with `uv run --locked --extra api python -m pytest tests/` and lint with
+`uv run --locked --extra api ruff check .`.
