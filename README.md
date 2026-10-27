@@ -181,7 +181,7 @@ does not override it.
 # Build and start the API container
 docker compose up --build -d
 
-# Verify the container is healthy
+# Wait a few seconds for the API to start, then verify it is healthy
 curl --fail http://localhost:8000/health
 
 # Exercise the transform endpoint through the running container
@@ -201,7 +201,7 @@ docker compose down
 # Build and start the API container
 docker compose up --build -d
 
-# Verify the container is healthy
+# Wait a few seconds for the API to start, then verify it is healthy
 curl.exe --fail http://localhost:8000/health
 
 # Exercise the transform endpoint through the running container
