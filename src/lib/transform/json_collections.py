@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Tuple
 from .parser import validate_mapping_against_parsed_data, validate_mapping_target
 from .mapper import nested_map
 from .custom_transform.transforms_loader import validate_mapping_transforms
-from .logger import transformer_log
+from .logger import TransformerLog, transformer_log
 
 
 def parse_input_json(input_file: str, filename: str) -> list[dict]:
@@ -160,7 +160,7 @@ def parse_json_mapping(mapping_file: str, filename: str) -> tuple[dict, dict | N
     return mapping, filter_spec
 
 
-def build_collections_from_json(data_directory: str, custom_transforms_registry=None) -> List[Tuple[str, List[Dict[str, Any]]]]:
+def build_collections_from_json(data_directory: str, custom_transforms_registry=None, *, log: TransformerLog | None = None) -> List[Tuple[str, List[Dict[str, Any]]]]:
     """
     JSON counterpart to build_collections(). Discovers *_mapping.json files,
     pairs them with <input_name>.json source files, validates, transforms,
@@ -170,6 +170,7 @@ def build_collections_from_json(data_directory: str, custom_transforms_registry=
     Returns an empty list if no JSON mapping files are found (not an error).
     Raises ValueError for validation failures.
     """
+    log = log if log is not None else transformer_log
     data_directory = Path(data_directory)
     results: List[Tuple[str, List[Dict[str, Any]]]] = []
 
@@ -177,9 +178,9 @@ def build_collections_from_json(data_directory: str, custom_transforms_registry=
     if not json_mapping_files:
         return results
 
-    transformer_log.section("Build Collections (JSON)")
-    transformer_log.log(f"Input directory: {data_directory}")
-    transformer_log.log(f"Found {len(json_mapping_files)} JSON mapping file(s)")
+    log.section("Build Collections (JSON)")
+    log.log(f"Input directory: {data_directory}")
+    log.log(f"Found {len(json_mapping_files)} JSON mapping file(s)")
 
     prepared = []
     for mapping_file in json_mapping_files:
@@ -246,11 +247,11 @@ def build_collections_from_json(data_directory: str, custom_transforms_registry=
             existing[1].extend(objects)
         else:
             results.append((object_type, objects))
-        transformer_log.log(f"  {object_type}: {len(objects)} object(s) from {input_file.name}")
+        log.log(f"  {object_type}: {len(objects)} object(s) from {input_file.name}")
 
     if results:
         total_objects = sum(len(objs) for _, objs in results)
-        transformer_log.log(f"Total JSON collections built: {len(results)}")
-        transformer_log.log(f"Total JSON objects created: {total_objects}")
+        log.log(f"Total JSON collections built: {len(results)}")
+        log.log(f"Total JSON objects created: {total_objects}")
 
     return results

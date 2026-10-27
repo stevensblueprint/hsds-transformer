@@ -1,15 +1,9 @@
-"""Regression harness for cross-request transformer log accumulation.
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
+from threading import Barrier
+import importlib
 
-The transformer pipeline writes to the module-level ``transformer_log``
-singleton, so the API shares one log across every request. The request-state
-refactor is owned by BLU-10; until it lands this test is a strict xfail so the
-known leak stays visible without breaking default CI. When BLU-10 makes the
-log request-owned, the test will XPASS and fail under ``strict=True``: remove
-the marker and point the assertion at the new request-owned seam.
-
-See docs/transformer-log-request-isolation.md.
-"""
-
+import httpx
 import io
 import json
 import zipfile
@@ -18,7 +12,9 @@ import pytest
 from fastapi.testclient import TestClient
 
 from src.api.app import app
-from src.lib.transform.logger import transformer_log
+from src.lib.transform.logger import TransformerLog, transformer_log
+
+api = importlib.import_module("src.api.app")
 
 
 # Uppercase and hyphen never occur in tempfile's random names or pytest's
@@ -26,7 +22,17 @@ from src.lib.transform.logger import transformer_log
 ALPHA = "REQ-ALPHA"
 BETA = "REQ-BETA"
 
-BLU_10 = "BLU-10: transformer_log is a process-wide singleton shared by all requests"
+@pytest.fixture
+def logs(monkeypatch):
+    captured = []
+
+    class ObservedLog(TransformerLog):
+        def clear(self):
+            captured.append((self, list(self.entries)))
+            super().clear()
+
+    monkeypatch.setattr(api, "TransformerLog", ObservedLog)
+    return captured
 
 CSV_MAPPING = "path,input_files_field,split,strip\n,,,\nid,org_id,,\nname,org_name,,\n"
 JSON_MAPPING = json.dumps(
@@ -75,25 +81,152 @@ def _require(condition, message):
         pytest.fail(message)
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason=BLU_10)
-@pytest.mark.parametrize(
-    "post", [_post_transform, _post_transform_stream], ids=["transform", "stream"]
-)
-def test_sequential_requests_do_not_share_transformer_log(client, post):
-    # Two small requests that are distinguishable by input filename. Assertions
-    # use these markers rather than absolute counts so the result does not
-    # depend on what earlier tests left in the process. Preconditions use
-    # pytest.fail so a broken request is a real failure, not the expected one.
-    first = post(client, ALPHA)
-    _require(first.status_code == 201, f"first request: {first.status_code} {first.text}")
-    _require(any(ALPHA in entry for entry in transformer_log.entries), "first request not logged")
 
-    second = post(client, BETA)
-    _require(second.status_code == 201, f"second request: {second.status_code} {second.text}")
-    second_log = list(transformer_log.entries)
-    _require(any(BETA in entry for entry in second_log), "second request not logged")
+@pytest.mark.parametrize("post", [_post_transform, _post_transform_stream])
+def test_sequential_requests_do_not_share_transformer_log(client, post, logs, tmp_path):
+    before = list(transformer_log.entries)
+    for tag in (ALPHA, BETA):
+        response = post(client, tag)
+        assert response.status_code == 201, response.text
+        with zipfile.ZipFile(io.BytesIO(response.content)) as archive:
+            records = [json.loads(archive.read(name)) for name in archive.namelist()]
+        assert records == [{"id": f"{tag}-1", "name": f"{tag} org"}]
+        assert list(tmp_path.iterdir()) == []
+    assert len(logs) == 2
+    assert logs[0][0] is not logs[1][0]
+    assert any(ALPHA in line for line in logs[0][1])
+    assert any(BETA in line for line in logs[1][1])
+    assert all(ALPHA not in line for line in logs[1][1])
+    assert all(not log.entries for log, _ in logs)
+    assert transformer_log.entries == before
 
-    # Request-owned isolation: nothing the first request logged may be visible
-    # in the log the second request produced.
-    leaked = [entry for entry in second_log if ALPHA in entry]
-    assert leaked == [], f"{len(leaked)} entries from the first request leaked: {leaked}"
+
+@pytest.mark.parametrize("post", [_post_transform, _post_transform_stream])
+def test_concurrent_requests_are_isolated(client, post, logs, monkeypatch, tmp_path):
+    barrier = Barrier(2)
+    original = api.searching_and_assigning
+
+    def interleave(results, *, log):
+        barrier.wait(timeout=10)
+        return original(results, log=log)
+
+    monkeypatch.setattr(api, "searching_and_assigning", interleave)
+    def run(tag):
+        with TestClient(app) as concurrent_client:
+            return post(concurrent_client, tag)
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        responses = list(pool.map(run, [ALPHA, BETA]))
+    assert [r.status_code for r in responses] == [201, 201]
+    assert len(logs) == 2
+    for log, entries in logs:
+        assert not log.entries
+        assert any(ALPHA in line for line in entries) != any(BETA in line for line in entries)
+    assert list(tmp_path.iterdir()) == []
+
+
+@pytest.mark.parametrize("post", [_post_transform, _post_transform_stream])
+@pytest.mark.parametrize("failure", ["validation", "malformed", "transform", "write", "archive"])
+def test_failure_cleanup_and_recovery(client, post, logs, monkeypatch, tmp_path, failure):
+    with monkeypatch.context() as patch:
+        def fail(*args, **kwargs):
+            raise OSError("synthetic failure")
+
+        if failure == "transform":
+            patch.setattr(api, "searching_and_assigning", fail)
+        elif failure == "write":
+            patch.setattr(api, "save_objects_to_json", fail)
+        elif failure == "archive":
+            patch.setattr(zipfile.ZipFile, "write", fail)
+        elif failure == "validation":
+            def reject(*args, **kwargs):
+                kwargs["log"].log("FAILED-RUN")
+                raise ValueError("synthetic invalid mapping")
+            patch.setattr(api, "build_collections", reject)
+            patch.setattr(api, "build_collections_from_json", reject)
+        if failure == "malformed":
+            if post is _post_transform:
+                response = client.post("/transform", files={"zip_file": ("bad.zip", b"invalid")})
+            else:
+                response = client.post("/transform/stream", files=[
+                    ("files", ("bad_organization_mapping.json", JSON_MAPPING)),
+                    ("files", ("bad.json", b"invalid")),
+                ])
+        else:
+            with TestClient(app, raise_server_exceptions=False) as failing_client:
+                response = post(failing_client, "FAILED-RUN")
+        assert response.status_code == (422 if failure in ("validation", "malformed") else 500)
+    assert list(tmp_path.iterdir()) == []
+    assert all(not log.entries for log, _ in logs)
+    assert client.get("/health").status_code == 200
+    assert post(client, BETA).status_code == 201
+    assert all("FAILED-RUN" not in line for line in logs[-1][1])
+    assert list(tmp_path.iterdir()) == []
+
+
+@pytest.mark.parametrize("post", [_post_transform, _post_transform_stream])
+@pytest.mark.parametrize("interrupt", ["start", "body", "cancel"])
+def test_interrupted_response_cleanup_and_recovery(client, post, logs, monkeypatch, tmp_path, interrupt):
+    # Exercise the actual ASGI app. TestClient buffers downloads, so closing a
+    # TestClient response alone would not simulate a disconnected consumer.
+    class CaptureRequest:
+        def post(self, path, **kwargs):
+            return httpx.Request("POST", "http://testserver" + path, **kwargs)
+
+    request = post(CaptureRequest(), ALPHA)
+    body = request.read()
+
+    async def run():
+        delivered = False
+        scope = {"type": "http", "asgi": {"version": "3.0", "spec_version": "2.4"},
+                 "method": "POST", "path": request.url.path, "raw_path": request.url.raw_path,
+                 "query_string": b"", "headers": request.headers.raw,
+                 "scheme": "http", "server": ("testserver", 80), "client": ("local", 1),
+                 "http_version": "1.1"}
+
+        async def receive():
+            nonlocal delivered
+            if not delivered:
+                delivered = True
+                return {"type": "http.request", "body": body, "more_body": False}
+            await asyncio.Event().wait()
+
+        async def send(message):
+            if message["type"] == ("http.response.start" if interrupt == "start" else "http.response.body"):
+                if interrupt == "cancel":
+                    raise asyncio.CancelledError()
+                raise OSError("synthetic disconnected consumer")
+
+        try:
+            await app(scope, receive, send)
+        except (OSError, asyncio.CancelledError):
+            pass
+    asyncio.run(run())
+    assert logs and all(not log.entries for log, _ in logs)
+    assert list(tmp_path.iterdir()) == []
+    assert client.get("/health").status_code == 200
+    assert post(client, BETA).status_code == 201
+    assert list(tmp_path.iterdir()) == []
+
+
+@pytest.mark.parametrize("post", [_post_transform, _post_transform_stream])
+def test_lifecycle_diagnostics_share_response_request_id(client, post, caplog):
+    response = post(client, ALPHA)
+    lifecycle = [record.message for record in caplog.records if "Transformation lifecycle" in record.message]
+    assert len(lifecycle) == 1
+    assert response.headers["X-API-REQUEST-ID"] in lifecycle[0]
+    assert "outcome=completed" in lifecycle[0]
+    assert ALPHA not in lifecycle[0]
+
+
+@pytest.mark.parametrize("endpoint", ["/transform", "/transform/stream"])
+def test_early_validation_cleanup(client, endpoint, logs, tmp_path):
+    field = "zip_file" if endpoint == "/transform" else "files"
+    response = client.post(endpoint, files={field: ("invalid.txt", b"invalid")})
+    assert response.status_code == 422
+    assert logs and all(not log.entries for log, _ in logs)
+    assert list(tmp_path.iterdir()) == []
+    assert client.get("/health").status_code == 200
+    post = _post_transform if endpoint == "/transform" else _post_transform_stream
+    assert post(client, BETA).status_code == 201
+    assert list(tmp_path.iterdir()) == []

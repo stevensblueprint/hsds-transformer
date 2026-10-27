@@ -3,7 +3,7 @@ import re
 from .parser import parse_input_csv, parse_nested_mapping, validate_mapping_against_parsed_data
 from .mapper import nested_map, get_process_order
 from .relationships import identify_parent_relationships
-from .logger import transformer_log
+from .logger import TransformerLog, transformer_log
 from .relations import HSDS_RELATIONS
 from .custom_transform.transforms_loader import TransformsRegistry, validate_mapping_transforms
 from typing import Dict, List, Tuple, Any, Optional
@@ -19,14 +19,16 @@ _id_counter = 0
 def build_collections(
     data_directory: str,
     custom_transforms_registry: Optional[TransformsRegistry] = None,
+    *, log: TransformerLog | None = None,
 ):
     """
     From multiple mapping and input CSV files, returns a list of tuples like: [("organization", [dicts]), ("location", [dicts]), ...]
     Each mapping file name MUST follow this format: "<input_file_name>_<object_type>_mapping.csv
     This function pairs each input CSV with its correspodning mapping file and converts flat CSV rows into nested dictionaries
     """
-    transformer_log.section("Build Collections")
-    transformer_log.log(f"Input directory: {data_directory}")
+    log = log if log is not None else transformer_log
+    log.section("Build Collections")
+    log.log(f"Input directory: {data_directory}")
     
     data_directory = Path(data_directory) # Converts provided folder path into a Path object
     
@@ -36,7 +38,7 @@ def build_collections(
     results = [] # List of tuples like ("organization", [dict_list])
 
     mapping_files = list(data_directory.glob("*_mapping.csv"))
-    transformer_log.log(f"Found {len(mapping_files)} mapping file(s)")
+    log.log(f"Found {len(mapping_files)} mapping file(s)")
     if not mapping_files:
         # Check if there are any CSVs at all to give a better error message
         csv_files = list(data_directory.glob("*.csv"))
@@ -119,12 +121,12 @@ def build_collections(
             existing[1].extend(objects)
         else:
             results.append((object_type, objects)) # Adds tuple of object type and list of dictionaries. For example: ("organization", [{x}, {y}, ...])
-        transformer_log.log(f"  {object_type}: {len(objects)} object(s) from {input_file.name}")
+        log.log(f"  {object_type}: {len(objects)} object(s) from {input_file.name}")
 
     # Summary of build_collections
     total_objects = sum(len(objs) for _, objs in results)
-    transformer_log.log(f"Total collections built: {len(results)}")
-    transformer_log.log(f"Total objects created: {total_objects}")
+    log.log(f"Total collections built: {len(results)}")
+    log.log(f"Total objects created: {total_objects}")
     
     return results
 
@@ -347,15 +349,19 @@ def remove_legacy_id_fields(obj):
 def searching_and_assigning(
     collections: List[Tuple[str, List[Dict[str, Any]]]],
     requestor_identifier: Optional[str] = None,
+    *, log: TransformerLog | None = None,
 ) -> List[Tuple[str, List[Dict[str, Any]]]]:
-    transformer_log.section("Searching and Assigning")
+    log = log if log is not None else transformer_log
+    log.section("Searching and Assigning")
     
     if not collections:
-        transformer_log.log("No collections to process")
+        log.log("No collections to process")
         return collections
 
-    global _id_counter
-    _id_counter = 0
+    # API calls preserve supplied IDs and must not reset CLI generation state.
+    if requestor_identifier is not None:
+        global _id_counter
+        _id_counter = 0
 
     # Build collection_map once and reuse it everywhere
     # Converts the list of tuples into a dict for faster lookup
@@ -364,13 +370,13 @@ def searching_and_assigning(
         collection_map[name] = objs # Tuple structure: ("organization", [dicts]) is now a key value pair
 
     # Log counts before processing
-    transformer_log.log("Object counts before linking:")
+    log.log("Object counts before linking:")
     for name, objs in collections:
-        transformer_log.log(f"  {name}: {len(objs)}")
+        log.log(f"  {name}: {len(objs)}")
 
     # Correct order to process object types
     process_order = get_process_order(collections)
-    transformer_log.log(f"Process order: {' -> '.join(process_order)}")
+    log.log(f"Process order: {' -> '.join(process_order)}")
 
     # Creates a list to track which objects should be deleted
     to_delete = {}
@@ -418,15 +424,15 @@ def searching_and_assigning(
             final_result.append((name, objects)) # Adds it back as (name, objects) tuple
 
     # Log counts after linking and cleanup
-    transformer_log.log("Object counts after linking:")
+    log.log("Object counts after linking:")
     total_remaining = 0
     for name, objs in final_result:
-        transformer_log.log(f"  {name}: {len(objs)}")
+        log.log(f"  {name}: {len(objs)}")
         total_remaining += len(objs)
     
     # Log how many were embedded
     total_deleted = sum(len(objs) for objs in to_delete.values())
-    transformer_log.log(f"Objects embedded into parents: {total_deleted}")
-    transformer_log.log(f"Total top-level objects remaining: {total_remaining}")
+    log.log(f"Objects embedded into parents: {total_deleted}")
+    log.log(f"Total top-level objects remaining: {total_remaining}")
 
     return final_result
