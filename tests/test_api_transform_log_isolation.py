@@ -175,12 +175,28 @@ def test_interrupted_response_cleanup_and_recovery(client, post, logs, monkeypat
 
     request = post(CaptureRequest(), ALPHA)
     body = request.read()
+    archives = []
+    original_response = api.CleanupStreamingResponse
+
+    def capture_archive(path, **kwargs):
+        # Prove the interrupted request built its own successful archive before
+        # injecting a send failure; an error response must not satisfy this test.
+        with zipfile.ZipFile(path) as archive:
+            records = [json.loads(archive.read(name)) for name in archive.namelist()]
+        assert records == [{"id": f"{ALPHA}-1", "name": f"{ALPHA} org"}]
+        archives.append(path)
+        return original_response(path, **kwargs)
+
+    monkeypatch.setattr(api, "CleanupStreamingResponse", capture_archive)
 
     async def run():
         delivered = False
+        started = False
+        interrupted = False
         scope = {"type": "http", "asgi": {"version": "3.0", "spec_version": "2.4"},
                  "method": "POST", "path": request.url.path, "raw_path": request.url.raw_path,
-                 "query_string": b"", "headers": request.headers.raw,
+                 "query_string": b"",
+                 "headers": [(name.lower(), value) for name, value in request.headers.raw],
                  "scheme": "http", "server": ("testserver", 80), "client": ("local", 1),
                  "http_version": "1.1"}
 
@@ -192,7 +208,16 @@ def test_interrupted_response_cleanup_and_recovery(client, post, logs, monkeypat
             await asyncio.Event().wait()
 
         async def send(message):
+            nonlocal started, interrupted
+            if message["type"] == "http.response.start":
+                assert message["status"] == 201
+                assert len(archives) == 1
+                started = True
             if message["type"] == ("http.response.start" if interrupt == "start" else "http.response.body"):
+                assert started
+                if interrupt != "start":
+                    assert message["body"], "interrupt an archive chunk, not an empty response"
+                interrupted = True
                 if interrupt == "cancel":
                     raise asyncio.CancelledError()
                 raise OSError("synthetic disconnected consumer")
@@ -201,8 +226,13 @@ def test_interrupted_response_cleanup_and_recovery(client, post, logs, monkeypat
             await app(scope, receive, send)
         except (OSError, asyncio.CancelledError):
             pass
+        assert started and interrupted
     asyncio.run(run())
-    assert logs and all(not log.entries for log, _ in logs)
+    assert len(archives) == 1 and not archives[0].exists()
+    assert len(logs) == 1
+    assert any(ALPHA in entry for entry in logs[0][1])
+    assert all(not log.entries for log, _ in logs)
+    monkeypatch.setattr(api, "CleanupStreamingResponse", original_response)
     assert list(tmp_path.iterdir()) == []
     assert client.get("/health").status_code == 200
     assert post(client, BETA).status_code == 201

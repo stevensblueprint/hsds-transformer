@@ -51,6 +51,17 @@ responses; interruption tests therefore drive the ASGI app directly with failed
 send callbacks rather than pretending a closed buffered response is a network
 disconnect. They do not emulate kernel socket timing or process termination.
 
+Follow-up review of `543bf84bdacda3a9a3a940575eb4dc1a8eb83282` found that
+those six ASGI interruption cases supplied mixed-case HTTPX header names. That
+could bypass the multipart transformation path, so their earlier passing result
+did not establish interrupted-download coverage. The corrected harness lowercases
+ASGI header names and requires a 201 response, an archive containing the exact
+ALPHA organization, a nonempty chunk for body interruption, and execution of the
+failure injection. It also checks ALPHA diagnostics before successful BETA
+recovery. With these assertions added first, all six cases failed on the original
+headers; after header correction all six passed. This was a test coverage defect;
+no production cleanup regression was reproduced.
+
 Use the pinned uv from README with a writable cache:
 
 ```sh
