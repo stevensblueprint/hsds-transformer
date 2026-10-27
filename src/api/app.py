@@ -1,3 +1,4 @@
+import asyncio
 import io
 import logging
 import shutil
@@ -6,6 +7,8 @@ import time
 import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
+
+import anyio
 
 from fastapi import Depends, Request, FastAPI, File, Form, HTTPException, Response, UploadFile
 from fastapi.exceptions import RequestValidationError
@@ -46,7 +49,29 @@ class CleanupStreamingResponse(StreamingResponse):
     def __init__(self, path: Path, **kwargs):
         self.path = path
         self.file_iterator = _iter_and_cleanup(path)
-        super().__init__(self.file_iterator, **kwargs)
+        super().__init__(self._chunks(), **kwargs)
+
+    async def _chunks(self):
+        exhausted = object()
+        while True:
+            # Shield the worker from task cancellation, then join it before the
+            # response closes the generator. A cancelled await alone does not
+            # stop a thread that is currently reading the archive.
+            read = asyncio.create_task(
+                anyio.to_thread.run_sync(next, self.file_iterator, exhausted)
+            )
+            try:
+                chunk = await asyncio.shield(read)
+            finally:
+                with anyio.CancelScope(shield=True):
+                    while not read.done():
+                        try:
+                            await asyncio.shield(read)
+                        except asyncio.CancelledError:
+                            continue
+            if chunk is exhausted:
+                break
+            yield chunk
 
     async def __call__(self, scope, receive, send):
         try:

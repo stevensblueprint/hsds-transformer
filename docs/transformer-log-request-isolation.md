@@ -17,6 +17,9 @@ all bytes: a disconnect can be handled by the streaming stack.
 
 The download response owns its archive and closes the iterator and unlinks the
 file in `finally`, even when sending response headers fails before iteration.
+The asyncio streaming wrapper shields and joins each threadpool read before
+closing its generator, including cancellation while a read is in flight. This
+uses the asyncio backend used by the configured Uvicorn server.
 The iterator's own `finally` remains. Input/output temporary directories and the
 multipart workspace `finally` remain request-local. Abrupt process termination
 and filesystem cleanup failures are not claimed to be recoverable.
@@ -37,7 +40,8 @@ logs at disposal, preserving assertions on actual output content.
 - malformed ZIP or malformed JSON (the stream route does not accept archives);
 - injected linking, JSON-write and archive-write failures;
 - actual ASGI send errors before response iteration and during body sending,
-  plus task cancellation during body sending;
+  plus task cancellation during body sending and controlled in-flight reads
+  under ASGI 2.0 and 2.4;
 - released log entries, no leftover workspaces/archives, then health and
   successful transformation recovery;
 - lifecycle diagnostics correlated to response IDs without source markers.

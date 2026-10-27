@@ -230,3 +230,54 @@ def test_early_validation_cleanup(client, endpoint, logs, tmp_path):
     post = _post_transform if endpoint == "/transform" else _post_transform_stream
     assert post(client, BETA).status_code == 201
     assert list(tmp_path.iterdir()) == []
+
+
+@pytest.mark.parametrize("spec_version", ["2.0", "2.4"])
+def test_cancellation_waits_for_inflight_archive_read(monkeypatch, tmp_path, spec_version):
+    from threading import Event
+
+    entered = Event()
+    release = Event()
+    closed = Event()
+    path = tmp_path / "output.zip"
+    path.write_bytes(b"synthetic archive")
+
+    def blocked_iterator(path):
+        try:
+            with path.open("rb") as stream:
+                entered.set()
+                assert release.wait(timeout=5)
+                yield stream.read()
+        finally:
+            closed.set()
+            path.unlink(missing_ok=True)
+
+    monkeypatch.setattr(api, "_iter_and_cleanup", blocked_iterator)
+
+    async def run():
+        response = api.CleanupStreamingResponse(path)
+
+        async def receive():
+            await asyncio.Event().wait()
+
+        async def send(message):
+            pass
+
+        task = asyncio.create_task(response(
+            {"type": "http", "asgi": {"spec_version": spec_version}}, receive, send
+        ))
+        try:
+            async with asyncio.timeout(5):
+                while not entered.is_set():
+                    await asyncio.sleep(0.001)
+            task.cancel()
+            await asyncio.sleep(0.01)
+            assert not task.done(), "response must wait for its active file read"
+        finally:
+            release.set()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+
+    asyncio.run(run())
+    assert closed.is_set()
+    assert not path.exists()
