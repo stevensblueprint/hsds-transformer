@@ -10,8 +10,10 @@ wheels/
 .venv
 .DS_Store
 
-# agent skills
-.agents
+# Keep personal agent files local; version the shared repository skills.
+.agents/*
+!.agents/skills/
+!.agents/SOURCES.md
 PLAN.md
 
 # Output folder

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Blueprint Knowledge"
+  short_description: "Capture sourced Blueprint decisions and lessons"
+  default_prompt: "Use $blueprint-knowledge to help with this Blueprint task."
