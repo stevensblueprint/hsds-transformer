@@ -49,10 +49,35 @@ uv run --locked --extra api python -m src.cli.main path\to\datadir
 ```
 
 Options:
-- _-o path/to/output/directory_: (optional) specifies an output directory. Without specifying, the transformer will create one in your root directory or add the files to `output` if it already exists.
+- _-o path/to/output/directory_: (optional) specifies a new or empty output directory. Defaults to `output` in the current directory. A nonempty directory is refused with a clear error; existing files are never merged or overwritten.
 - _-f {json/csv}_: (optional) specifies a file type for the input/mapping files. Defaults to csv but can be either csv or json.
 - _--generate-ids {organization name/id}_: (optional) generates new standardized UUID-5 ids based on the name/id of the organization doing the transforming. Stores the old id in the attributes field. by default, preserves original IDs from the source data.
 - _--transforms path\to\custom\_transforms.py_: (optional) enables the user to load their custom transform functions. Omitting this option is supported only when mappings declare no custom transforms.
+
+### Output safety
+
+Use a different destination for each run, for example
+`python -m src.cli.main data/json_test -f json -o output/run-2`.
+An existing empty directory is also accepted. Empty input publishes an empty
+directory with zero artifacts; it still refuses a nonempty destination.
+
+The writer checks all IDs and filename collisions before writing, then stages
+the complete result beside the destination. IDs and object types must form a
+single portable filename (no path separators, control characters or Windows
+reserved punctuation). Non-JSON values, including NaN/infinity, fail explicitly.
+Every staged JSON file is read back and its filename/count checked before the
+complete directory is published. The CLI reports expected, written and verified
+artifact counts; the API logs those counts and continues to return the same ZIP
+format. Invalid output data returns HTTP 422; filesystem failures remain server
+errors. Both API routes use a fresh destination for each request.
+
+Handled failures remove staging and leave earlier output untouched. Publication
+uses a same-filesystem directory rename, with a brief gap when replacing an empty
+destination. A sibling `.DESTINATION.hsds-lock` excludes overlapping transformer
+runs for the same destination. A crashed process can leave its lock and staging
+directory behind; remove these only after confirming the process has stopped.
+This does not guarantee recovery after power loss or protect against unrelated
+processes changing the filesystem during publication.
 
 ### Custom transform compatibility policy
 
