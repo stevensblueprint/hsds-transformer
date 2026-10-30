@@ -1,0 +1,5152 @@
+{
+  "manifest_version": 1,
+  "ticket": "BLU-28 (P1-02a)",
+  "generated_from_commit": "b8f77b9907abb4c1b763244e065fe455e44f0b4c",
+  "generator": "scripts/inventory_corpus.py",
+  "status_note": "Facts only. 'observed' is current behaviour, not approved expectation. classification/permission/reviewer fields are intentionally unconfirmed.",
+  "counts": {
+    "directories": 18,
+    "zip_archives": 4
+  },
+  "byte_identical_files_across_directories": [
+    {
+      "sha256": "14d2ffa7d7eb8d4efea34997fb27ba8265628e2635701a3b99ebd12919052201",
+      "paths": [
+        "data/deprecated_hsds/locations.csv",
+        "data/sal_example/sallocations.csv"
+      ]
+    },
+    {
+      "sha256": "fc04635b66b6e3b3c55c85e94c2b6bd4a4abdd5cd05bbe65ed7b83f27135b1e8",
+      "paths": [
+        "data/deprecated_hsds/locations_location_mapping.csv",
+        "data/deprecated_hsds_mapping/locations_location_mapping.csv"
+      ]
+    },
+    {
+      "sha256": "d02e4616ec228693639f7f5dcad8ad81acac3a2c2c37f75897e0928fa2b455c1",
+      "paths": [
+        "data/deprecated_hsds/organizations.csv",
+        "data/sal_example/salorganizations.csv",
+        "data/simple_mapping/organizations.csv"
+      ]
+    },
+    {
+      "sha256": "fb46cb248547824aa714c3aa61c01e4a3aece76252342c570ef2af7563f71cb2",
+      "paths": [
+        "data/deprecated_hsds/organizations_organization_mapping.csv",
+        "data/deprecated_hsds_mapping/organizations_organization_mapping.csv"
+      ]
+    },
+    {
+      "sha256": "5978072939882bcf2837de0ad20063db1f38cf5bb8e8893082780090b9355a17",
+      "paths": [
+        "data/deprecated_hsds/phones1_phone_mapping.csv",
+        "data/deprecated_hsds/phones2_phone_mapping.csv",
+        "data/deprecated_hsds_mapping/phones_phone_mapping.csv"
+      ]
+    },
+    {
+      "sha256": "0e7addb64737034121ef17a15b4d1a2688f5ef5ef8e0a67e8acc48d390c98d82",
+      "paths": [
+        "data/deprecated_hsds/services.csv",
+        "data/sal_example/salservices.csv",
+        "data/services/services.csv"
+      ]
+    },
+    {
+      "sha256": "d01e3ac67d2f043ac1b1963719b130b1e4728e00768d6e28f6b539abc02d1a6c",
+      "paths": [
+        "data/deprecated_hsds/services_service_mapping.csv",
+        "data/deprecated_hsds_mapping/services_service_mapping.csv"
+      ]
+    },
+    {
+      "sha256": "8be6c401c385b96a38af0c7e4a198e198d86b7a03ec59596e26b3518166af35f",
+      "paths": [
+        "data/iCarol2/iCarolData_organization_mapping.csv",
+        "data/iCarol3/iCarolData1_organization_mapping.csv"
+      ]
+    }
+  ],
+  "similar_directory_sources": [
+    {
+      "identical_column_list": true,
+      "column_count": 10,
+      "reference": "data/deprecated_hsds/organizations.csv",
+      "others": [
+        {
+          "path": "data/sal_example/salorganizations.csv",
+          "bytes_identical_to_reference": true,
+          "data_rows_reference": 10,
+          "data_rows_this": 10,
+          "cells_differing_by_column": {},
+          "mapping_row_count_reference_vs_this": [
+            38,
+            52
+          ],
+          "mapping_rows_differing_count": 38
+        },
+        {
+          "path": "data/simple_mapping/organizations.csv",
+          "bytes_identical_to_reference": true,
+          "data_rows_reference": 10,
+          "data_rows_this": 10,
+          "cells_differing_by_column": {},
+          "mapping_row_count_reference_vs_this": [
+            38,
+            4
+          ],
+          "mapping_rows_differing_count": 4
+        }
+      ]
+    },
+    {
+      "identical_column_list": true,
+      "column_count": 16,
+      "reference": "data/deprecated_hsds/services.csv",
+      "others": [
+        {
+          "path": "data/sal_example/salservices.csv",
+          "bytes_identical_to_reference": true,
+          "data_rows_reference": 13,
+          "data_rows_this": 13,
+          "cells_differing_by_column": {},
+          "mapping_row_count_reference_vs_this": [
+            32,
+            36
+          ],
+          "mapping_rows_differing_count": 12
+        },
+        {
+          "path": "data/services/services.csv",
+          "bytes_identical_to_reference": true,
+          "data_rows_reference": 13,
+          "data_rows_this": 13,
+          "cells_differing_by_column": {},
+          "mapping_row_count_reference_vs_this": [
+            32,
+            32
+          ],
+          "mapping_rows_differing_count": 2,
+          "mapping_rows_differing": [
+            {
+              "file_line": 3,
+              "reference": [
+                "id",
+                "id"
+              ],
+              "this": [
+                "id",
+                "id"
+              ]
+            },
+            {
+              "file_line": 32,
+              "reference": [
+                "languages[].name",
+                ""
+              ],
+              "this": [
+                "languages[].name",
+                ""
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "identical_column_list": true,
+      "column_count": 169,
+      "reference": "data/iCarol/iCarolData.csv",
+      "others": [
+        {
+          "path": "data/iCarol2/iCarolData.csv",
+          "bytes_identical_to_reference": false,
+          "data_rows_reference": 20,
+          "data_rows_this": 20,
+          "cells_differing_by_column": {
+            "Phone2Name": 3,
+            "Phone2Number": 12,
+            "Phone3Number": 12,
+            "Phone4Number": 12,
+            "Phone5Number": 12
+          },
+          "mapping_row_count_reference_vs_this": [
+            42,
+            42
+          ],
+          "mapping_rows_differing_count": 2,
+          "mapping_rows_differing": [
+            {
+              "file_line": 20,
+              "reference": [
+                "phones[].number",
+                ""
+              ],
+              "this": [
+                "phones[].number",
+                "Phone1Number;Phone2Number;Phone3Number"
+              ]
+            },
+            {
+              "file_line": 23,
+              "reference": [
+                "phones[].description",
+                ""
+              ],
+              "this": [
+                "phones[].description",
+                "Phone1Name;Phone2Name;Phone3Name"
+              ]
+            }
+          ]
+        },
+        {
+          "path": "data/iCarol3/iCarolData1.csv",
+          "bytes_identical_to_reference": false,
+          "data_rows_reference": 20,
+          "data_rows_this": 20,
+          "cells_differing_by_column": {
+            "Phone2Name": 12,
+            "Phone3Number": 12,
+            "Phone4Number": 12,
+            "Phone5Number": 12
+          },
+          "mapping_row_count_reference_vs_this": [
+            42,
+            42
+          ],
+          "mapping_rows_differing_count": 2,
+          "mapping_rows_differing": [
+            {
+              "file_line": 20,
+              "reference": [
+                "phones[].number",
+                ""
+              ],
+              "this": [
+                "phones[].number",
+                "Phone1Number;Phone2Number;Phone3Number"
+              ]
+            },
+            {
+              "file_line": 23,
+              "reference": [
+                "phones[].description",
+                ""
+              ],
+              "this": [
+                "phones[].description",
+                "Phone1Name;Phone2Name;Phone3Name"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "entries": [
+    {
+      "id": "custom_transform_manual_test",
+      "kind": "directory",
+      "path": "data/custom_transform_manual_test",
+      "source_files": [
+        {
+          "name": "organizations.csv",
+          "format": "csv",
+          "bytes": 89,
+          "sha256": "ad19a7727fb5cf522146bc4a35ee52d183bac2c0d0a3f46ebd3b18841abf0571",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "id",
+            "name",
+            "phone"
+          ],
+          "column_count": 3,
+          "data_rows": 2,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 2
+          }
+        }
+      ],
+      "mapping_files": [
+        {
+          "format": "csv",
+          "bytes": 109,
+          "sha256": "2edf55c143eec6f3e5c59b48d0a85d5e7e2ad8b6e3e64d4171debb1189990301",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_field",
+            "split",
+            "strip",
+            "transform"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": false,
+          "extra_header_columns": [
+            "split",
+            "strip",
+            "transform"
+          ],
+          "mapping_row_count": 3,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 3,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 3,
+          "col1_values_found_in_source_columns": 3,
+          "name": "organizations_organization_mapping.csv",
+          "object_type": "organization",
+          "expected_source": "organizations.csv",
+          "source_found": true
+        }
+      ],
+      "other_files": [],
+      "sources_without_mapping": [],
+      "mappings_without_source": [],
+      "subdirectories": [],
+      "observed": {
+        "note": "observed behaviour at this commit; NOT an approved expected result",
+        "status": "ok",
+        "input_format": "csv",
+        "custom_transforms_used": false,
+        "objects_before_linking": {
+          "organization": 2
+        },
+        "objects_before_linking_total": 2,
+        "top_level_objects_after_linking": {
+          "organization": 2
+        },
+        "output_objects_after_linking": 2,
+        "distinct_ids_after_linking": {
+          "organization": 2
+        }
+      },
+      "test_references": [],
+      "flags": [],
+      "ticket_notes": [],
+      "classification": "unconfirmed",
+      "permission_status": "unconfirmed",
+      "intended_purpose": "unconfirmed",
+      "responsible_reviewer": null,
+      "approved_expected_results": null
+    },
+    {
+      "id": "deprecated_hsds",
+      "kind": "directory",
+      "path": "data/deprecated_hsds",
+      "source_files": [
+        {
+          "name": "locations.csv",
+          "format": "csv",
+          "bytes": 1791,
+          "sha256": "14d2ffa7d7eb8d4efea34997fb27ba8265628e2635701a3b99ebd12919052201",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "id",
+            "organization_id",
+            "name",
+            "alternate_name",
+            "description",
+            "transportation",
+            "latitude",
+            "longitude"
+          ],
+          "column_count": 8,
+          "data_rows": 10,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 10
+          }
+        },
+        {
+          "name": "organizations.csv",
+          "format": "csv",
+          "bytes": 2937,
+          "sha256": "d02e4616ec228693639f7f5dcad8ad81acac3a2c2c37f75897e0928fa2b455c1",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "id",
+            "name",
+            "alternate_name",
+            "description",
+            "email",
+            "url",
+            "tax_status",
+            "tax_id",
+            "year_incorporated",
+            "legal_status"
+          ],
+          "column_count": 10,
+          "data_rows": 10,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 10
+          }
+        },
+        {
+          "name": "phones1.csv",
+          "format": "csv",
+          "bytes": 411,
+          "sha256": "e22c7b23a3da263668b2d3798e273b72885f0cc9c37850f9479f5935664db1f6",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "id",
+            "location_id",
+            "service_id",
+            "organization_id",
+            "contact_id",
+            "service_at_location_id",
+            "number",
+            "extension",
+            "type",
+            "language",
+            "description",
+            "department"
+          ],
+          "column_count": 12,
+          "data_rows": 2,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 2
+          }
+        },
+        {
+          "name": "phones2.csv",
+          "format": "csv",
+          "bytes": 564,
+          "sha256": "a5475d2f188e40dfd2cd6d870a25672790fffa73d8e70382487f6599544d42f2",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "id",
+            "location_id",
+            "service_id",
+            "organization_id",
+            "contact_id",
+            "service_at_location_id",
+            "number",
+            "extension",
+            "type",
+            "language",
+            "description",
+            "department"
+          ],
+          "column_count": 12,
+          "data_rows": 3,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 3
+          }
+        },
+        {
+          "name": "services.csv",
+          "format": "csv",
+          "bytes": 4246,
+          "sha256": "0e7addb64737034121ef17a15b4d1a2688f5ef5ef8e0a67e8acc48d390c98d82",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "id",
+            "organization_id",
+            "program_id",
+            "name",
+            "alternate_name",
+            "description",
+            "url",
+            "email",
+            "status",
+            "interpretation_services",
+            "application_process",
+            "wait_time",
+            "fees",
+            "accreditations",
+            "licenses",
+            "taxonomy_ids"
+          ],
+          "column_count": 16,
+          "data_rows": 13,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 13
+          }
+        }
+      ],
+      "mapping_files": [
+        {
+          "format": "csv",
+          "bytes": 535,
+          "sha256": "fc04635b66b6e3b3c55c85e94c2b6bd4a4abdd5cd05bbe65ed7b83f27135b1e8",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [],
+          "mapping_row_count": 8,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 8,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 8,
+          "col1_values_found_in_source_columns": 8,
+          "name": "locations_location_mapping.csv",
+          "object_type": "location",
+          "expected_source": "locations.csv",
+          "source_found": true
+        },
+        {
+          "format": "csv",
+          "bytes": 875,
+          "sha256": "fb46cb248547824aa714c3aa61c01e4a3aece76252342c570ef2af7563f71cb2",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [],
+          "mapping_row_count": 10,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 10,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 9,
+          "col1_values_found_in_source_columns": 10,
+          "name": "organizations_organization_mapping.csv",
+          "object_type": "organization",
+          "expected_source": "organizations.csv",
+          "source_found": true
+        },
+        {
+          "format": "csv",
+          "bytes": 356,
+          "sha256": "5978072939882bcf2837de0ad20063db1f38cf5bb8e8893082780090b9355a17",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field",
+            "split",
+            "strip",
+            "columns"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [
+            "split",
+            "strip",
+            "columns"
+          ],
+          "mapping_row_count": 8,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 8,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 7,
+          "col1_values_found_in_source_columns": 8,
+          "name": "phones1_phone_mapping.csv",
+          "object_type": "phone",
+          "expected_source": "phones1.csv",
+          "source_found": true
+        },
+        {
+          "format": "csv",
+          "bytes": 356,
+          "sha256": "5978072939882bcf2837de0ad20063db1f38cf5bb8e8893082780090b9355a17",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field",
+            "split",
+            "strip",
+            "columns"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [
+            "split",
+            "strip",
+            "columns"
+          ],
+          "mapping_row_count": 8,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 8,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 7,
+          "col1_values_found_in_source_columns": 8,
+          "name": "phones2_phone_mapping.csv",
+          "object_type": "phone",
+          "expected_source": "phones2.csv",
+          "source_found": true
+        },
+        {
+          "format": "csv",
+          "bytes": 704,
+          "sha256": "d01e3ac67d2f043ac1b1963719b130b1e4728e00768d6e28f6b539abc02d1a6c",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field",
+            "split",
+            "strip",
+            "description"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [
+            "split",
+            "strip",
+            "description"
+          ],
+          "mapping_row_count": 12,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 12,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 12,
+          "col1_values_found_in_source_columns": 12,
+          "name": "services_service_mapping.csv",
+          "object_type": "service",
+          "expected_source": "services.csv",
+          "source_found": true
+        }
+      ],
+      "other_files": [],
+      "sources_without_mapping": [],
+      "mappings_without_source": [],
+      "subdirectories": [],
+      "observed": {
+        "note": "observed behaviour at this commit; NOT an approved expected result",
+        "status": "ok",
+        "input_format": "csv",
+        "custom_transforms_used": false,
+        "objects_before_linking": {
+          "location": 10,
+          "organization": 10,
+          "phone": 5,
+          "service": 13
+        },
+        "objects_before_linking_total": 38,
+        "top_level_objects_after_linking": {
+          "location": 0,
+          "organization": 10,
+          "phone": 2,
+          "service": 0
+        },
+        "output_objects_after_linking": 12,
+        "distinct_ids_after_linking": {
+          "location": 0,
+          "organization": 10,
+          "phone": 2,
+          "service": 0
+        }
+      },
+      "test_references": [],
+      "flags": [],
+      "ticket_notes": [],
+      "classification": "unconfirmed",
+      "permission_status": "unconfirmed",
+      "intended_purpose": "unconfirmed",
+      "responsible_reviewer": null,
+      "approved_expected_results": null
+    },
+    {
+      "id": "deprecated_hsds_mapping",
+      "kind": "directory",
+      "path": "data/deprecated_hsds_mapping",
+      "source_files": [],
+      "mapping_files": [
+        {
+          "format": "csv",
+          "bytes": 535,
+          "sha256": "fc04635b66b6e3b3c55c85e94c2b6bd4a4abdd5cd05bbe65ed7b83f27135b1e8",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [],
+          "mapping_row_count": 8,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 8,
+          "name": "locations_location_mapping.csv",
+          "object_type": "location",
+          "expected_source": "locations.csv",
+          "source_found": false
+        },
+        {
+          "format": "csv",
+          "bytes": 875,
+          "sha256": "fb46cb248547824aa714c3aa61c01e4a3aece76252342c570ef2af7563f71cb2",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [],
+          "mapping_row_count": 10,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 10,
+          "name": "organizations_organization_mapping.csv",
+          "object_type": "organization",
+          "expected_source": "organizations.csv",
+          "source_found": false
+        },
+        {
+          "format": "csv",
+          "bytes": 356,
+          "sha256": "5978072939882bcf2837de0ad20063db1f38cf5bb8e8893082780090b9355a17",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field",
+            "split",
+            "strip",
+            "columns"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [
+            "split",
+            "strip",
+            "columns"
+          ],
+          "mapping_row_count": 8,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 8,
+          "name": "phones_phone_mapping.csv",
+          "object_type": "phone",
+          "expected_source": "phones.csv",
+          "source_found": false
+        },
+        {
+          "format": "csv",
+          "bytes": 704,
+          "sha256": "d01e3ac67d2f043ac1b1963719b130b1e4728e00768d6e28f6b539abc02d1a6c",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field",
+            "split",
+            "strip",
+            "description"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [
+            "split",
+            "strip",
+            "description"
+          ],
+          "mapping_row_count": 12,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 12,
+          "name": "services_service_mapping.csv",
+          "object_type": "service",
+          "expected_source": "services.csv",
+          "source_found": false
+        }
+      ],
+      "other_files": [],
+      "sources_without_mapping": [],
+      "mappings_without_source": [
+        "locations_location_mapping.csv",
+        "organizations_organization_mapping.csv",
+        "phones_phone_mapping.csv",
+        "services_service_mapping.csv"
+      ],
+      "subdirectories": [],
+      "observed": {
+        "note": "observed behaviour at this commit; NOT an approved expected result",
+        "status": "ok",
+        "input_format": "csv",
+        "custom_transforms_used": false,
+        "objects_before_linking": {},
+        "objects_before_linking_total": 0,
+        "top_level_objects_after_linking": {},
+        "output_objects_after_linking": 0,
+        "distinct_ids_after_linking": {}
+      },
+      "test_references": [],
+      "flags": [
+        "mapping_only",
+        "observed_zero_output_objects"
+      ],
+      "ticket_notes": [
+        "ticket: mapping-only directory"
+      ],
+      "classification": "unconfirmed",
+      "permission_status": "unconfirmed",
+      "intended_purpose": "unconfirmed",
+      "responsible_reviewer": null,
+      "approved_expected_results": null
+    },
+    {
+      "id": "florida_data",
+      "kind": "directory",
+      "path": "data/florida_data",
+      "source_files": [
+        {
+          "name": "locations.csv",
+          "format": "csv",
+          "bytes": 59444,
+          "sha256": "5306deb9e1f439ca4882f905c13f907ba79af4055fad6f44569dd96207149b09",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "organization_name",
+            "organization_uuid",
+            "location_name",
+            "location_uuid",
+            "location_address",
+            "location_url",
+            "phones"
+          ],
+          "column_count": 7,
+          "data_rows": 378,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 378
+          }
+        },
+        {
+          "name": "organizations.csv",
+          "format": "csv",
+          "bytes": 8035,
+          "sha256": "383b862e183c92b2ed88aaaf944b32bd2a783c11b42e15abc6a076f9a5700703",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "organization_uuid",
+            "organization_name",
+            "organization_email",
+            "organization_tax_id",
+            "organization_legal_status",
+            "organization_url",
+            "organization_alternate_name",
+            "organization_year_incorporated",
+            "organization_description"
+          ],
+          "column_count": 9,
+          "data_rows": 20,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 20
+          }
+        },
+        {
+          "name": "services.csv",
+          "format": "csv",
+          "bytes": 174371,
+          "sha256": "db6caf3945d1a1b47703927525cef0b16a392a06b7134ceb1d54691ecafee104",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "service_uuid",
+            "organization_name",
+            "organization_uuid",
+            "service_name",
+            "service_alternate_name",
+            "service_description",
+            "service_email",
+            "service_url",
+            "service_additional_information",
+            "service_min_age",
+            "service_max_age",
+            "service_program",
+            "service_income_limit",
+            "service_problem_codes",
+            "service_require_veteran",
+            "service_military_status",
+            "service_immigration_status",
+            "service_incarceration_status",
+            "service_areas",
+            "",
+            ""
+          ],
+          "column_count": 21,
+          "data_rows": 135,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 135
+          }
+        }
+      ],
+      "mapping_files": [
+        {
+          "format": "csv",
+          "bytes": 534,
+          "sha256": "5e6eaf611cb28f347d35cff40eec4116acebb0dcc6fd32885635c7c0ef6a45a2",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [],
+          "mapping_row_count": 6,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 6,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 0,
+          "col1_values_found_in_source_columns": 6,
+          "name": "locations_location_mapping.csv",
+          "object_type": "location",
+          "expected_source": "locations.csv",
+          "source_found": true
+        },
+        {
+          "format": "csv",
+          "bytes": 983,
+          "sha256": "80ba031036cd901f8497a665a8f1b638a48f79d4ab8502e2836e5568edfea65a",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [],
+          "mapping_row_count": 9,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 9,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 0,
+          "col1_values_found_in_source_columns": 9,
+          "name": "organizations_organization_mapping.csv",
+          "object_type": "organization",
+          "expected_source": "organizations.csv",
+          "source_found": true
+        },
+        {
+          "format": "csv",
+          "bytes": 482,
+          "sha256": "d10d47ce516a2ae5f43aaf548f7118b0c9b40ca6b60e3357bc54f0c74b736812",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [],
+          "mapping_row_count": 9,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 9,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 0,
+          "col1_values_found_in_source_columns": 9,
+          "name": "services_service_mapping.csv",
+          "object_type": "service",
+          "expected_source": "services.csv",
+          "source_found": true
+        }
+      ],
+      "other_files": [],
+      "sources_without_mapping": [],
+      "mappings_without_source": [],
+      "subdirectories": [],
+      "observed": {
+        "note": "observed behaviour at this commit; NOT an approved expected result",
+        "status": "ok",
+        "input_format": "csv",
+        "custom_transforms_used": false,
+        "objects_before_linking": {
+          "location": 378,
+          "organization": 20,
+          "service": 135
+        },
+        "objects_before_linking_total": 533,
+        "top_level_objects_after_linking": {
+          "location": 0,
+          "organization": 20,
+          "service": 135
+        },
+        "output_objects_after_linking": 155,
+        "distinct_ids_after_linking": {
+          "location": 0,
+          "organization": 20,
+          "service": 135
+        }
+      },
+      "test_references": [],
+      "flags": [],
+      "ticket_notes": [],
+      "classification": "unconfirmed",
+      "permission_status": "unconfirmed",
+      "intended_purpose": "unconfirmed",
+      "responsible_reviewer": null,
+      "approved_expected_results": null
+    },
+    {
+      "id": "HSD_example",
+      "kind": "directory",
+      "path": "data/HSD_example",
+      "source_files": [
+        {
+          "name": "HSD_provider.csv",
+          "format": "csv",
+          "bytes": 946301,
+          "sha256": "19f4e24f36580e9667c0eb7246163e0e4a11f44c72fbfbafa4bd67b2cab1e1ce",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "entity_id",
+            "organization_name",
+            "address_record_id",
+            "address_type",
+            "address_line_1",
+            "city",
+            "county",
+            "state",
+            "postal_code",
+            "phone",
+            "primary_license",
+            "npi",
+            "hoursoperation",
+            "primary_taxonomy_id",
+            "taxonomies",
+            "accessibility",
+            "behavioral_health_services",
+            "caresettings",
+            "languages_spoken",
+            "fees",
+            "population_served",
+            "gbp_id",
+            "hash_value",
+            "source",
+            "created_at",
+            "upsert_reason",
+            "job_id",
+            "processing_date",
+            "processing_status"
+          ],
+          "column_count": 29,
+          "data_rows": 2592,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 2592,
+          "row_length_minus_header_length": {
+            "1": 2592
+          }
+        }
+      ],
+      "mapping_files": [
+        {
+          "format": "csv",
+          "bytes": 889,
+          "sha256": "ee2e52131781326f096f877977b2b9c4d1b8f69207b4cf9c72705170fe2ecb69",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [],
+          "mapping_row_count": 9,
+          "filter_row_interpreted_as_filter": true,
+          "filter_column": "id",
+          "referenced_input_field_count": 9,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 0,
+          "col1_values_found_in_source_columns": 9,
+          "filter_column_in_source": false,
+          "filter_matching_rows": null,
+          "name": "HSD_provider_organization_mapping.csv",
+          "object_type": "organization",
+          "expected_source": "HSD_provider.csv",
+          "source_found": true
+        }
+      ],
+      "other_files": [],
+      "sources_without_mapping": [],
+      "mappings_without_source": [],
+      "subdirectories": [],
+      "observed": {
+        "note": "observed behaviour at this commit; NOT an approved expected result",
+        "status": "ok",
+        "input_format": "csv",
+        "custom_transforms_used": false,
+        "objects_before_linking": {
+          "organization": 0
+        },
+        "objects_before_linking_total": 0,
+        "top_level_objects_after_linking": {
+          "organization": 0
+        },
+        "output_objects_after_linking": 0,
+        "distinct_ids_after_linking": {
+          "organization": 0
+        }
+      },
+      "test_references": [],
+      "flags": [
+        "filter_column_not_in_source",
+        "filter_matches_no_source_rows",
+        "observed_zero_output_objects",
+        "rows_longer_than_header"
+      ],
+      "ticket_notes": [
+        "ticket: layout mismatch; first mapping row consumed as a filter"
+      ],
+      "classification": "unconfirmed",
+      "permission_status": "unconfirmed",
+      "intended_purpose": "unconfirmed",
+      "responsible_reviewer": null,
+      "approved_expected_results": null
+    },
+    {
+      "id": "iCarol",
+      "kind": "directory",
+      "path": "data/iCarol",
+      "source_files": [
+        {
+          "name": "iCarolData.csv",
+          "format": "csv",
+          "bytes": 22955,
+          "sha256": "347778aee1e0d242baae1a37c6f46714c35021476970aa22a29ac8a314116094",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "ResourceAgencyNum",
+            "PublicName",
+            "AlternateName",
+            "OfficialName",
+            "TaxonomyLevelName",
+            "ParentAgency",
+            "ParentAgencyNum",
+            "RecordOwner",
+            "UniqueIDPriorSystem",
+            "PhysicalAddress1",
+            "PhysicalAddress2",
+            "PhysicalCity",
+            "PhysicalCounty",
+            "PhysicalStateProvince",
+            "PhysicalPostalCode",
+            "PhysicalCountry",
+            "PhysicalAddressIsPrivate",
+            "MailingAttentionName",
+            "MailingAddress1",
+            "MailingAddress2",
+            "MailingCity",
+            "MailingStateProvince",
+            "MailingPostalCode",
+            "MailingCountry",
+            "MailingAddressIsPrivate",
+            "OtherAddress1",
+            "OtherAddress2",
+            "OtherCity",
+            "OtherCounty",
+            "OtherStateProvince",
+            "OtherPostalCode",
+            "OtherCountry",
+            "Latitude",
+            "Longitude",
+            "HoursOfOperation",
+            "Phone1Number",
+            "Phone1Name",
+            "Phone1Description",
+            "Phone1IsPrivate",
+            "Phone1Type",
+            "Phone2Number",
+            "Phone2Name",
+            "Phone2Description",
+            "Phone2IsPrivate",
+            "Phone2Type",
+            "Phone3Number",
+            "Phone3Name",
+            "Phone3Description",
+            "Phone3IsPrivate",
+            "Phone3Type",
+            "Phone4Number",
+            "Phone4Name",
+            "Phone4Description",
+            "Phone4IsPrivate",
+            "Phone4Type",
+            "Phone5Number",
+            "Phone5name",
+            "Phone5Description",
+            "Phone5IsPrivate",
+            "Phone5Type",
+            "PhoneFax",
+            "PhoneFaxDescription",
+            "PhoneFaxIsPrivate",
+            "PhoneTTY",
+            "PhoneTTYDescription",
+            "PhoneTTYIsPrivate",
+            "PhoneTollFree",
+            "PhoneTollFreeDescription",
+            "PhoneTollFreeIsPrivate",
+            "PhoneNumberHotline",
+            "PhoneNumberHotlineDescription",
+            "PhoneNumberHotlineIsPrivate",
+            "PhoneNumberBusinessLine",
+            "PhoneNumberBusinessLineDescription",
+            "PhoneNumberBusinessLineIsPrivate",
+            "PhoneNumberOutOfArea",
+            "PhoneNumberOutOfAreaDescription",
+            "PhoneNumberOutOfAreaIsPrivate",
+            "PhoneNumberAfterHours",
+            "PhoneNumberAfterHoursDescription",
+            "PhoneNumberAfterHoursIsPrivate",
+            "EmailAddressMain",
+            "WebsiteAddress",
+            "AgencyStatus",
+            "AgencyClassification",
+            "AgencyDescription",
+            "SearchHints",
+            "CoverageArea",
+            "CoverageAreaText",
+            "Eligibility",
+            "EligibilityAdult",
+            "EligibilityChild",
+            "EligibilityFamily",
+            "EligibilityFemale",
+            "EligibilityMale",
+            "EligibilityTeen",
+            "SeniorWorkerName",
+            "SeniorWorkerTitle",
+            "SeniorWorkerEmailAddress",
+            "SeniorWorkerPhoneNumber",
+            "SeniorWorkerIsPrivate",
+            "MainContactName",
+            "MainContactTitle",
+            "MainContactEmailAddress",
+            "MainContactPhoneNumber",
+            "MainContactType",
+            "MainContactIsPrivate",
+            "LicenseAccreditation",
+            "IRSStatus",
+            "FEIN",
+            "YearIncorporated",
+            "AnnualBudgetTotal",
+            "LegalStatus",
+            "SourceOfFunds",
+            "ExcludeFromWebsite",
+            "ExcludeFromDirectory",
+            "DisabilitiesAccess",
+            "PhysicalLocationDescription",
+            "BusServiceAccess",
+            "PublicAccessTransportation",
+            "PaymentMethods",
+            "FeeStructureSource",
+            "ApplicationProcess",
+            "ResourceInfo",
+            "DocumentsRequired",
+            "LanguagesOffered",
+            "LanguagesOfferedList",
+            "AvailabilityNumberOfTimes",
+            "AvailabilityFrequency",
+            "AvailabilityPeriod",
+            "ServiceNotAlwaysAvailability",
+            "CapacityType",
+            "ServiceCapacity",
+            "NormalWaitTime",
+            "TemporaryMessage",
+            "TemporaryMessageAppears",
+            "TemporaryMessageExpires",
+            "EnteredOn",
+            "UpdatedOn",
+            "MadeInactiveOn",
+            "InternalNotes",
+            "InternalNotesForEditorsAndViewers",
+            "HighlightedResource",
+            "LastVerifiedOn",
+            "LastVerifiedByName",
+            "LastVerifiedByTitle",
+            "LastVerifiedByPhoneNumber",
+            "LastVerifiedByEmailAddress",
+            "LastVerificationApprovedBy",
+            "AvailableForDirectory",
+            "AvailableForReferral",
+            "AvailableForResearch",
+            "PreferredProvider",
+            "ConnectsToSiteNum",
+            "ConnectsToProgramNum",
+            "LanguageOfRecord",
+            "CurrentWorkflowStepCode",
+            "VolunteerOpportunities",
+            "VolunteerDuties",
+            "IsLinkOnly",
+            "ProgramAgencyNamePublic",
+            "SiteAgencyNamePublic",
+            "Categories",
+            "TaxonomyTerm",
+            "TaxonomyTerms",
+            "TaxonomyTermsNotDeactivated",
+            "TaxonomyCodes",
+            "Coverage",
+            "Hours"
+          ],
+          "column_count": 169,
+          "data_rows": 20,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 20
+          }
+        }
+      ],
+      "mapping_files": [
+        {
+          "format": "csv",
+          "bytes": 1134,
+          "sha256": "d18879fdc7962ddf025cb8edff8882d9caa470574faef11550e962446171a5ee",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field",
+            "split",
+            "strip",
+            "description"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [
+            "split",
+            "strip",
+            "description"
+          ],
+          "mapping_row_count": 4,
+          "filter_row_interpreted_as_filter": true,
+          "filter_column": "TaxonomyLevelName",
+          "referenced_input_field_count": 4,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 0,
+          "col1_values_found_in_source_columns": 4,
+          "filter_column_in_source": true,
+          "filter_matching_rows": 2,
+          "name": "iCarolData_organization_mapping.csv",
+          "object_type": "organization",
+          "expected_source": "iCarolData.csv",
+          "source_found": true
+        }
+      ],
+      "other_files": [],
+      "sources_without_mapping": [],
+      "mappings_without_source": [],
+      "subdirectories": [],
+      "observed": {
+        "note": "observed behaviour at this commit; NOT an approved expected result",
+        "status": "ok",
+        "input_format": "csv",
+        "custom_transforms_used": false,
+        "objects_before_linking": {
+          "organization": 2
+        },
+        "objects_before_linking_total": 2,
+        "top_level_objects_after_linking": {
+          "organization": 2
+        },
+        "output_objects_after_linking": 2,
+        "distinct_ids_after_linking": {
+          "organization": 2
+        }
+      },
+      "test_references": [
+        {
+          "file": "tests\\test_api_transform.py",
+          "line": 24
+        },
+        {
+          "file": "tests\\test_transformer.py",
+          "line": 12
+        }
+      ],
+      "flags": [],
+      "ticket_notes": [],
+      "classification": "unconfirmed",
+      "permission_status": "unconfirmed",
+      "intended_purpose": "unconfirmed",
+      "responsible_reviewer": null,
+      "approved_expected_results": null
+    },
+    {
+      "id": "iCarol2",
+      "kind": "directory",
+      "path": "data/iCarol2",
+      "source_files": [
+        {
+          "name": "iCarolData.csv",
+          "format": "csv",
+          "bytes": 22350,
+          "sha256": "bbf5e2f6786caf93dbcffb5085a9ee6e208b118cb128c7206fa0efc2e04acfab",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "ResourceAgencyNum",
+            "PublicName",
+            "AlternateName",
+            "OfficialName",
+            "TaxonomyLevelName",
+            "ParentAgency",
+            "ParentAgencyNum",
+            "RecordOwner",
+            "UniqueIDPriorSystem",
+            "PhysicalAddress1",
+            "PhysicalAddress2",
+            "PhysicalCity",
+            "PhysicalCounty",
+            "PhysicalStateProvince",
+            "PhysicalPostalCode",
+            "PhysicalCountry",
+            "PhysicalAddressIsPrivate",
+            "MailingAttentionName",
+            "MailingAddress1",
+            "MailingAddress2",
+            "MailingCity",
+            "MailingStateProvince",
+            "MailingPostalCode",
+            "MailingCountry",
+            "MailingAddressIsPrivate",
+            "OtherAddress1",
+            "OtherAddress2",
+            "OtherCity",
+            "OtherCounty",
+            "OtherStateProvince",
+            "OtherPostalCode",
+            "OtherCountry",
+            "Latitude",
+            "Longitude",
+            "HoursOfOperation",
+            "Phone1Number",
+            "Phone1Name",
+            "Phone1Description",
+            "Phone1IsPrivate",
+            "Phone1Type",
+            "Phone2Number",
+            "Phone2Name",
+            "Phone2Description",
+            "Phone2IsPrivate",
+            "Phone2Type",
+            "Phone3Number",
+            "Phone3Name",
+            "Phone3Description",
+            "Phone3IsPrivate",
+            "Phone3Type",
+            "Phone4Number",
+            "Phone4Name",
+            "Phone4Description",
+            "Phone4IsPrivate",
+            "Phone4Type",
+            "Phone5Number",
+            "Phone5name",
+            "Phone5Description",
+            "Phone5IsPrivate",
+            "Phone5Type",
+            "PhoneFax",
+            "PhoneFaxDescription",
+            "PhoneFaxIsPrivate",
+            "PhoneTTY",
+            "PhoneTTYDescription",
+            "PhoneTTYIsPrivate",
+            "PhoneTollFree",
+            "PhoneTollFreeDescription",
+            "PhoneTollFreeIsPrivate",
+            "PhoneNumberHotline",
+            "PhoneNumberHotlineDescription",
+            "PhoneNumberHotlineIsPrivate",
+            "PhoneNumberBusinessLine",
+            "PhoneNumberBusinessLineDescription",
+            "PhoneNumberBusinessLineIsPrivate",
+            "PhoneNumberOutOfArea",
+            "PhoneNumberOutOfAreaDescription",
+            "PhoneNumberOutOfAreaIsPrivate",
+            "PhoneNumberAfterHours",
+            "PhoneNumberAfterHoursDescription",
+            "PhoneNumberAfterHoursIsPrivate",
+            "EmailAddressMain",
+            "WebsiteAddress",
+            "AgencyStatus",
+            "AgencyClassification",
+            "AgencyDescription",
+            "SearchHints",
+            "CoverageArea",
+            "CoverageAreaText",
+            "Eligibility",
+            "EligibilityAdult",
+            "EligibilityChild",
+            "EligibilityFamily",
+            "EligibilityFemale",
+            "EligibilityMale",
+            "EligibilityTeen",
+            "SeniorWorkerName",
+            "SeniorWorkerTitle",
+            "SeniorWorkerEmailAddress",
+            "SeniorWorkerPhoneNumber",
+            "SeniorWorkerIsPrivate",
+            "MainContactName",
+            "MainContactTitle",
+            "MainContactEmailAddress",
+            "MainContactPhoneNumber",
+            "MainContactType",
+            "MainContactIsPrivate",
+            "LicenseAccreditation",
+            "IRSStatus",
+            "FEIN",
+            "YearIncorporated",
+            "AnnualBudgetTotal",
+            "LegalStatus",
+            "SourceOfFunds",
+            "ExcludeFromWebsite",
+            "ExcludeFromDirectory",
+            "DisabilitiesAccess",
+            "PhysicalLocationDescription",
+            "BusServiceAccess",
+            "PublicAccessTransportation",
+            "PaymentMethods",
+            "FeeStructureSource",
+            "ApplicationProcess",
+            "ResourceInfo",
+            "DocumentsRequired",
+            "LanguagesOffered",
+            "LanguagesOfferedList",
+            "AvailabilityNumberOfTimes",
+            "AvailabilityFrequency",
+            "AvailabilityPeriod",
+            "ServiceNotAlwaysAvailability",
+            "CapacityType",
+            "ServiceCapacity",
+            "NormalWaitTime",
+            "TemporaryMessage",
+            "TemporaryMessageAppears",
+            "TemporaryMessageExpires",
+            "EnteredOn",
+            "UpdatedOn",
+            "MadeInactiveOn",
+            "InternalNotes",
+            "InternalNotesForEditorsAndViewers",
+            "HighlightedResource",
+            "LastVerifiedOn",
+            "LastVerifiedByName",
+            "LastVerifiedByTitle",
+            "LastVerifiedByPhoneNumber",
+            "LastVerifiedByEmailAddress",
+            "LastVerificationApprovedBy",
+            "AvailableForDirectory",
+            "AvailableForReferral",
+            "AvailableForResearch",
+            "PreferredProvider",
+            "ConnectsToSiteNum",
+            "ConnectsToProgramNum",
+            "LanguageOfRecord",
+            "CurrentWorkflowStepCode",
+            "VolunteerOpportunities",
+            "VolunteerDuties",
+            "IsLinkOnly",
+            "ProgramAgencyNamePublic",
+            "SiteAgencyNamePublic",
+            "Categories",
+            "TaxonomyTerm",
+            "TaxonomyTerms",
+            "TaxonomyTermsNotDeactivated",
+            "TaxonomyCodes",
+            "Coverage",
+            "Hours"
+          ],
+          "column_count": 169,
+          "data_rows": 20,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 20
+          }
+        }
+      ],
+      "mapping_files": [
+        {
+          "format": "csv",
+          "bytes": 1204,
+          "sha256": "8be6c401c385b96a38af0c7e4a198e198d86b7a03ec59596e26b3518166af35f",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field",
+            "split",
+            "strip",
+            "description"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [
+            "split",
+            "strip",
+            "description"
+          ],
+          "mapping_row_count": 6,
+          "filter_row_interpreted_as_filter": true,
+          "filter_column": "TaxonomyLevelName",
+          "referenced_input_field_count": 10,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 0,
+          "col1_values_found_in_source_columns": 10,
+          "filter_column_in_source": true,
+          "filter_matching_rows": 2,
+          "name": "iCarolData_organization_mapping.csv",
+          "object_type": "organization",
+          "expected_source": "iCarolData.csv",
+          "source_found": true
+        }
+      ],
+      "other_files": [],
+      "sources_without_mapping": [],
+      "mappings_without_source": [],
+      "subdirectories": [],
+      "observed": {
+        "note": "observed behaviour at this commit; NOT an approved expected result",
+        "status": "ok",
+        "input_format": "csv",
+        "custom_transforms_used": false,
+        "objects_before_linking": {
+          "organization": 2
+        },
+        "objects_before_linking_total": 2,
+        "top_level_objects_after_linking": {
+          "organization": 2
+        },
+        "output_objects_after_linking": 2,
+        "distinct_ids_after_linking": {
+          "organization": 2
+        }
+      },
+      "test_references": [],
+      "flags": [],
+      "ticket_notes": [],
+      "classification": "unconfirmed",
+      "permission_status": "unconfirmed",
+      "intended_purpose": "unconfirmed",
+      "responsible_reviewer": null,
+      "approved_expected_results": null
+    },
+    {
+      "id": "iCarol3",
+      "kind": "directory",
+      "path": "data/iCarol3",
+      "source_files": [
+        {
+          "name": "iCarolData1.csv",
+          "format": "csv",
+          "bytes": 22602,
+          "sha256": "17719fb945857d367fbbc2040c6f1291a6ca7b505ac8548b2047829b0edc5110",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "ResourceAgencyNum",
+            "PublicName",
+            "AlternateName",
+            "OfficialName",
+            "TaxonomyLevelName",
+            "ParentAgency",
+            "ParentAgencyNum",
+            "RecordOwner",
+            "UniqueIDPriorSystem",
+            "PhysicalAddress1",
+            "PhysicalAddress2",
+            "PhysicalCity",
+            "PhysicalCounty",
+            "PhysicalStateProvince",
+            "PhysicalPostalCode",
+            "PhysicalCountry",
+            "PhysicalAddressIsPrivate",
+            "MailingAttentionName",
+            "MailingAddress1",
+            "MailingAddress2",
+            "MailingCity",
+            "MailingStateProvince",
+            "MailingPostalCode",
+            "MailingCountry",
+            "MailingAddressIsPrivate",
+            "OtherAddress1",
+            "OtherAddress2",
+            "OtherCity",
+            "OtherCounty",
+            "OtherStateProvince",
+            "OtherPostalCode",
+            "OtherCountry",
+            "Latitude",
+            "Longitude",
+            "HoursOfOperation",
+            "Phone1Number",
+            "Phone1Name",
+            "Phone1Description",
+            "Phone1IsPrivate",
+            "Phone1Type",
+            "Phone2Number",
+            "Phone2Name",
+            "Phone2Description",
+            "Phone2IsPrivate",
+            "Phone2Type",
+            "Phone3Number",
+            "Phone3Name",
+            "Phone3Description",
+            "Phone3IsPrivate",
+            "Phone3Type",
+            "Phone4Number",
+            "Phone4Name",
+            "Phone4Description",
+            "Phone4IsPrivate",
+            "Phone4Type",
+            "Phone5Number",
+            "Phone5name",
+            "Phone5Description",
+            "Phone5IsPrivate",
+            "Phone5Type",
+            "PhoneFax",
+            "PhoneFaxDescription",
+            "PhoneFaxIsPrivate",
+            "PhoneTTY",
+            "PhoneTTYDescription",
+            "PhoneTTYIsPrivate",
+            "PhoneTollFree",
+            "PhoneTollFreeDescription",
+            "PhoneTollFreeIsPrivate",
+            "PhoneNumberHotline",
+            "PhoneNumberHotlineDescription",
+            "PhoneNumberHotlineIsPrivate",
+            "PhoneNumberBusinessLine",
+            "PhoneNumberBusinessLineDescription",
+            "PhoneNumberBusinessLineIsPrivate",
+            "PhoneNumberOutOfArea",
+            "PhoneNumberOutOfAreaDescription",
+            "PhoneNumberOutOfAreaIsPrivate",
+            "PhoneNumberAfterHours",
+            "PhoneNumberAfterHoursDescription",
+            "PhoneNumberAfterHoursIsPrivate",
+            "EmailAddressMain",
+            "WebsiteAddress",
+            "AgencyStatus",
+            "AgencyClassification",
+            "AgencyDescription",
+            "SearchHints",
+            "CoverageArea",
+            "CoverageAreaText",
+            "Eligibility",
+            "EligibilityAdult",
+            "EligibilityChild",
+            "EligibilityFamily",
+            "EligibilityFemale",
+            "EligibilityMale",
+            "EligibilityTeen",
+            "SeniorWorkerName",
+            "SeniorWorkerTitle",
+            "SeniorWorkerEmailAddress",
+            "SeniorWorkerPhoneNumber",
+            "SeniorWorkerIsPrivate",
+            "MainContactName",
+            "MainContactTitle",
+            "MainContactEmailAddress",
+            "MainContactPhoneNumber",
+            "MainContactType",
+            "MainContactIsPrivate",
+            "LicenseAccreditation",
+            "IRSStatus",
+            "FEIN",
+            "YearIncorporated",
+            "AnnualBudgetTotal",
+            "LegalStatus",
+            "SourceOfFunds",
+            "ExcludeFromWebsite",
+            "ExcludeFromDirectory",
+            "DisabilitiesAccess",
+            "PhysicalLocationDescription",
+            "BusServiceAccess",
+            "PublicAccessTransportation",
+            "PaymentMethods",
+            "FeeStructureSource",
+            "ApplicationProcess",
+            "ResourceInfo",
+            "DocumentsRequired",
+            "LanguagesOffered",
+            "LanguagesOfferedList",
+            "AvailabilityNumberOfTimes",
+            "AvailabilityFrequency",
+            "AvailabilityPeriod",
+            "ServiceNotAlwaysAvailability",
+            "CapacityType",
+            "ServiceCapacity",
+            "NormalWaitTime",
+            "TemporaryMessage",
+            "TemporaryMessageAppears",
+            "TemporaryMessageExpires",
+            "EnteredOn",
+            "UpdatedOn",
+            "MadeInactiveOn",
+            "InternalNotes",
+            "InternalNotesForEditorsAndViewers",
+            "HighlightedResource",
+            "LastVerifiedOn",
+            "LastVerifiedByName",
+            "LastVerifiedByTitle",
+            "LastVerifiedByPhoneNumber",
+            "LastVerifiedByEmailAddress",
+            "LastVerificationApprovedBy",
+            "AvailableForDirectory",
+            "AvailableForReferral",
+            "AvailableForResearch",
+            "PreferredProvider",
+            "ConnectsToSiteNum",
+            "ConnectsToProgramNum",
+            "LanguageOfRecord",
+            "CurrentWorkflowStepCode",
+            "VolunteerOpportunities",
+            "VolunteerDuties",
+            "IsLinkOnly",
+            "ProgramAgencyNamePublic",
+            "SiteAgencyNamePublic",
+            "Categories",
+            "TaxonomyTerm",
+            "TaxonomyTerms",
+            "TaxonomyTermsNotDeactivated",
+            "TaxonomyCodes",
+            "Coverage",
+            "Hours"
+          ],
+          "column_count": 169,
+          "data_rows": 20,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 20
+          }
+        }
+      ],
+      "mapping_files": [
+        {
+          "format": "csv",
+          "bytes": 1204,
+          "sha256": "8be6c401c385b96a38af0c7e4a198e198d86b7a03ec59596e26b3518166af35f",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field",
+            "split",
+            "strip",
+            "description"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [
+            "split",
+            "strip",
+            "description"
+          ],
+          "mapping_row_count": 6,
+          "filter_row_interpreted_as_filter": true,
+          "filter_column": "TaxonomyLevelName",
+          "referenced_input_field_count": 10,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 0,
+          "col1_values_found_in_source_columns": 10,
+          "filter_column_in_source": true,
+          "filter_matching_rows": 2,
+          "name": "iCarolData1_organization_mapping.csv",
+          "object_type": "organization",
+          "expected_source": "iCarolData1.csv",
+          "source_found": true
+        }
+      ],
+      "other_files": [],
+      "sources_without_mapping": [],
+      "mappings_without_source": [],
+      "subdirectories": [],
+      "observed": {
+        "note": "observed behaviour at this commit; NOT an approved expected result",
+        "status": "ok",
+        "input_format": "csv",
+        "custom_transforms_used": false,
+        "objects_before_linking": {
+          "organization": 2
+        },
+        "objects_before_linking_total": 2,
+        "top_level_objects_after_linking": {
+          "organization": 2
+        },
+        "output_objects_after_linking": 2,
+        "distinct_ids_after_linking": {
+          "organization": 2
+        }
+      },
+      "test_references": [],
+      "flags": [],
+      "ticket_notes": [],
+      "classification": "unconfirmed",
+      "permission_status": "unconfirmed",
+      "intended_purpose": "unconfirmed",
+      "responsible_reviewer": null,
+      "approved_expected_results": null
+    },
+    {
+      "id": "json_test",
+      "kind": "directory",
+      "path": "data/json_test",
+      "source_files": [
+        {
+          "name": "orgs.json",
+          "format": "json",
+          "bytes": 353,
+          "sha256": "172f5add638ff95ee1b1744e92687ffecc8e3510885ad2031eac6f0b23b07a4b",
+          "bom": false,
+          "utf8_valid": true,
+          "top_level": "array",
+          "records": 1
+        }
+      ],
+      "mapping_files": [
+        {
+          "format": "json",
+          "bytes": 663,
+          "sha256": "9687f524543a2b5ad60768fb2344643d44af2fa53d39800d1017dd48ddc8b284",
+          "bom": false,
+          "utf8_valid": true,
+          "top_level_keys": [
+            "filter",
+            "mappings"
+          ],
+          "filter_present": true,
+          "filter_column": "Status",
+          "mapping_row_count": 8,
+          "name": "orgs_organization_mapping.json",
+          "object_type": "organization",
+          "expected_source": "orgs.json",
+          "source_found": true
+        }
+      ],
+      "other_files": [],
+      "sources_without_mapping": [],
+      "mappings_without_source": [],
+      "subdirectories": [],
+      "observed": {
+        "note": "observed behaviour at this commit; NOT an approved expected result",
+        "status": "ok",
+        "input_format": "json",
+        "custom_transforms_used": false,
+        "objects_before_linking": {
+          "organization": 1
+        },
+        "objects_before_linking_total": 1,
+        "top_level_objects_after_linking": {
+          "organization": 1
+        },
+        "output_objects_after_linking": 1,
+        "distinct_ids_after_linking": {
+          "organization": 1
+        }
+      },
+      "test_references": [
+        {
+          "file": "tests\\test_api_transform.py",
+          "line": 26
+        },
+        {
+          "file": "tests\\test_api_transform.py",
+          "line": 27
+        },
+        {
+          "file": "tests\\test_json_collections.py",
+          "line": 168
+        },
+        {
+          "file": "tests\\test_json_collections.py",
+          "line": 169
+        },
+        {
+          "file": "tests\\test_json_collections.py",
+          "line": 259
+        }
+      ],
+      "flags": [],
+      "ticket_notes": [],
+      "classification": "unconfirmed",
+      "permission_status": "unconfirmed",
+      "intended_purpose": "unconfirmed",
+      "responsible_reviewer": null,
+      "approved_expected_results": null
+    },
+    {
+      "id": "logger_test",
+      "kind": "directory",
+      "path": "data/logger_test",
+      "source_files": [
+        {
+          "name": "locations.csv",
+          "format": "csv",
+          "bytes": 234,
+          "sha256": "912800ca87b8efce6d384f93ccbf5ed89bd69eb1defa226e83c50caab567547a",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "id",
+            "organization_id",
+            "name",
+            "address",
+            "city",
+            "state"
+          ],
+          "column_count": 6,
+          "data_rows": 3,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 3
+          }
+        },
+        {
+          "name": "organizations.csv",
+          "format": "csv",
+          "bytes": 174,
+          "sha256": "84e4858a25e710cb61275ccfcefcac4d16744ec33dee89cff58a7f8af5afeb5e",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "id",
+            "name",
+            "description"
+          ],
+          "column_count": 3,
+          "data_rows": 2,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 2
+          }
+        }
+      ],
+      "mapping_files": [
+        {
+          "format": "csv",
+          "bytes": 175,
+          "sha256": "f350e34c41c4b46b0242d71b85749048c7e41274e170b029130142cb2b4c85e9",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field",
+            "split",
+            "strip",
+            "description"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [
+            "split",
+            "strip",
+            "description"
+          ],
+          "mapping_row_count": 6,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 6,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 4,
+          "col1_values_found_in_source_columns": 6,
+          "name": "locations_location_mapping.csv",
+          "object_type": "location",
+          "expected_source": "locations.csv",
+          "source_found": true
+        },
+        {
+          "format": "csv",
+          "bytes": 106,
+          "sha256": "12ef150fb84b7625dd622002343737d34ca76729464adf7e54c3f3844090ed4c",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field",
+            "split",
+            "strip",
+            "description"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [
+            "split",
+            "strip",
+            "description"
+          ],
+          "mapping_row_count": 3,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 3,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 3,
+          "col1_values_found_in_source_columns": 3,
+          "name": "organizations_organization_mapping.csv",
+          "object_type": "organization",
+          "expected_source": "organizations.csv",
+          "source_found": true
+        }
+      ],
+      "other_files": [],
+      "sources_without_mapping": [],
+      "mappings_without_source": [],
+      "subdirectories": [],
+      "observed": {
+        "note": "observed behaviour at this commit; NOT an approved expected result",
+        "status": "ok",
+        "input_format": "csv",
+        "custom_transforms_used": false,
+        "objects_before_linking": {
+          "location": 3,
+          "organization": 2
+        },
+        "objects_before_linking_total": 5,
+        "top_level_objects_after_linking": {
+          "location": 0,
+          "organization": 2
+        },
+        "output_objects_after_linking": 2,
+        "distinct_ids_after_linking": {
+          "location": 0,
+          "organization": 2
+        }
+      },
+      "test_references": [
+        {
+          "file": "tests\\test_transformer.py",
+          "line": 100
+        }
+      ],
+      "flags": [],
+      "ticket_notes": [],
+      "classification": "unconfirmed",
+      "permission_status": "unconfirmed",
+      "intended_purpose": "unconfirmed",
+      "responsible_reviewer": null,
+      "approved_expected_results": null
+    },
+    {
+      "id": "sal_example",
+      "kind": "directory",
+      "path": "data/sal_example",
+      "source_files": [
+        {
+          "name": "sallocations.csv",
+          "format": "csv",
+          "bytes": 1791,
+          "sha256": "14d2ffa7d7eb8d4efea34997fb27ba8265628e2635701a3b99ebd12919052201",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "id",
+            "organization_id",
+            "name",
+            "alternate_name",
+            "description",
+            "transportation",
+            "latitude",
+            "longitude"
+          ],
+          "column_count": 8,
+          "data_rows": 10,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 10
+          }
+        },
+        {
+          "name": "salorganizations.csv",
+          "format": "csv",
+          "bytes": 2937,
+          "sha256": "d02e4616ec228693639f7f5dcad8ad81acac3a2c2c37f75897e0928fa2b455c1",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "id",
+            "name",
+            "alternate_name",
+            "description",
+            "email",
+            "url",
+            "tax_status",
+            "tax_id",
+            "year_incorporated",
+            "legal_status"
+          ],
+          "column_count": 10,
+          "data_rows": 10,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 10
+          }
+        },
+        {
+          "name": "salservices.csv",
+          "format": "csv",
+          "bytes": 4246,
+          "sha256": "0e7addb64737034121ef17a15b4d1a2688f5ef5ef8e0a67e8acc48d390c98d82",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "id",
+            "organization_id",
+            "program_id",
+            "name",
+            "alternate_name",
+            "description",
+            "url",
+            "email",
+            "status",
+            "interpretation_services",
+            "application_process",
+            "wait_time",
+            "fees",
+            "accreditations",
+            "licenses",
+            "taxonomy_ids"
+          ],
+          "column_count": 16,
+          "data_rows": 13,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 13
+          }
+        },
+        {
+          "name": "salservicesatlocation.csv",
+          "format": "csv",
+          "bytes": 1508,
+          "sha256": "8797da345e3ecdb1d7fc669d0893f62a33246a9bd287c63cc86c4f9e07b7623b",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "id",
+            "service_id",
+            "location_id",
+            "description"
+          ],
+          "column_count": 4,
+          "data_rows": 13,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 13
+          }
+        }
+      ],
+      "mapping_files": [
+        {
+          "format": "csv",
+          "bytes": 550,
+          "sha256": "abe2529c73cf9f8a888678b2a90feabbceb2f3faa71dbfb2db9af40646bd4677",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field",
+            "split",
+            "strip"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [
+            "split",
+            "strip"
+          ],
+          "mapping_row_count": 4,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 4,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 4,
+          "col1_values_found_in_source_columns": 4,
+          "name": "sallocations_location_mapping.csv",
+          "object_type": "location",
+          "expected_source": "sallocations.csv",
+          "source_found": true
+        },
+        {
+          "format": "csv",
+          "bytes": 1304,
+          "sha256": "58c44d8a463076ce18f2ae5d60269549da45ba34c6f15b5b94ba5df4bff926ab",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field",
+            "split",
+            "strip",
+            "description"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [
+            "split",
+            "strip",
+            "description"
+          ],
+          "mapping_row_count": 4,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 4,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 4,
+          "col1_values_found_in_source_columns": 4,
+          "name": "salorganizations_organization_mapping.csv",
+          "object_type": "organization",
+          "expected_source": "salorganizations.csv",
+          "source_found": true
+        },
+        {
+          "format": "csv",
+          "bytes": 720,
+          "sha256": "1ece789e53ea5993a28981b3e497947f4efa54dbb268b9696332a63c3bf83585",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field",
+            "split",
+            "strip",
+            "description"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [
+            "split",
+            "strip",
+            "description"
+          ],
+          "mapping_row_count": 4,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 4,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 4,
+          "col1_values_found_in_source_columns": 4,
+          "name": "salservices_service_mapping.csv",
+          "object_type": "service",
+          "expected_source": "salservices.csv",
+          "source_found": true
+        },
+        {
+          "format": "csv",
+          "bytes": 391,
+          "sha256": "a3f53afdd1e8433ad364717e3a238a28ac6fc1cdda71de3b89191aebac437980",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field",
+            "split",
+            "strip",
+            "description"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [
+            "split",
+            "strip",
+            "description"
+          ],
+          "mapping_row_count": 3,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 3,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 3,
+          "col1_values_found_in_source_columns": 3,
+          "name": "salservicesatlocation_servicesatlocation_mapping.csv",
+          "object_type": "servicesatlocation",
+          "expected_source": "salservicesatlocation.csv",
+          "source_found": true
+        }
+      ],
+      "other_files": [],
+      "sources_without_mapping": [],
+      "mappings_without_source": [],
+      "subdirectories": [],
+      "observed": {
+        "note": "observed behaviour at this commit; NOT an approved expected result",
+        "status": "ok",
+        "input_format": "csv",
+        "custom_transforms_used": false,
+        "objects_before_linking": {
+          "location": 10,
+          "organization": 10,
+          "service": 13,
+          "service_at_location": 13
+        },
+        "objects_before_linking_total": 46,
+        "top_level_objects_after_linking": {
+          "location": 0,
+          "organization": 10,
+          "service": 0,
+          "service_at_location": 0
+        },
+        "output_objects_after_linking": 10,
+        "distinct_ids_after_linking": {
+          "location": 0,
+          "organization": 10,
+          "service": 0,
+          "service_at_location": 0
+        }
+      },
+      "test_references": [],
+      "flags": [],
+      "ticket_notes": [],
+      "classification": "unconfirmed",
+      "permission_status": "unconfirmed",
+      "intended_purpose": "unconfirmed",
+      "responsible_reviewer": null,
+      "approved_expected_results": null
+    },
+    {
+      "id": "sanity_check",
+      "kind": "directory",
+      "path": "data/sanity_check",
+      "source_files": [
+        {
+          "name": "orgs.csv",
+          "format": "csv",
+          "bytes": 212,
+          "sha256": "4aa2e6069f561c43941de16068a7dde02f3ddd09ce1faacdcce677b38faeb0e7",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "ID",
+            "Name",
+            "Description",
+            "Status",
+            "Languages",
+            "Phone1",
+            "Phone2",
+            "Phone1Type",
+            "Phone2Type",
+            "Feature1",
+            "Feature2",
+            "Tags"
+          ],
+          "column_count": 12,
+          "data_rows": 1,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 1
+          }
+        },
+        {
+          "name": "programs.csv",
+          "format": "csv",
+          "bytes": 38,
+          "sha256": "7cd66e93e1a991206f03e9e9630eb613910b8524befdc863923d7bf140bb1cc0",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "ID",
+            "ServiceID",
+            "Name"
+          ],
+          "column_count": 3,
+          "data_rows": 1,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 1
+          }
+        },
+        {
+          "name": "services.csv",
+          "format": "csv",
+          "bytes": 49,
+          "sha256": "6ee3c88591ec77b2510a227f643dfa6bcc60f9d423f0d01a5a267d55dd27d8fe",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "ID",
+            "OrgID",
+            "Name"
+          ],
+          "column_count": 3,
+          "data_rows": 2,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 2
+          }
+        }
+      ],
+      "mapping_files": [
+        {
+          "format": "csv",
+          "bytes": 296,
+          "sha256": "3099801c44a5b3b3c82365a232e80bd2c6a8c0dadf90969e6f91e9a56f7fab6d",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field",
+            "split",
+            "strip",
+            "description"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [
+            "split",
+            "strip",
+            "description"
+          ],
+          "mapping_row_count": 8,
+          "filter_row_interpreted_as_filter": true,
+          "filter_column": "Status",
+          "referenced_input_field_count": 11,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 0,
+          "col1_values_found_in_source_columns": 11,
+          "filter_column_in_source": true,
+          "filter_matching_rows": 1,
+          "name": "orgs_organization_mapping.csv",
+          "object_type": "organization",
+          "expected_source": "orgs.csv",
+          "source_found": true
+        },
+        {
+          "format": "csv",
+          "bytes": 102,
+          "sha256": "0f8a611de0d88ff89c67266bd50e9df76a0650bae696d96458010992a4169dd9",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field",
+            "split",
+            "strip",
+            "description"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [
+            "split",
+            "strip",
+            "description"
+          ],
+          "mapping_row_count": 3,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 3,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 0,
+          "col1_values_found_in_source_columns": 3,
+          "name": "programs_program_mapping.csv",
+          "object_type": "program",
+          "expected_source": "programs.csv",
+          "source_found": true
+        },
+        {
+          "format": "csv",
+          "bytes": 103,
+          "sha256": "64f3a3321adba7e7bdd9334dff7daf82f88d7579c25a432fc9968b6f6d35ad7e",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field",
+            "split",
+            "strip",
+            "description"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [
+            "split",
+            "strip",
+            "description"
+          ],
+          "mapping_row_count": 3,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 3,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 0,
+          "col1_values_found_in_source_columns": 3,
+          "name": "services_service_mapping.csv",
+          "object_type": "service",
+          "expected_source": "services.csv",
+          "source_found": true
+        }
+      ],
+      "other_files": [],
+      "sources_without_mapping": [],
+      "mappings_without_source": [],
+      "subdirectories": [],
+      "observed": {
+        "note": "observed behaviour at this commit; NOT an approved expected result",
+        "status": "ok",
+        "input_format": "csv",
+        "custom_transforms_used": false,
+        "objects_before_linking": {
+          "organization": 1,
+          "program": 1,
+          "service": 2
+        },
+        "objects_before_linking_total": 4,
+        "top_level_objects_after_linking": {
+          "organization": 1,
+          "program": 0,
+          "service": 0
+        },
+        "output_objects_after_linking": 1,
+        "distinct_ids_after_linking": {
+          "organization": 1,
+          "program": 0,
+          "service": 0
+        }
+      },
+      "test_references": [
+        {
+          "file": "tests\\test_sanity_check.py",
+          "line": 30
+        },
+        {
+          "file": "tests\\test_transformer.py",
+          "line": 145
+        },
+        {
+          "file": "tests\\test_transformer.py",
+          "line": 155
+        },
+        {
+          "file": "README.md",
+          "line": 87
+        },
+        {
+          "file": "README.md",
+          "line": 92
+        }
+      ],
+      "flags": [],
+      "ticket_notes": [],
+      "classification": "unconfirmed",
+      "permission_status": "unconfirmed",
+      "intended_purpose": "unconfirmed",
+      "responsible_reviewer": null,
+      "approved_expected_results": null
+    },
+    {
+      "id": "services",
+      "kind": "directory",
+      "path": "data/services",
+      "source_files": [
+        {
+          "name": "services.csv",
+          "format": "csv",
+          "bytes": 4246,
+          "sha256": "0e7addb64737034121ef17a15b4d1a2688f5ef5ef8e0a67e8acc48d390c98d82",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "id",
+            "organization_id",
+            "program_id",
+            "name",
+            "alternate_name",
+            "description",
+            "url",
+            "email",
+            "status",
+            "interpretation_services",
+            "application_process",
+            "wait_time",
+            "fees",
+            "accreditations",
+            "licenses",
+            "taxonomy_ids"
+          ],
+          "column_count": 16,
+          "data_rows": 13,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 13
+          }
+        }
+      ],
+      "mapping_files": [
+        {
+          "format": "csv",
+          "bytes": 704,
+          "sha256": "484b1bbe6221c09d37a25b1788d46c9812016a9e53f89d1c8c03744c72969afd",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field",
+            "split",
+            "strip",
+            "description"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [
+            "split",
+            "strip",
+            "description"
+          ],
+          "mapping_row_count": 12,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 12,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 12,
+          "col1_values_found_in_source_columns": 12,
+          "name": "services_service_mapping.csv",
+          "object_type": "service",
+          "expected_source": "services.csv",
+          "source_found": true
+        }
+      ],
+      "other_files": [],
+      "sources_without_mapping": [],
+      "mappings_without_source": [],
+      "subdirectories": [],
+      "observed": {
+        "note": "observed behaviour at this commit; NOT an approved expected result",
+        "status": "ok",
+        "input_format": "csv",
+        "custom_transforms_used": false,
+        "objects_before_linking": {
+          "service": 13
+        },
+        "objects_before_linking_total": 13,
+        "top_level_objects_after_linking": {
+          "service": 13
+        },
+        "output_objects_after_linking": 13,
+        "distinct_ids_after_linking": {
+          "service": 13
+        }
+      },
+      "test_references": [],
+      "flags": [],
+      "ticket_notes": [],
+      "classification": "unconfirmed",
+      "permission_status": "unconfirmed",
+      "intended_purpose": "unconfirmed",
+      "responsible_reviewer": null,
+      "approved_expected_results": null
+    },
+    {
+      "id": "simple_mapping",
+      "kind": "directory",
+      "path": "data/simple_mapping",
+      "source_files": [
+        {
+          "name": "organizations.csv",
+          "format": "csv",
+          "bytes": 2937,
+          "sha256": "d02e4616ec228693639f7f5dcad8ad81acac3a2c2c37f75897e0928fa2b455c1",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "id",
+            "name",
+            "alternate_name",
+            "description",
+            "email",
+            "url",
+            "tax_status",
+            "tax_id",
+            "year_incorporated",
+            "legal_status"
+          ],
+          "column_count": 10,
+          "data_rows": 10,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 10
+          }
+        }
+      ],
+      "mapping_files": [
+        {
+          "format": "csv",
+          "bytes": 85,
+          "sha256": "88db186cd9de6f19b76ba2931a1deef88db7ada45b940c13d74e9b13be34eec5",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "input_file_col",
+            "path"
+          ],
+          "header_layout": "path_second",
+          "header_matches_template_exactly": false,
+          "extra_header_columns": [],
+          "mapping_row_count": 2,
+          "filter_row_interpreted_as_filter": true,
+          "filter_column": "entity_id",
+          "referenced_input_field_count": 2,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 0,
+          "col1_values_found_in_source_columns": 2,
+          "filter_column_in_source": false,
+          "filter_matching_rows": null,
+          "name": "organizations_organization_mapping.csv",
+          "object_type": "organization",
+          "expected_source": "organizations.csv",
+          "source_found": true
+        }
+      ],
+      "other_files": [],
+      "sources_without_mapping": [],
+      "mappings_without_source": [],
+      "subdirectories": [],
+      "observed": {
+        "note": "observed behaviour at this commit; NOT an approved expected result",
+        "status": "ok",
+        "input_format": "csv",
+        "custom_transforms_used": false,
+        "objects_before_linking": {
+          "organization": 0
+        },
+        "objects_before_linking_total": 0,
+        "top_level_objects_after_linking": {
+          "organization": 0
+        },
+        "output_objects_after_linking": 0,
+        "distinct_ids_after_linking": {
+          "organization": 0
+        }
+      },
+      "test_references": [
+        {
+          "file": "tests\\test_transformer.py",
+          "line": 37
+        }
+      ],
+      "flags": [
+        "filter_column_not_in_source",
+        "filter_matches_no_source_rows",
+        "mapping_header_not_path_first",
+        "observed_zero_output_objects"
+      ],
+      "ticket_notes": [
+        "ticket: layout mismatch; reversed legacy column layout",
+        "ticket: test_empty_input currently expects zero records from this dataset"
+      ],
+      "classification": "unconfirmed",
+      "permission_status": "unconfirmed",
+      "intended_purpose": "unconfirmed",
+      "responsible_reviewer": null,
+      "approved_expected_results": null
+    },
+    {
+      "id": "split_test",
+      "kind": "directory",
+      "path": "data/split_test",
+      "source_files": [
+        {
+          "name": "services.csv",
+          "format": "csv",
+          "bytes": 2775,
+          "sha256": "d6c976fba69629beb5b890071ff191a73d45acf49ef9e324640d295e2ad628f6",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "entity_id",
+            "organization_name",
+            "address_record_id",
+            "address_type",
+            "address_line_1",
+            "",
+            "city",
+            "county",
+            "state",
+            "postal_code",
+            "phone",
+            "primary_license",
+            "npi",
+            "hoursoperation",
+            "primary_taxonomy_id",
+            "taxonomies",
+            "accessibility",
+            "behavioral_health_services",
+            "caresettings",
+            "languages_spoken",
+            "fees",
+            "population_served",
+            "gbp_id",
+            "hash_value",
+            "source",
+            "created_at",
+            "upsert_reason",
+            "job_id",
+            "processing_date",
+            "processing_status"
+          ],
+          "column_count": 30,
+          "data_rows": 7,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 7
+          }
+        }
+      ],
+      "mapping_files": [
+        {
+          "format": "csv",
+          "bytes": 613,
+          "sha256": "426882aca158692bdb357c686a6e072a3644f8423696869f84b8c383012815b0",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field",
+            "split",
+            "strip",
+            "description"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [
+            "split",
+            "strip",
+            "description"
+          ],
+          "mapping_row_count": 3,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 3,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 0,
+          "col1_values_found_in_source_columns": 3,
+          "name": "services_service_mapping.csv",
+          "object_type": "service",
+          "expected_source": "services.csv",
+          "source_found": true
+        }
+      ],
+      "other_files": [],
+      "sources_without_mapping": [],
+      "mappings_without_source": [],
+      "subdirectories": [],
+      "observed": {
+        "note": "observed behaviour at this commit; NOT an approved expected result",
+        "status": "ok",
+        "input_format": "csv",
+        "custom_transforms_used": false,
+        "objects_before_linking": {
+          "service": 7
+        },
+        "objects_before_linking_total": 7,
+        "top_level_objects_after_linking": {
+          "service": 7
+        },
+        "output_objects_after_linking": 7,
+        "distinct_ids_after_linking": {
+          "service": 7
+        }
+      },
+      "test_references": [
+        {
+          "file": "tests\\test_sanity_check.py",
+          "line": 106
+        },
+        {
+          "file": "tests\\test_transformer.py",
+          "line": 47
+        }
+      ],
+      "flags": [],
+      "ticket_notes": [],
+      "classification": "unconfirmed",
+      "permission_status": "unconfirmed",
+      "intended_purpose": "unconfirmed",
+      "responsible_reviewer": null,
+      "approved_expected_results": null
+    },
+    {
+      "id": "transform_test",
+      "kind": "directory",
+      "path": "data/transform_test",
+      "source_files": [
+        {
+          "name": "organizations.csv",
+          "format": "csv",
+          "bytes": 75,
+          "sha256": "e7aa6f391f0b5366fc45a7ecbebb4130018e652362b29496253cc0e21ee87cd2",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "id",
+            "name",
+            "phone",
+            "tags"
+          ],
+          "column_count": 4,
+          "data_rows": 1,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 1
+          }
+        }
+      ],
+      "mapping_files": [
+        {
+          "format": "csv",
+          "bytes": 149,
+          "sha256": "91e286548436cc0edb6752af50f42102e8411645c6cfb045d011b5ebbc5981ac",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_field",
+            "split",
+            "strip",
+            "transform"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": false,
+          "extra_header_columns": [
+            "split",
+            "strip",
+            "transform"
+          ],
+          "mapping_row_count": 4,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 4,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 3,
+          "col1_values_found_in_source_columns": 4,
+          "name": "organizations_organization_mapping.csv",
+          "object_type": "organization",
+          "expected_source": "organizations.csv",
+          "source_found": true
+        }
+      ],
+      "other_files": [
+        {
+          "name": "transforms.py",
+          "bytes": 678,
+          "sha256": "0bc9a99a9248a8492c1416478e2ac198992a47a25ffaffc23c45809012a68fbb"
+        }
+      ],
+      "sources_without_mapping": [],
+      "mappings_without_source": [],
+      "subdirectories": [],
+      "observed": {
+        "note": "observed behaviour at this commit; NOT an approved expected result",
+        "status": "ok",
+        "input_format": "csv",
+        "custom_transforms_used": true,
+        "objects_before_linking": {
+          "organization": 1
+        },
+        "objects_before_linking_total": 1,
+        "top_level_objects_after_linking": {
+          "organization": 1
+        },
+        "output_objects_after_linking": 1,
+        "distinct_ids_after_linking": {
+          "organization": 1
+        }
+      },
+      "test_references": [
+        {
+          "file": "tests\\test_custom_transform.py",
+          "line": 17
+        }
+      ],
+      "flags": [],
+      "ticket_notes": [],
+      "classification": "unconfirmed",
+      "permission_status": "unconfirmed",
+      "intended_purpose": "unconfirmed",
+      "responsible_reviewer": null,
+      "approved_expected_results": null
+    },
+    {
+      "id": "visionlink",
+      "kind": "directory",
+      "path": "data/visionlink",
+      "source_files": [
+        {
+          "name": "visionlinkorg.csv",
+          "format": "csv",
+          "bytes": 8863,
+          "sha256": "49d108db046a3b360e233b01571b3f63a7051c1f8d04b5df0676a6c69dc5ffff",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "Agency_Id",
+            "Agency_CreateAccountId",
+            "Agency_CreatePortalId",
+            "Agency_CreateFormsetDeploymentId",
+            "Agency_EditAccountId",
+            "Agency_EditPortalId",
+            "Agency_EditFormsetDeploymentId",
+            "Agency_CreateStamp",
+            "Agency_EditStamp",
+            "Agency_AuditStamp",
+            "Agency_Status",
+            "AgencyOption_Status",
+            "AgencyOption_RecordOwner",
+            "AgencyAccount_AgencyAccount",
+            "AgencyAccount_AgencyAccount_Both",
+            "AgencySystem_EditNotes",
+            "AgencyContact_AgencyContact",
+            "AgencyContact_AgencyContact_Both",
+            "AgencyUpdatefrequency_UpdateFrequency",
+            "AgencySystem_DateOfLastCompleteUpdate",
+            "AgencySystem_Name",
+            "AgencySystem_Aka",
+            "AgencySystem_Description",
+            "AgencyAddressus_AgencyAddressus_id",
+            "AgencyAddressus_AgencyAddressus_address_1",
+            "AgencyAddressus_AgencyAddressus_address_2",
+            "AgencyAddressus_AgencyAddressus_city",
+            "AgencyAddressus_AgencyAddressus_county",
+            "AgencyAddressus_AgencyAddressus_state",
+            "AgencyAddressus_AgencyAddressus_zip",
+            "AgencyAddressus_AgencyAddressus_country",
+            "AgencyAddressus_AgencyAddressus_notes",
+            "AgencyAddressus_AgencyAddressus_latitude",
+            "AgencyAddressus_AgencyAddressus_longitude",
+            "AgencyAddressus_MailingAddress_id",
+            "AgencyAddressus_MailingAddress_address_1",
+            "AgencyAddressus_MailingAddress_address_2",
+            "AgencyAddressus_MailingAddress_city",
+            "AgencyAddressus_MailingAddress_county",
+            "AgencyAddressus_MailingAddress_state",
+            "AgencyAddressus_MailingAddress_zip",
+            "AgencyAddressus_MailingAddress_country",
+            "AgencyAddressus_MailingAddress_notes",
+            "AgencyAddressus_MailingAddress_latitude",
+            "AgencyAddressus_MailingAddress_longitude",
+            "AgencyAddressus_ConfidentialAddress_id",
+            "AgencyAddressus_ConfidentialAddress_address_1",
+            "AgencyAddressus_ConfidentialAddress_address_2",
+            "AgencyAddressus_ConfidentialAddress_city",
+            "AgencyAddressus_ConfidentialAddress_county",
+            "AgencyAddressus_ConfidentialAddress_state",
+            "AgencyAddressus_ConfidentialAddress_zip",
+            "AgencyAddressus_ConfidentialAddress_country",
+            "AgencyAddressus_ConfidentialAddress_notes",
+            "AgencyAddressus_ConfidentialAddress_latitude",
+            "AgencyAddressus_ConfidentialAddress_longitude",
+            "AgencyAddressus_ConfidentialMailingAddress_id",
+            "AgencyAddressus_ConfidentialMailingAddress_address_1",
+            "AgencyAddressus_ConfidentialMailingAddress_address_2",
+            "AgencyAddressus_ConfidentialMailingAddress_city",
+            "AgencyAddressus_ConfidentialMailingAddress_county",
+            "AgencyAddressus_ConfidentialMailingAddress_state",
+            "AgencyAddressus_ConfidentialMailingAddress_zip",
+            "AgencyAddressus_ConfidentialMailingAddress_country",
+            "AgencyAddressus_ConfidentialMailingAddress_notes",
+            "AgencyAddressus_ConfidentialMailingAddress_latitude",
+            "AgencyAddressus_ConfidentialMailingAddress_longitude",
+            "AgencySystem_Directorname",
+            "AgencySystem_Directorphonenumber",
+            "AgencySystem_Directoremail",
+            "AgencySystem_Directorpositiontitle",
+            "AgencySystem_Directorphonenumberext",
+            "AgencySystem_Websiteurl",
+            "AgencySystem_EmailAddress",
+            "AgencySystem_Fax",
+            "AgencySystem_HotlinePhoneNumber",
+            "AgencySystem_TddPhone",
+            "AgencySystem_Contactname",
+            "AgencySystem_Contacttitle",
+            "AgencySystem_Contactphonenumber",
+            "AgencySystem_ContactPhoneNumberExt",
+            "AgencySystem_ContactEmail",
+            "AgencySystem_ContactName2",
+            "AgencySystem_ContactTitle2",
+            "AgencySystem_ContactPhoneNumber2",
+            "AgencySystem_ContactPhoneNumberExt2",
+            "AgencySystem_ContactEmail2",
+            "AgencySystem_ContactName3",
+            "AgencySystem_ContactTitle3",
+            "AgencySystem_ContactPhoneNumber3",
+            "AgencySystem_ContactPhoneNumberExt3",
+            "AgencySystem_ContactEmail3",
+            "AgencyHoursofoperation_ModuleHoursofoperation",
+            "AgencySystem_HoursOfOperation",
+            "AgencySystem_YearOfIncorporation",
+            "AgencySystem_TaxId",
+            "AgencyOption_AgencyType",
+            "AgencyOption_LanguagesOtherThanEnglish",
+            "AgencySystem_DateOfLastInterimModificationPartialUpdate"
+          ],
+          "column_count": 99,
+          "data_rows": 3,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 3
+          }
+        },
+        {
+          "name": "visionlinkservice.csv",
+          "format": "csv",
+          "bytes": 18088,
+          "sha256": "f737639702afb3c839fee05db5e056448ccc0fab81d3d529c9d2f234feb85cc8",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "Agency_Id",
+            "Service_Id",
+            "Service_CreateAccountId",
+            "Service_CreatePortalId",
+            "Service_CreateFormsetDeploymentId",
+            "Service_EditAccountId",
+            "Service_EditPortalId",
+            "Service_EditFormsetDeploymentId",
+            "Service_CreateStamp",
+            "Service_EditStamp",
+            "Service_AuditStamp",
+            "Service_Status",
+            "ServiceOption_Status",
+            "ServiceOption_RecordOwner",
+            "ServiceAccount_ServiceAccount",
+            "ServiceAccount_ServiceAccount_Both",
+            "ServiceSystem_EditNotes",
+            "ServiceSystem_StaffNotes",
+            "ServiceContact_ServiceContact",
+            "ServiceContact_ServiceContact_Both",
+            "ServiceUpdatefrequency_UpdateFrequency",
+            "ServiceSystem_DateOfLastCompleteUpdate",
+            "ServiceAccount_ServiceContact",
+            "ServiceAccount_ServiceContact_Both",
+            "ServiceSystem_Name",
+            "ServiceSystem_Aka",
+            "ServiceSystem_Description",
+            "ServiceSystem_Eligibility",
+            "ServiceSystem_ApplicationintakeProcess",
+            "ServiceSystem_DocumentsRequired",
+            "ServiceSystem_FeeStructure",
+            "ServiceTaxonomy_ModuleServicepost",
+            "ServiceOption_EligibilityFocusPopulations",
+            "ServiceOption_EligibilityAges",
+            "ServiceOption_EligibilityDisabilitesHealth",
+            "ServiceOption_EligibilityHouseholdMembers",
+            "ServiceOption_ConditionalFilter",
+            "ServiceSite_ServiceSite",
+            "ServiceSite_ServiceSite_Both",
+            "ServiceGeotagus_ServiceGeotagus",
+            "ServiceHoursofoperation_ModuleHoursofoperation",
+            "ServiceSystem_Hoursofoperation",
+            "ServiceOption_LanguagesOtherThanEnglish",
+            "ServiceSystem_AdaAccess",
+            "ServiceSystem_MethodOfPaymentAccepted",
+            "ServiceSystem_ServiceCapacityAndType",
+            "ServiceSystem_Websiteurl",
+            "ServiceSystem_EmailAddress",
+            "ServiceSystem_PhoneMain",
+            "ServiceSystem_TddPhone",
+            "ServiceSystem_Fax",
+            "ServiceSystem_LastEditDate"
+          ],
+          "column_count": 52,
+          "data_rows": 11,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 11
+          }
+        }
+      ],
+      "mapping_files": [
+        {
+          "format": "csv",
+          "bytes": 2475,
+          "sha256": "74a861754f892cbb43b6bf864636857094d42763d1ebdd21f857f8ee584bddf0",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field",
+            "split",
+            "strip",
+            "description"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [
+            "split",
+            "strip",
+            "description"
+          ],
+          "mapping_row_count": 22,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 39,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 0,
+          "col1_values_found_in_source_columns": 39,
+          "name": "visionlinkorg_organization_mapping.csv",
+          "object_type": "organization",
+          "expected_source": "visionlinkorg.csv",
+          "source_found": true
+        },
+        {
+          "format": "csv",
+          "bytes": 999,
+          "sha256": "bb7d49804acc5ead61d6e4d96aad3a7d3936c3984541e3794063d021c368e4a0",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field",
+            "split",
+            "strip",
+            "description"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [
+            "split",
+            "strip",
+            "description"
+          ],
+          "mapping_row_count": 11,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 14,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 0,
+          "col1_values_found_in_source_columns": 14,
+          "name": "visionlinkservice_service_mapping.csv",
+          "object_type": "service",
+          "expected_source": "visionlinkservice.csv",
+          "source_found": true
+        }
+      ],
+      "other_files": [],
+      "sources_without_mapping": [],
+      "mappings_without_source": [],
+      "subdirectories": [],
+      "observed": {
+        "note": "observed behaviour at this commit; NOT an approved expected result",
+        "status": "ok",
+        "input_format": "csv",
+        "custom_transforms_used": false,
+        "objects_before_linking": {
+          "organization": 3,
+          "service": 11
+        },
+        "objects_before_linking_total": 14,
+        "top_level_objects_after_linking": {
+          "organization": 3,
+          "service": 0
+        },
+        "output_objects_after_linking": 3,
+        "distinct_ids_after_linking": {
+          "organization": 3,
+          "service": 0
+        }
+      },
+      "test_references": [],
+      "flags": [],
+      "ticket_notes": [],
+      "classification": "unconfirmed",
+      "permission_status": "unconfirmed",
+      "intended_purpose": "unconfirmed",
+      "responsible_reviewer": null,
+      "approved_expected_results": null
+    },
+    {
+      "id": "wellskydata",
+      "kind": "directory",
+      "path": "data/wellskydata",
+      "source_files": [
+        {
+          "name": "breorganization.csv",
+          "format": "csv",
+          "bytes": 35176,
+          "sha256": "f05fe200d5d31605ed24e2dd1003a9c1064ba0963b1388cc4a7b82db2bc8c043",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "ID",
+            "NAME",
+            "ALTERNATE_NAME",
+            "DESCRIPTION",
+            "EMAIL",
+            "URL",
+            "WEBSITE_ADDRESS",
+            "TAX_ID",
+            "YEAR_INCORPORATED",
+            "LEGAL_STATUS",
+            "ISACTIVE",
+            "OPERATIONAL",
+            "DATE_ADDED",
+            "DATE_UPDATED",
+            "DATE_OFFICIALCHANGE",
+            "AIRS_DESIGNATION_ID",
+            "PROVIDER_MAINTAINING_ID",
+            "PROVIDER_MAINTAINING_NAME",
+            "SHOW_ON_PUBLIC_SITE",
+            "ADA_ACCESSIBLE",
+            "HOURS",
+            "PROGRAM_FEES",
+            "INTAKE_PROCEDURE",
+            "ELIGIBILITY",
+            "LANGUAGES",
+            "VOLUNTEER_OPS",
+            "ACCESSIBILITY",
+            "SHELTER_REQUIREMENTS",
+            "IS_SHELTER",
+            "PROJECT_TYPE",
+            "CONTACTS",
+            "SERVICES",
+            "LOCATIONS"
+          ],
+          "column_count": 33,
+          "data_rows": 10,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 10
+          }
+        },
+        {
+          "name": "brevlocation.csv",
+          "format": "csv",
+          "bytes": 66377,
+          "sha256": "936b5fa39fae2a62565b2c8c0167b255c600c711ad7e9b4764d4ee2a22315f18",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "ID",
+            "ORGANIZATION_ID",
+            "NAME",
+            "ALTERNATE_NAME",
+            "DESCRIPTION",
+            "DATE_ADDED",
+            "DATE_UPDATED",
+            "TRANSPORTATION",
+            "LATITUDE",
+            "LONGITUDE",
+            "WEBSITE_ADDRESS",
+            "ISACTIVE",
+            "OPERATIONAL",
+            "DATE_OFFICIALCHANGE",
+            "AIRS_DESIGNATION_ID",
+            "PROVIDER_MAINTAINING_ID",
+            "PROVIDER_MAINTAINING_NAME",
+            "SHOW_ON_PUBLIC_SITE",
+            "ADA_ACCESSIBLE",
+            "HOURS",
+            "PROGRAM_FEES",
+            "INTAKE_PROCEDURE",
+            "ELIGIBILITY",
+            "LANGUAGES",
+            "VOLUNTEER_OPS",
+            "ACCESSIBILITY",
+            "SHELTER_REQUIREMENTS",
+            "IS_SHELTER",
+            "PROJECT_TYPE",
+            "FAVORITE_CLIENT_AUTH_LIST",
+            "SERVICES",
+            "POSTAL_ADDRESS",
+            "PHYSICAL_ADDRESS",
+            "PHONES",
+            "CONTACTS",
+            "SERVICEAREAS"
+          ],
+          "column_count": 36,
+          "data_rows": 14,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 14
+          }
+        },
+        {
+          "name": "brevlocationphone.csv",
+          "format": "csv",
+          "bytes": 2143,
+          "sha256": "3166d953bf81558ab4cdbc826e9bf3f46a37c0a7dc0db9823c23af7ad62b4396",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "ID",
+            "LOCATION_ID",
+            "ORGANIZATION_ID",
+            "NUMBER",
+            "DESCRIPTION",
+            "ISACTIVE",
+            "DATE_ADDED",
+            "DATE_UPDATED",
+            "ISPRIMARY"
+          ],
+          "column_count": 9,
+          "data_rows": 23,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 23
+          }
+        },
+        {
+          "name": "brevphysicaladdress.csv",
+          "format": "csv",
+          "bytes": 1823,
+          "sha256": "9aba5782404a901fa1ba9321dd473746caa0830aca9c81fbdbefbd1c79f6c4d7",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "ID",
+            "LOCATION_ID",
+            "ATTENTION",
+            "ADDRESS_1",
+            "ADDRESS_2",
+            "ADDRESS_3",
+            "ADDRESS_4",
+            "CITY",
+            "REGION",
+            "STATE_PROVINCE",
+            "POSTAL_CODE",
+            "COUNTRY",
+            "ISACTIVE",
+            "DATE_ADDED",
+            "DATE_UPDATED",
+            "ISPRIMARY",
+            "LATITUDE",
+            "LONGITUDE"
+          ],
+          "column_count": 18,
+          "data_rows": 13,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 13
+          }
+        },
+        {
+          "name": "brevservices.csv",
+          "format": "csv",
+          "bytes": 33114,
+          "sha256": "2e127666aa44578482d16fbed17f9b7a694df2dd83656ba4638d18e4e49d8505",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "PROVIDER_SERVICE_CODE_ID",
+            "SERVICE_CODE_ID",
+            "ORGANIZATION_ID",
+            "LOCATION_ID",
+            "NAME",
+            "ALTERNATE_NAME",
+            "DESCRIPTION",
+            "TAXONOMY_DEFINITION",
+            "EMAIL",
+            "STATUS",
+            "APPLICATION_PROCESS",
+            "FEES",
+            "DATE_ADDED",
+            "DATE_UPDATED",
+            "LANGUAGES",
+            "SCHEDULE",
+            "FUNDING",
+            "ELIGIBILITY",
+            "SERVICE_AREAS",
+            "ISACTIVE",
+            "REQUIRED_DOCUMENTS"
+          ],
+          "column_count": 21,
+          "data_rows": 18,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 18
+          }
+        }
+      ],
+      "mapping_files": [
+        {
+          "format": "csv",
+          "bytes": 1087,
+          "sha256": "25a85d1f2451b115ca685c5c2ab5311d8531dfeda627992265883b1307ad0d64",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field",
+            "split",
+            "strip",
+            "description"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [
+            "split",
+            "strip",
+            "description"
+          ],
+          "mapping_row_count": 9,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 9,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 0,
+          "col1_values_found_in_source_columns": 9,
+          "name": "breorganization_organization_mapping.csv",
+          "object_type": "organization",
+          "expected_source": "breorganization.csv",
+          "source_found": true
+        },
+        {
+          "format": "csv",
+          "bytes": 698,
+          "sha256": "7d5802cc1dcb65966dd37221b85de9ccf73aa3de763fd68d316acad9ff03d3a2",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field",
+            "split",
+            "strip",
+            "columns"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [
+            "split",
+            "strip",
+            "columns"
+          ],
+          "mapping_row_count": 10,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 10,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 0,
+          "col1_values_found_in_source_columns": 10,
+          "name": "brevlocation_location_mapping.csv",
+          "object_type": "location",
+          "expected_source": "brevlocation.csv",
+          "source_found": true
+        },
+        {
+          "format": "csv",
+          "bytes": 320,
+          "sha256": "86a67177ecd0c0a361ad914575c27e86f96ee0d45ccf5013d5d6c2bba415a424",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field",
+            "split",
+            "strip",
+            "columns"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [
+            "split",
+            "strip",
+            "columns"
+          ],
+          "mapping_row_count": 4,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 4,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 0,
+          "col1_values_found_in_source_columns": 4,
+          "name": "brevlocationphone_phone_mapping.csv",
+          "object_type": "phone",
+          "expected_source": "brevlocationphone.csv",
+          "source_found": true
+        },
+        {
+          "format": "csv",
+          "bytes": 330,
+          "sha256": "fc5a5667bfd28a941b2b890b0bc5188fc64926f308a98e54e45c9828b7750ce8",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field",
+            "split",
+            "strip",
+            "columns"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [
+            "split",
+            "strip",
+            "columns"
+          ],
+          "mapping_row_count": 10,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 10,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 0,
+          "col1_values_found_in_source_columns": 10,
+          "name": "brevphysicaladdress_address_mapping.csv",
+          "object_type": "address",
+          "expected_source": "brevphysicaladdress.csv",
+          "source_found": true
+        },
+        {
+          "format": "csv",
+          "bytes": 794,
+          "sha256": "587088b7d1d6e71393aa9e108de0322a57e32efef81f921cd742b3d8cc21dcc2",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field",
+            "split",
+            "strip",
+            "description"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [
+            "split",
+            "strip",
+            "description"
+          ],
+          "mapping_row_count": 13,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 13,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 0,
+          "col1_values_found_in_source_columns": 13,
+          "name": "brevservices_service_mapping.csv",
+          "object_type": "service",
+          "expected_source": "brevservices.csv",
+          "source_found": true
+        }
+      ],
+      "other_files": [],
+      "sources_without_mapping": [],
+      "mappings_without_source": [],
+      "subdirectories": [],
+      "observed": {
+        "note": "observed behaviour at this commit; NOT an approved expected result",
+        "status": "ok",
+        "input_format": "csv",
+        "custom_transforms_used": false,
+        "objects_before_linking": {
+          "address": 13,
+          "location": 14,
+          "organization": 10,
+          "phone": 23,
+          "service": 18
+        },
+        "objects_before_linking_total": 78,
+        "top_level_objects_after_linking": {
+          "address": 0,
+          "location": 0,
+          "organization": 10,
+          "phone": 0,
+          "service": 0
+        },
+        "output_objects_after_linking": 10,
+        "distinct_ids_after_linking": {
+          "address": 0,
+          "location": 0,
+          "organization": 10,
+          "phone": 0,
+          "service": 0
+        }
+      },
+      "test_references": [],
+      "flags": [],
+      "ticket_notes": [],
+      "classification": "unconfirmed",
+      "permission_status": "unconfirmed",
+      "intended_purpose": "unconfirmed",
+      "responsible_reviewer": null,
+      "approved_expected_results": null
+    },
+    {
+      "id": "sal_example.zip",
+      "kind": "zip",
+      "path": "data/sal_example.zip",
+      "zip_bytes": 7448,
+      "zip_sha256": "dc89cc42176dc136044b3a375dd35a085a0c693c5bdf2fce1c458659a49b6831",
+      "zip_integrity_error_member": null,
+      "top_level_folder": "sal_example",
+      "source_files": [
+        {
+          "name": "sallocations.csv",
+          "format": "csv",
+          "bytes": 1780,
+          "sha256": "f6a2f451708a426961ff710a84ee3711ffc7849c1527d62eea945be4e2c11c31",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "id",
+            "organization_id",
+            "name",
+            "alternate_name",
+            "description",
+            "transportation",
+            "latitude",
+            "longitude"
+          ],
+          "column_count": 8,
+          "data_rows": 10,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 10
+          }
+        },
+        {
+          "name": "salorganizations.csv",
+          "format": "csv",
+          "bytes": 2922,
+          "sha256": "ee8e484c50acde361db1f00104a5c85b1f46e7d670c68152b17a57ae77b5688c",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "id",
+            "name",
+            "alternate_name",
+            "description",
+            "email",
+            "url",
+            "tax_status",
+            "tax_id",
+            "year_incorporated",
+            "legal_status"
+          ],
+          "column_count": 10,
+          "data_rows": 10,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 10
+          }
+        },
+        {
+          "name": "salservices.csv",
+          "format": "csv",
+          "bytes": 4228,
+          "sha256": "0673b7e28c3de5f1ce5e6678476b2f63963dd62af2f2554bcdae2eb2abe7e491",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "id",
+            "organization_id",
+            "program_id",
+            "name",
+            "alternate_name",
+            "description",
+            "url",
+            "email",
+            "status",
+            "interpretation_services",
+            "application_process",
+            "wait_time",
+            "fees",
+            "accreditations",
+            "licenses",
+            "taxonomy_ids"
+          ],
+          "column_count": 16,
+          "data_rows": 13,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 13
+          }
+        },
+        {
+          "name": "salservicesatlocation.csv",
+          "format": "csv",
+          "bytes": 1494,
+          "sha256": "794281f056a1f6b18caee87bc7eabd2b0d626696ad7b8ea9d8358f1762fa7207",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "id",
+            "service_id",
+            "location_id",
+            "description"
+          ],
+          "column_count": 4,
+          "data_rows": 13,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 13
+          }
+        }
+      ],
+      "mapping_files": [
+        {
+          "format": "csv",
+          "bytes": 550,
+          "sha256": "abe2529c73cf9f8a888678b2a90feabbceb2f3faa71dbfb2db9af40646bd4677",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field",
+            "split",
+            "strip"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [
+            "split",
+            "strip"
+          ],
+          "mapping_row_count": 4,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 4,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 4,
+          "col1_values_found_in_source_columns": 4,
+          "name": "sallocations_location_mapping.csv",
+          "object_type": "location",
+          "expected_source": "sallocations.csv",
+          "source_found": true
+        },
+        {
+          "format": "csv",
+          "bytes": 1304,
+          "sha256": "58c44d8a463076ce18f2ae5d60269549da45ba34c6f15b5b94ba5df4bff926ab",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field",
+            "split",
+            "strip",
+            "description"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [
+            "split",
+            "strip",
+            "description"
+          ],
+          "mapping_row_count": 4,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 4,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 4,
+          "col1_values_found_in_source_columns": 4,
+          "name": "salorganizations_organization_mapping.csv",
+          "object_type": "organization",
+          "expected_source": "salorganizations.csv",
+          "source_found": true
+        },
+        {
+          "format": "csv",
+          "bytes": 720,
+          "sha256": "1ece789e53ea5993a28981b3e497947f4efa54dbb268b9696332a63c3bf83585",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field",
+            "split",
+            "strip",
+            "description"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [
+            "split",
+            "strip",
+            "description"
+          ],
+          "mapping_row_count": 4,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 4,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 4,
+          "col1_values_found_in_source_columns": 4,
+          "name": "salservices_service_mapping.csv",
+          "object_type": "service",
+          "expected_source": "salservices.csv",
+          "source_found": true
+        },
+        {
+          "format": "csv",
+          "bytes": 391,
+          "sha256": "a3f53afdd1e8433ad364717e3a238a28ac6fc1cdda71de3b89191aebac437980",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field",
+            "split",
+            "strip",
+            "description"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [
+            "split",
+            "strip",
+            "description"
+          ],
+          "mapping_row_count": 3,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 3,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 3,
+          "col1_values_found_in_source_columns": 3,
+          "name": "salservicesatlocation_servicesatlocation_mapping.csv",
+          "object_type": "servicesatlocation",
+          "expected_source": "salservicesatlocation.csv",
+          "source_found": true
+        }
+      ],
+      "other_files": [],
+      "sources_without_mapping": [],
+      "mappings_without_source": [],
+      "directory_equivalence": {
+        "compared_with": "data/sal_example",
+        "identical_files": [
+          "sallocations_location_mapping.csv",
+          "salorganizations_organization_mapping.csv",
+          "salservices_service_mapping.csv",
+          "salservicesatlocation_servicesatlocation_mapping.csv"
+        ],
+        "different_files": [
+          "sallocations.csv",
+          "salorganizations.csv",
+          "salservices.csv",
+          "salservicesatlocation.csv"
+        ],
+        "different_only_in_crlf_vs_lf": [
+          "sallocations.csv",
+          "salorganizations.csv",
+          "salservices.csv",
+          "salservicesatlocation.csv"
+        ],
+        "different_beyond_line_endings": [],
+        "only_in_zip": [],
+        "only_in_directory": [],
+        "csv_differences": {
+          "sallocations.csv": {
+            "columns_missing_in_zip": [],
+            "columns_added_in_zip": [],
+            "data_rows_zip": 10,
+            "data_rows_directory": 10
+          },
+          "salorganizations.csv": {
+            "columns_missing_in_zip": [],
+            "columns_added_in_zip": [],
+            "data_rows_zip": 10,
+            "data_rows_directory": 10
+          },
+          "salservices.csv": {
+            "columns_missing_in_zip": [],
+            "columns_added_in_zip": [],
+            "data_rows_zip": 13,
+            "data_rows_directory": 13
+          },
+          "salservicesatlocation.csv": {
+            "columns_missing_in_zip": [],
+            "columns_added_in_zip": [],
+            "data_rows_zip": 13,
+            "data_rows_directory": 13
+          }
+        },
+        "fully_identical": false,
+        "equivalent_ignoring_line_endings": true
+      },
+      "observed": {
+        "note": "observed behaviour at this commit; NOT an approved expected result",
+        "status": "ok",
+        "input_format": "csv",
+        "custom_transforms_used": false,
+        "objects_before_linking": {
+          "location": 10,
+          "organization": 10,
+          "service": 13,
+          "service_at_location": 13
+        },
+        "objects_before_linking_total": 46,
+        "top_level_objects_after_linking": {
+          "location": 0,
+          "organization": 10,
+          "service": 0,
+          "service_at_location": 0
+        },
+        "output_objects_after_linking": 10,
+        "distinct_ids_after_linking": {
+          "location": 0,
+          "organization": 10,
+          "service": 0,
+          "service_at_location": 0
+        }
+      },
+      "test_references": [
+        {
+          "file": "README.md",
+          "line": 156
+        },
+        {
+          "file": "README.md",
+          "line": 175
+        }
+      ],
+      "flags": [],
+      "ticket_notes": [],
+      "classification": "unconfirmed",
+      "permission_status": "unconfirmed",
+      "intended_purpose": "unconfirmed",
+      "responsible_reviewer": null,
+      "approved_expected_results": null
+    },
+    {
+      "id": "visionlink.zip",
+      "kind": "zip",
+      "path": "data/visionlink.zip",
+      "zip_bytes": 9184,
+      "zip_sha256": "76c5a7ed1f4fce6b546ee1d3cdd0b330ef93bab6c53b3d42210d6334aa8f75b7",
+      "zip_integrity_error_member": null,
+      "top_level_folder": "visionlink",
+      "source_files": [
+        {
+          "name": "visionlinkorg.csv",
+          "format": "csv",
+          "bytes": 8863,
+          "sha256": "49d108db046a3b360e233b01571b3f63a7051c1f8d04b5df0676a6c69dc5ffff",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "Agency_Id",
+            "Agency_CreateAccountId",
+            "Agency_CreatePortalId",
+            "Agency_CreateFormsetDeploymentId",
+            "Agency_EditAccountId",
+            "Agency_EditPortalId",
+            "Agency_EditFormsetDeploymentId",
+            "Agency_CreateStamp",
+            "Agency_EditStamp",
+            "Agency_AuditStamp",
+            "Agency_Status",
+            "AgencyOption_Status",
+            "AgencyOption_RecordOwner",
+            "AgencyAccount_AgencyAccount",
+            "AgencyAccount_AgencyAccount_Both",
+            "AgencySystem_EditNotes",
+            "AgencyContact_AgencyContact",
+            "AgencyContact_AgencyContact_Both",
+            "AgencyUpdatefrequency_UpdateFrequency",
+            "AgencySystem_DateOfLastCompleteUpdate",
+            "AgencySystem_Name",
+            "AgencySystem_Aka",
+            "AgencySystem_Description",
+            "AgencyAddressus_AgencyAddressus_id",
+            "AgencyAddressus_AgencyAddressus_address_1",
+            "AgencyAddressus_AgencyAddressus_address_2",
+            "AgencyAddressus_AgencyAddressus_city",
+            "AgencyAddressus_AgencyAddressus_county",
+            "AgencyAddressus_AgencyAddressus_state",
+            "AgencyAddressus_AgencyAddressus_zip",
+            "AgencyAddressus_AgencyAddressus_country",
+            "AgencyAddressus_AgencyAddressus_notes",
+            "AgencyAddressus_AgencyAddressus_latitude",
+            "AgencyAddressus_AgencyAddressus_longitude",
+            "AgencyAddressus_MailingAddress_id",
+            "AgencyAddressus_MailingAddress_address_1",
+            "AgencyAddressus_MailingAddress_address_2",
+            "AgencyAddressus_MailingAddress_city",
+            "AgencyAddressus_MailingAddress_county",
+            "AgencyAddressus_MailingAddress_state",
+            "AgencyAddressus_MailingAddress_zip",
+            "AgencyAddressus_MailingAddress_country",
+            "AgencyAddressus_MailingAddress_notes",
+            "AgencyAddressus_MailingAddress_latitude",
+            "AgencyAddressus_MailingAddress_longitude",
+            "AgencyAddressus_ConfidentialAddress_id",
+            "AgencyAddressus_ConfidentialAddress_address_1",
+            "AgencyAddressus_ConfidentialAddress_address_2",
+            "AgencyAddressus_ConfidentialAddress_city",
+            "AgencyAddressus_ConfidentialAddress_county",
+            "AgencyAddressus_ConfidentialAddress_state",
+            "AgencyAddressus_ConfidentialAddress_zip",
+            "AgencyAddressus_ConfidentialAddress_country",
+            "AgencyAddressus_ConfidentialAddress_notes",
+            "AgencyAddressus_ConfidentialAddress_latitude",
+            "AgencyAddressus_ConfidentialAddress_longitude",
+            "AgencyAddressus_ConfidentialMailingAddress_id",
+            "AgencyAddressus_ConfidentialMailingAddress_address_1",
+            "AgencyAddressus_ConfidentialMailingAddress_address_2",
+            "AgencyAddressus_ConfidentialMailingAddress_city",
+            "AgencyAddressus_ConfidentialMailingAddress_county",
+            "AgencyAddressus_ConfidentialMailingAddress_state",
+            "AgencyAddressus_ConfidentialMailingAddress_zip",
+            "AgencyAddressus_ConfidentialMailingAddress_country",
+            "AgencyAddressus_ConfidentialMailingAddress_notes",
+            "AgencyAddressus_ConfidentialMailingAddress_latitude",
+            "AgencyAddressus_ConfidentialMailingAddress_longitude",
+            "AgencySystem_Directorname",
+            "AgencySystem_Directorphonenumber",
+            "AgencySystem_Directoremail",
+            "AgencySystem_Directorpositiontitle",
+            "AgencySystem_Directorphonenumberext",
+            "AgencySystem_Websiteurl",
+            "AgencySystem_EmailAddress",
+            "AgencySystem_Fax",
+            "AgencySystem_HotlinePhoneNumber",
+            "AgencySystem_TddPhone",
+            "AgencySystem_Contactname",
+            "AgencySystem_Contacttitle",
+            "AgencySystem_Contactphonenumber",
+            "AgencySystem_ContactPhoneNumberExt",
+            "AgencySystem_ContactEmail",
+            "AgencySystem_ContactName2",
+            "AgencySystem_ContactTitle2",
+            "AgencySystem_ContactPhoneNumber2",
+            "AgencySystem_ContactPhoneNumberExt2",
+            "AgencySystem_ContactEmail2",
+            "AgencySystem_ContactName3",
+            "AgencySystem_ContactTitle3",
+            "AgencySystem_ContactPhoneNumber3",
+            "AgencySystem_ContactPhoneNumberExt3",
+            "AgencySystem_ContactEmail3",
+            "AgencyHoursofoperation_ModuleHoursofoperation",
+            "AgencySystem_HoursOfOperation",
+            "AgencySystem_YearOfIncorporation",
+            "AgencySystem_TaxId",
+            "AgencyOption_AgencyType",
+            "AgencyOption_LanguagesOtherThanEnglish",
+            "AgencySystem_DateOfLastInterimModificationPartialUpdate"
+          ],
+          "column_count": 99,
+          "data_rows": 3,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 3
+          }
+        },
+        {
+          "name": "visionlinkservice.csv",
+          "format": "csv",
+          "bytes": 18088,
+          "sha256": "f737639702afb3c839fee05db5e056448ccc0fab81d3d529c9d2f234feb85cc8",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "Agency_Id",
+            "Service_Id",
+            "Service_CreateAccountId",
+            "Service_CreatePortalId",
+            "Service_CreateFormsetDeploymentId",
+            "Service_EditAccountId",
+            "Service_EditPortalId",
+            "Service_EditFormsetDeploymentId",
+            "Service_CreateStamp",
+            "Service_EditStamp",
+            "Service_AuditStamp",
+            "Service_Status",
+            "ServiceOption_Status",
+            "ServiceOption_RecordOwner",
+            "ServiceAccount_ServiceAccount",
+            "ServiceAccount_ServiceAccount_Both",
+            "ServiceSystem_EditNotes",
+            "ServiceSystem_StaffNotes",
+            "ServiceContact_ServiceContact",
+            "ServiceContact_ServiceContact_Both",
+            "ServiceUpdatefrequency_UpdateFrequency",
+            "ServiceSystem_DateOfLastCompleteUpdate",
+            "ServiceAccount_ServiceContact",
+            "ServiceAccount_ServiceContact_Both",
+            "ServiceSystem_Name",
+            "ServiceSystem_Aka",
+            "ServiceSystem_Description",
+            "ServiceSystem_Eligibility",
+            "ServiceSystem_ApplicationintakeProcess",
+            "ServiceSystem_DocumentsRequired",
+            "ServiceSystem_FeeStructure",
+            "ServiceTaxonomy_ModuleServicepost",
+            "ServiceOption_EligibilityFocusPopulations",
+            "ServiceOption_EligibilityAges",
+            "ServiceOption_EligibilityDisabilitesHealth",
+            "ServiceOption_EligibilityHouseholdMembers",
+            "ServiceOption_ConditionalFilter",
+            "ServiceSite_ServiceSite",
+            "ServiceSite_ServiceSite_Both",
+            "ServiceGeotagus_ServiceGeotagus",
+            "ServiceHoursofoperation_ModuleHoursofoperation",
+            "ServiceSystem_Hoursofoperation",
+            "ServiceOption_LanguagesOtherThanEnglish",
+            "ServiceSystem_AdaAccess",
+            "ServiceSystem_MethodOfPaymentAccepted",
+            "ServiceSystem_ServiceCapacityAndType",
+            "ServiceSystem_Websiteurl",
+            "ServiceSystem_EmailAddress",
+            "ServiceSystem_PhoneMain",
+            "ServiceSystem_TddPhone",
+            "ServiceSystem_Fax",
+            "ServiceSystem_LastEditDate"
+          ],
+          "column_count": 52,
+          "data_rows": 11,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 11
+          }
+        }
+      ],
+      "mapping_files": [
+        {
+          "format": "csv",
+          "bytes": 2475,
+          "sha256": "74a861754f892cbb43b6bf864636857094d42763d1ebdd21f857f8ee584bddf0",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field",
+            "split",
+            "strip",
+            "description"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [
+            "split",
+            "strip",
+            "description"
+          ],
+          "mapping_row_count": 22,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 39,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 0,
+          "col1_values_found_in_source_columns": 39,
+          "name": "visionlinkorg_organization_mapping.csv",
+          "object_type": "organization",
+          "expected_source": "visionlinkorg.csv",
+          "source_found": true
+        },
+        {
+          "format": "csv",
+          "bytes": 999,
+          "sha256": "bb7d49804acc5ead61d6e4d96aad3a7d3936c3984541e3794063d021c368e4a0",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field",
+            "split",
+            "strip",
+            "description"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [
+            "split",
+            "strip",
+            "description"
+          ],
+          "mapping_row_count": 11,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 14,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 0,
+          "col1_values_found_in_source_columns": 14,
+          "name": "visionlinkservice_service_mapping.csv",
+          "object_type": "service",
+          "expected_source": "visionlinkservice.csv",
+          "source_found": true
+        }
+      ],
+      "other_files": [],
+      "sources_without_mapping": [],
+      "mappings_without_source": [],
+      "directory_equivalence": {
+        "compared_with": "data/visionlink",
+        "identical_files": [
+          "visionlinkorg.csv",
+          "visionlinkorg_organization_mapping.csv",
+          "visionlinkservice.csv",
+          "visionlinkservice_service_mapping.csv"
+        ],
+        "different_files": [],
+        "different_only_in_crlf_vs_lf": [],
+        "different_beyond_line_endings": [],
+        "only_in_zip": [],
+        "only_in_directory": [],
+        "fully_identical": true,
+        "equivalent_ignoring_line_endings": true
+      },
+      "observed": {
+        "note": "observed behaviour at this commit; NOT an approved expected result",
+        "status": "ok",
+        "input_format": "csv",
+        "custom_transforms_used": false,
+        "objects_before_linking": {
+          "organization": 3,
+          "service": 11
+        },
+        "objects_before_linking_total": 14,
+        "top_level_objects_after_linking": {
+          "organization": 3,
+          "service": 0
+        },
+        "output_objects_after_linking": 3,
+        "distinct_ids_after_linking": {
+          "organization": 3,
+          "service": 0
+        }
+      },
+      "test_references": [],
+      "flags": [],
+      "ticket_notes": [],
+      "classification": "unconfirmed",
+      "permission_status": "unconfirmed",
+      "intended_purpose": "unconfirmed",
+      "responsible_reviewer": null,
+      "approved_expected_results": null
+    },
+    {
+      "id": "wellskydata.zip",
+      "kind": "zip",
+      "path": "data/wellskydata.zip",
+      "zip_bytes": 35634,
+      "zip_sha256": "ea30b6b32ca2ec0e3f73ccdeaad13756744c125f7dd5beaa57c4e0bb75f40ad3",
+      "zip_integrity_error_member": null,
+      "top_level_folder": "wellskydata",
+      "source_files": [
+        {
+          "name": "breorganization.csv",
+          "format": "csv",
+          "bytes": 35176,
+          "sha256": "f05fe200d5d31605ed24e2dd1003a9c1064ba0963b1388cc4a7b82db2bc8c043",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "ID",
+            "NAME",
+            "ALTERNATE_NAME",
+            "DESCRIPTION",
+            "EMAIL",
+            "URL",
+            "WEBSITE_ADDRESS",
+            "TAX_ID",
+            "YEAR_INCORPORATED",
+            "LEGAL_STATUS",
+            "ISACTIVE",
+            "OPERATIONAL",
+            "DATE_ADDED",
+            "DATE_UPDATED",
+            "DATE_OFFICIALCHANGE",
+            "AIRS_DESIGNATION_ID",
+            "PROVIDER_MAINTAINING_ID",
+            "PROVIDER_MAINTAINING_NAME",
+            "SHOW_ON_PUBLIC_SITE",
+            "ADA_ACCESSIBLE",
+            "HOURS",
+            "PROGRAM_FEES",
+            "INTAKE_PROCEDURE",
+            "ELIGIBILITY",
+            "LANGUAGES",
+            "VOLUNTEER_OPS",
+            "ACCESSIBILITY",
+            "SHELTER_REQUIREMENTS",
+            "IS_SHELTER",
+            "PROJECT_TYPE",
+            "CONTACTS",
+            "SERVICES",
+            "LOCATIONS"
+          ],
+          "column_count": 33,
+          "data_rows": 10,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 10
+          }
+        },
+        {
+          "name": "brevlocation.csv",
+          "format": "csv",
+          "bytes": 66377,
+          "sha256": "936b5fa39fae2a62565b2c8c0167b255c600c711ad7e9b4764d4ee2a22315f18",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "ID",
+            "ORGANIZATION_ID",
+            "NAME",
+            "ALTERNATE_NAME",
+            "DESCRIPTION",
+            "DATE_ADDED",
+            "DATE_UPDATED",
+            "TRANSPORTATION",
+            "LATITUDE",
+            "LONGITUDE",
+            "WEBSITE_ADDRESS",
+            "ISACTIVE",
+            "OPERATIONAL",
+            "DATE_OFFICIALCHANGE",
+            "AIRS_DESIGNATION_ID",
+            "PROVIDER_MAINTAINING_ID",
+            "PROVIDER_MAINTAINING_NAME",
+            "SHOW_ON_PUBLIC_SITE",
+            "ADA_ACCESSIBLE",
+            "HOURS",
+            "PROGRAM_FEES",
+            "INTAKE_PROCEDURE",
+            "ELIGIBILITY",
+            "LANGUAGES",
+            "VOLUNTEER_OPS",
+            "ACCESSIBILITY",
+            "SHELTER_REQUIREMENTS",
+            "IS_SHELTER",
+            "PROJECT_TYPE",
+            "FAVORITE_CLIENT_AUTH_LIST",
+            "SERVICES",
+            "POSTAL_ADDRESS",
+            "PHYSICAL_ADDRESS",
+            "PHONES",
+            "CONTACTS",
+            "SERVICEAREAS"
+          ],
+          "column_count": 36,
+          "data_rows": 14,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 14
+          }
+        },
+        {
+          "name": "brevlocationphone.csv",
+          "format": "csv",
+          "bytes": 2143,
+          "sha256": "3166d953bf81558ab4cdbc826e9bf3f46a37c0a7dc0db9823c23af7ad62b4396",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "ID",
+            "LOCATION_ID",
+            "ORGANIZATION_ID",
+            "NUMBER",
+            "DESCRIPTION",
+            "ISACTIVE",
+            "DATE_ADDED",
+            "DATE_UPDATED",
+            "ISPRIMARY"
+          ],
+          "column_count": 9,
+          "data_rows": 23,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 23
+          }
+        },
+        {
+          "name": "brevphysicaladdress.csv",
+          "format": "csv",
+          "bytes": 1823,
+          "sha256": "9aba5782404a901fa1ba9321dd473746caa0830aca9c81fbdbefbd1c79f6c4d7",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "ID",
+            "LOCATION_ID",
+            "ATTENTION",
+            "ADDRESS_1",
+            "ADDRESS_2",
+            "ADDRESS_3",
+            "ADDRESS_4",
+            "CITY",
+            "REGION",
+            "STATE_PROVINCE",
+            "POSTAL_CODE",
+            "COUNTRY",
+            "ISACTIVE",
+            "DATE_ADDED",
+            "DATE_UPDATED",
+            "ISPRIMARY",
+            "LATITUDE",
+            "LONGITUDE"
+          ],
+          "column_count": 18,
+          "data_rows": 13,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 13
+          }
+        },
+        {
+          "name": "brevservices.csv",
+          "format": "csv",
+          "bytes": 33114,
+          "sha256": "2e127666aa44578482d16fbed17f9b7a694df2dd83656ba4638d18e4e49d8505",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "PROVIDER_SERVICE_CODE_ID",
+            "SERVICE_CODE_ID",
+            "ORGANIZATION_ID",
+            "LOCATION_ID",
+            "NAME",
+            "ALTERNATE_NAME",
+            "DESCRIPTION",
+            "TAXONOMY_DEFINITION",
+            "EMAIL",
+            "STATUS",
+            "APPLICATION_PROCESS",
+            "FEES",
+            "DATE_ADDED",
+            "DATE_UPDATED",
+            "LANGUAGES",
+            "SCHEDULE",
+            "FUNDING",
+            "ELIGIBILITY",
+            "SERVICE_AREAS",
+            "ISACTIVE",
+            "REQUIRED_DOCUMENTS"
+          ],
+          "column_count": 21,
+          "data_rows": 18,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 0,
+          "row_length_minus_header_length": {
+            "0": 18
+          }
+        }
+      ],
+      "mapping_files": [
+        {
+          "format": "csv",
+          "bytes": 1087,
+          "sha256": "25a85d1f2451b115ca685c5c2ab5311d8531dfeda627992265883b1307ad0d64",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field",
+            "split",
+            "strip",
+            "description"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [
+            "split",
+            "strip",
+            "description"
+          ],
+          "mapping_row_count": 9,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 9,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 0,
+          "col1_values_found_in_source_columns": 9,
+          "name": "breorganization_organization_mapping.csv",
+          "object_type": "organization",
+          "expected_source": "breorganization.csv",
+          "source_found": true
+        },
+        {
+          "format": "csv",
+          "bytes": 698,
+          "sha256": "7d5802cc1dcb65966dd37221b85de9ccf73aa3de763fd68d316acad9ff03d3a2",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field",
+            "split",
+            "strip",
+            "columns"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [
+            "split",
+            "strip",
+            "columns"
+          ],
+          "mapping_row_count": 10,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 10,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 0,
+          "col1_values_found_in_source_columns": 10,
+          "name": "brevlocation_location_mapping.csv",
+          "object_type": "location",
+          "expected_source": "brevlocation.csv",
+          "source_found": true
+        },
+        {
+          "format": "csv",
+          "bytes": 320,
+          "sha256": "86a67177ecd0c0a361ad914575c27e86f96ee0d45ccf5013d5d6c2bba415a424",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field",
+            "split",
+            "strip",
+            "columns"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [
+            "split",
+            "strip",
+            "columns"
+          ],
+          "mapping_row_count": 4,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 4,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 0,
+          "col1_values_found_in_source_columns": 4,
+          "name": "brevlocationphone_phone_mapping.csv",
+          "object_type": "phone",
+          "expected_source": "brevlocationphone.csv",
+          "source_found": true
+        },
+        {
+          "format": "csv",
+          "bytes": 330,
+          "sha256": "fc5a5667bfd28a941b2b890b0bc5188fc64926f308a98e54e45c9828b7750ce8",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field",
+            "split",
+            "strip",
+            "columns"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [
+            "split",
+            "strip",
+            "columns"
+          ],
+          "mapping_row_count": 10,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 10,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 0,
+          "col1_values_found_in_source_columns": 10,
+          "name": "brevphysicaladdress_address_mapping.csv",
+          "object_type": "address",
+          "expected_source": "brevphysicaladdress.csv",
+          "source_found": true
+        },
+        {
+          "format": "csv",
+          "bytes": 794,
+          "sha256": "587088b7d1d6e71393aa9e108de0322a57e32efef81f921cd742b3d8cc21dcc2",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field",
+            "split",
+            "strip",
+            "description"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [
+            "split",
+            "strip",
+            "description"
+          ],
+          "mapping_row_count": 13,
+          "filter_row_interpreted_as_filter": false,
+          "referenced_input_field_count": 13,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 0,
+          "col1_values_found_in_source_columns": 13,
+          "name": "brevservices_service_mapping.csv",
+          "object_type": "service",
+          "expected_source": "brevservices.csv",
+          "source_found": true
+        }
+      ],
+      "other_files": [],
+      "sources_without_mapping": [],
+      "mappings_without_source": [],
+      "directory_equivalence": {
+        "compared_with": "data/wellskydata",
+        "identical_files": [
+          "breorganization.csv",
+          "breorganization_organization_mapping.csv",
+          "brevlocation.csv",
+          "brevlocation_location_mapping.csv",
+          "brevlocationphone.csv",
+          "brevlocationphone_phone_mapping.csv",
+          "brevphysicaladdress.csv",
+          "brevphysicaladdress_address_mapping.csv",
+          "brevservices.csv",
+          "brevservices_service_mapping.csv"
+        ],
+        "different_files": [],
+        "different_only_in_crlf_vs_lf": [],
+        "different_beyond_line_endings": [],
+        "only_in_zip": [],
+        "only_in_directory": [],
+        "fully_identical": true,
+        "equivalent_ignoring_line_endings": true
+      },
+      "observed": {
+        "note": "observed behaviour at this commit; NOT an approved expected result",
+        "status": "ok",
+        "input_format": "csv",
+        "custom_transforms_used": false,
+        "objects_before_linking": {
+          "address": 13,
+          "location": 14,
+          "organization": 10,
+          "phone": 23,
+          "service": 18
+        },
+        "objects_before_linking_total": 78,
+        "top_level_objects_after_linking": {
+          "address": 0,
+          "location": 0,
+          "organization": 10,
+          "phone": 0,
+          "service": 0
+        },
+        "output_objects_after_linking": 10,
+        "distinct_ids_after_linking": {
+          "address": 0,
+          "location": 0,
+          "organization": 10,
+          "phone": 0,
+          "service": 0
+        }
+      },
+      "test_references": [],
+      "flags": [],
+      "ticket_notes": [],
+      "classification": "unconfirmed",
+      "permission_status": "unconfirmed",
+      "intended_purpose": "unconfirmed",
+      "responsible_reviewer": null,
+      "approved_expected_results": null
+    },
+    {
+      "id": "wrongiCarol.zip",
+      "kind": "zip",
+      "path": "data/wrongiCarol.zip",
+      "zip_bytes": 5429,
+      "zip_sha256": "abb39ecf652f47c28145ae288b628aa1d899b68dc096b0626c783c067a5814a4",
+      "zip_integrity_error_member": null,
+      "top_level_folder": "iCarol",
+      "source_files": [
+        {
+          "name": "iCarolData.csv",
+          "format": "csv",
+          "bytes": 22937,
+          "sha256": "c785815a1a6cdb2dcc27cf375770fa7fef2d2eb4292558748cb4e6452be394a4",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "PublicName",
+            "AlternateName",
+            "OfficialName",
+            "TaxonomyLevelName",
+            "ParentAgency",
+            "ParentAgencyNum",
+            "RecordOwner",
+            "UniqueIDPriorSystem",
+            "PhysicalAddress1",
+            "PhysicalAddress2",
+            "PhysicalCity",
+            "PhysicalCounty",
+            "PhysicalStateProvince",
+            "PhysicalPostalCode",
+            "PhysicalCountry",
+            "PhysicalAddressIsPrivate",
+            "MailingAttentionName",
+            "MailingAddress1",
+            "MailingAddress2",
+            "MailingCity",
+            "MailingStateProvince",
+            "MailingPostalCode",
+            "MailingCountry",
+            "MailingAddressIsPrivate",
+            "OtherAddress1",
+            "OtherAddress2",
+            "OtherCity",
+            "OtherCounty",
+            "OtherStateProvince",
+            "OtherPostalCode",
+            "OtherCountry",
+            "Latitude",
+            "Longitude",
+            "HoursOfOperation",
+            "Phone1Number",
+            "Phone1Name",
+            "Phone1Description",
+            "Phone1IsPrivate",
+            "Phone1Type",
+            "Phone2Number",
+            "Phone2Name",
+            "Phone2Description",
+            "Phone2IsPrivate",
+            "Phone2Type",
+            "Phone3Number",
+            "Phone3Name",
+            "Phone3Description",
+            "Phone3IsPrivate",
+            "Phone3Type",
+            "Phone4Number",
+            "Phone4Name",
+            "Phone4Description",
+            "Phone4IsPrivate",
+            "Phone4Type",
+            "Phone5Number",
+            "Phone5name",
+            "Phone5Description",
+            "Phone5IsPrivate",
+            "Phone5Type",
+            "PhoneFax",
+            "PhoneFaxDescription",
+            "PhoneFaxIsPrivate",
+            "PhoneTTY",
+            "PhoneTTYDescription",
+            "PhoneTTYIsPrivate",
+            "PhoneTollFree",
+            "PhoneTollFreeDescription",
+            "PhoneTollFreeIsPrivate",
+            "PhoneNumberHotline",
+            "PhoneNumberHotlineDescription",
+            "PhoneNumberHotlineIsPrivate",
+            "PhoneNumberBusinessLine",
+            "PhoneNumberBusinessLineDescription",
+            "PhoneNumberBusinessLineIsPrivate",
+            "PhoneNumberOutOfArea",
+            "PhoneNumberOutOfAreaDescription",
+            "PhoneNumberOutOfAreaIsPrivate",
+            "PhoneNumberAfterHours",
+            "PhoneNumberAfterHoursDescription",
+            "PhoneNumberAfterHoursIsPrivate",
+            "EmailAddressMain",
+            "WebsiteAddress",
+            "AgencyStatus",
+            "AgencyClassification",
+            "AgencyDescription",
+            "SearchHints",
+            "CoverageArea",
+            "CoverageAreaText",
+            "Eligibility",
+            "EligibilityAdult",
+            "EligibilityChild",
+            "EligibilityFamily",
+            "EligibilityFemale",
+            "EligibilityMale",
+            "EligibilityTeen",
+            "SeniorWorkerName",
+            "SeniorWorkerTitle",
+            "SeniorWorkerEmailAddress",
+            "SeniorWorkerPhoneNumber",
+            "SeniorWorkerIsPrivate",
+            "MainContactName",
+            "MainContactTitle",
+            "MainContactEmailAddress",
+            "MainContactPhoneNumber",
+            "MainContactType",
+            "MainContactIsPrivate",
+            "LicenseAccreditation",
+            "IRSStatus",
+            "FEIN",
+            "YearIncorporated",
+            "AnnualBudgetTotal",
+            "LegalStatus",
+            "SourceOfFunds",
+            "ExcludeFromWebsite",
+            "ExcludeFromDirectory",
+            "DisabilitiesAccess",
+            "PhysicalLocationDescription",
+            "BusServiceAccess",
+            "PublicAccessTransportation",
+            "PaymentMethods",
+            "FeeStructureSource",
+            "ApplicationProcess",
+            "ResourceInfo",
+            "DocumentsRequired",
+            "LanguagesOffered",
+            "LanguagesOfferedList",
+            "AvailabilityNumberOfTimes",
+            "AvailabilityFrequency",
+            "AvailabilityPeriod",
+            "ServiceNotAlwaysAvailability",
+            "CapacityType",
+            "ServiceCapacity",
+            "NormalWaitTime",
+            "TemporaryMessage",
+            "TemporaryMessageAppears",
+            "TemporaryMessageExpires",
+            "EnteredOn",
+            "UpdatedOn",
+            "MadeInactiveOn",
+            "InternalNotes",
+            "InternalNotesForEditorsAndViewers",
+            "HighlightedResource",
+            "LastVerifiedOn",
+            "LastVerifiedByName",
+            "LastVerifiedByTitle",
+            "LastVerifiedByPhoneNumber",
+            "LastVerifiedByEmailAddress",
+            "LastVerificationApprovedBy",
+            "AvailableForDirectory",
+            "AvailableForReferral",
+            "AvailableForResearch",
+            "PreferredProvider",
+            "ConnectsToSiteNum",
+            "ConnectsToProgramNum",
+            "LanguageOfRecord",
+            "CurrentWorkflowStepCode",
+            "VolunteerOpportunities",
+            "VolunteerDuties",
+            "IsLinkOnly",
+            "ProgramAgencyNamePublic",
+            "SiteAgencyNamePublic",
+            "Categories",
+            "TaxonomyTerm",
+            "TaxonomyTerms",
+            "TaxonomyTermsNotDeactivated",
+            "TaxonomyCodes",
+            "Coverage",
+            "Hours"
+          ],
+          "column_count": 168,
+          "data_rows": 20,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 20,
+          "row_length_minus_header_length": {
+            "1": 20
+          }
+        }
+      ],
+      "mapping_files": [
+        {
+          "format": "csv",
+          "bytes": 1134,
+          "sha256": "d18879fdc7962ddf025cb8edff8882d9caa470574faef11550e962446171a5ee",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field",
+            "split",
+            "strip",
+            "description"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [
+            "split",
+            "strip",
+            "description"
+          ],
+          "mapping_row_count": 4,
+          "filter_row_interpreted_as_filter": true,
+          "filter_column": "TaxonomyLevelName",
+          "referenced_input_field_count": 4,
+          "referenced_fields_missing_from_source": [
+            "ResourceAgencyNum"
+          ],
+          "col0_values_found_in_source_columns": 0,
+          "col1_values_found_in_source_columns": 3,
+          "filter_column_in_source": true,
+          "filter_matching_rows": 0,
+          "name": "iCarolData_organization_mapping.csv",
+          "object_type": "organization",
+          "expected_source": "iCarolData.csv",
+          "source_found": true
+        }
+      ],
+      "other_files": [],
+      "sources_without_mapping": [],
+      "mappings_without_source": [],
+      "directory_equivalence": {
+        "compared_with": "data/iCarol",
+        "identical_files": [
+          "iCarolData_organization_mapping.csv"
+        ],
+        "different_files": [
+          "iCarolData.csv"
+        ],
+        "different_only_in_crlf_vs_lf": [],
+        "different_beyond_line_endings": [
+          "iCarolData.csv"
+        ],
+        "only_in_zip": [],
+        "only_in_directory": [],
+        "csv_differences": {
+          "iCarolData.csv": {
+            "columns_missing_in_zip": [
+              "ResourceAgencyNum"
+            ],
+            "columns_added_in_zip": [],
+            "data_rows_zip": 20,
+            "data_rows_directory": 20
+          }
+        },
+        "fully_identical": false,
+        "equivalent_ignoring_line_endings": false
+      },
+      "observed": {
+        "note": "observed behaviour at this commit; NOT an approved expected result",
+        "status": "error",
+        "input_format": "csv",
+        "custom_transforms_used": false,
+        "error_type": "ValueError",
+        "error_message": "Invalid mapping: these columns are referenced in 'iCarolData_organization_mapping.csv' for input 'iCarolData.csv' but do not exist in the input data: ResourceAgencyNum"
+      },
+      "test_references": [],
+      "flags": [
+        "filter_matches_no_source_rows",
+        "mapping_references_missing_source_columns",
+        "observed_error",
+        "rows_longer_than_header"
+      ],
+      "ticket_notes": [
+        "ticket: rejects a missing ResourceAgencyNum column; candidate negative case"
+      ],
+      "classification": "unconfirmed",
+      "permission_status": "unconfirmed",
+      "intended_purpose": "unconfirmed",
+      "responsible_reviewer": null,
+      "approved_expected_results": null
+    }
+  ]
+}
