@@ -2,6 +2,10 @@
 
 ## Development setup
 
+Start with the [contributor runbook](docs/contributor-runbook.md) for the Python 3.13
+install, lint, full suite, CSV/JSON CLI, API, and Compose checks. It includes
+expected responses, verification evidence, and outstanding acceptance gaps.
+
 ### Dependency setup
 
 Use Python 3.13 or newer and uv 0.11.21. Install uv with `python3 -m pip install uv==0.11.21` on macOS/Linux or `python -m pip install uv==0.11.21` on Windows. Run the following from the repository root. `uv` creates `.venv` when needed.
@@ -84,10 +88,14 @@ The API does not load uploaded Python modules; mappings requiring unavailable
 custom transforms are rejected. Local modules execute Python during import and
 must come from a trusted source.
 
-Run regression tests with `python -m pytest tests/`.
+Run regression tests with the [locked contributor commands](docs/contributor-runbook.md#install-and-check).
 
 ### Reverse Transformation
-**Reverse transform (HSDS JSON to CSV inputs).**
+**Reverse transform (HSDS JSON to CSV inputs; partial/work in progress).**
+
+Reverse transformation is non-gating for the forward contributor path. Do not
+assume lossless round trips; pilot-specific reverse requirements need separate
+fixtures and acceptance evidence.
 
 ```bash
 # macOS/Linux (bash/zsh)
@@ -103,30 +111,12 @@ The output directory is optional and defaults to `reverse_output`.
 
 ### Sanity Check
 
-To confirm that the transformer is functioning correctly, you can run it against the included `sanity_check` dataset.
-
-**Bash:**
-```bash
-uv run --locked --extra api python3 -m src.cli.main data/sanity_check
-```
-
-**Powershell:**
-```Powershell
-uv run --locked --extra api python -m src.cli.main data\sanity_check
-```
+Follow the [contributor runbook](docs/contributor-runbook.md) for both CSV and JSON
+smoke checks, output assertions, the full pytest suite, and locked Ruff.
 
 ### Unit Tests
-Run the full pytest suite with the locked development dependencies:
 
-```bash
-uv run --locked --extra api python -m pytest tests/ -v
-```
-
-Run Ruff with the version from the lock:
-
-```bash
-uv run --locked --extra api ruff check .
-```
+Use the [locked test and lint sequence](docs/contributor-runbook.md#install-and-check).
 
 ### Generate mapping template from schema (HSDS schema to CSV template).
 **From a GitHub URL**
@@ -150,7 +140,7 @@ If the target output file already exists, the command fails instead of overwriti
 ```bash
 # All Platforms
 # Start the FastAPI server
-uv run --locked --extra api uvicorn api.app:app --app-dir src --reload
+uv run --locked --extra api python -m uvicorn src.api.app:app --reload
 ```
 
 Successful transformations from both `POST /transform` (CSV or JSON ZIP uploads)
@@ -160,47 +150,8 @@ an `application/zip` response and
 
 ### Running with Docker Compose
 
-The container runs the same `src.api.app:app` module as the local `uvicorn`
-command above; `APP_MODULE` is defined once in the Dockerfile and Compose
-does not override it.
-
-```bash
-# macOS/Linux (bash/zsh)
-# Build and start the API container
-docker compose up --build -d
-
-# Verify the container is healthy
-curl --fail http://localhost:8000/health
-
-# Exercise the transform endpoint through the running container
-curl -X POST http://localhost:8000/transform \
-  -F "zip_file=@data/sal_example.zip" \
-  --output transformed.zip
-
-# Inspect logs if something looks wrong
-docker compose logs api
-
-# Tear down
-docker compose down
-```
-
-```bash
-# Windows (PowerShell/cmd)
-# Build and start the API container
-docker compose up --build -d
-
-# Verify the container is healthy
-curl.exe --fail http://localhost:8000/health
-
-# Exercise the transform endpoint through the running container
-curl.exe -X POST http://localhost:8000/transform -F "zip_file=@data/sal_example.zip" --output transformed.zip
-
-# Inspect logs if something looks wrong
-docker compose logs api
-
-# Tear down
-docker compose down
-```
+Use the [Compose runbook](docs/contributor-runbook.md#compose) for local build,
+health and transform checks, output inspection, and teardown.
 
 ### Endpoint regression tests
 
@@ -246,5 +197,5 @@ Existing-file replacement, stale-output handling, atomic publication, I/O-failur
 rollback, and artifact accounting remain BLU-23 work. This preflight does not
 promise atomic writes or enforce final HSDS ID formats.
 
-Run the focused checks with `python -m pytest tests/test_outputs.py`; run the full
-suite with `python -m pytest tests/` and lint with `uvx ruff==0.16.8 check .`.
+Run focused checks with `uv run --locked --extra api python -m pytest tests/test_outputs.py`;
+use the [runbook](docs/contributor-runbook.md#install-and-check) for full-suite and lint commands.
