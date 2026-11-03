@@ -24,7 +24,7 @@ uv run --locked --extra api python -m pytest tests/ -v
 ```
 
 Expected: Python 3.13.x, Ruff reports `All checks passed!`, and pytest succeeds.
-The baseline recorded below has 198 tests and one Starlette TestClient/httpx
+The baseline recorded below has 224 tests and one Starlette TestClient/httpx
 deprecation warning. Test counts can change with subsequent commits.
 
 `api` is an optional extra; pytest, httpx and Ruff belong to the default `dev`
@@ -129,10 +129,12 @@ JSON source/mapping files. `POST /transform/stream` takes repeated `files` parts
 with source and mapping JSON. Both formats and the streaming response are checked
 by `tests/test_api_transform.py` in the full suite.
 
-On the baseline below, ZIP uploads have a 5 MiB compressed limit; streamed JSON
-staging has a 50 MiB aggregate file-content limit. These are not end-to-end memory,
-CPU, or decompression bounds. PR #158 proposes additional ZIP extraction limits
-but was open at verification time; do not assume those limits have landed.
+On the baseline below, ZIP uploads have a 5 MiB compressed limit, 1,000 members,
+20 MiB per expanded file, 50 MiB total expanded bytes, and a 100:1 per-member
+expansion ratio. See the [ZIP contract](../README.md#running-the-api) for supported
+archives and 413/422 responses. Streamed JSON staging has a 50 MiB aggregate
+file-content limit. These are provisional defaults, not end-to-end memory or
+CPU bounds. PR #158 merged during this work and is included in the final baseline.
 Custom Python transforms are CLI-only, execute trusted local code, and must be
 supplied with `--transforms` when mappings declare them. The API rejects unavailable
 custom transforms; it does not execute uploaded Python.
@@ -175,7 +177,11 @@ image digest. No image push is part of this runbook.
 ## Verification record and remaining acceptance
 
 Verified 2026-11-03 in a new remote clone at main
-`efff0223a914f2d011e511f29670d93b41801f0c`, with only this documentation patch.
+`efff0223a914f2d011e511f29670d93b41801f0c`, then updated to merged main
+`c4669486e582a4b46a73f72e9982498f83898875` and reran sync, lint, all tests,
+CLI/API assertions, and Compose configuration with this documentation patch.
+The Docker build failure below was observed on the initial baseline; no container
+runtime result is claimed for either revision.
 Environment: Linux, CPython 3.13.5, uv 0.11.21, Docker 28.4.0, Compose v2.40.3.
 The sandbox's default Python was 3.12 and uv was 0.12.23, so checks used
 `uvx uv==0.11.21` in place of `uv` with writable `UV_CACHE_DIR`, `UV_TOOL_DIR`,
@@ -188,7 +194,7 @@ walkthrough or evidence for a released image.
 | Check | Result |
 | --- | --- |
 | Locked sync with API/default dev dependencies | PASS |
-| Full pytest suite | PASS: 198 tests; one TestClient deprecation warning |
+| Full pytest suite | PASS: 224 tests; one TestClient deprecation warning |
 | Locked Ruff | PASS |
 | CSV/JSON commands and content assertions above | PASS |
 | Corrected Uvicorn startup, live health/CSV API, ZIP contents | PASS |
