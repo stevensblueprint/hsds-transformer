@@ -165,8 +165,13 @@ def test_late_failure_cleans_staging_and_publishes_nothing(tmp_path, monkeypatch
 
         monkeypatch.setattr(outputs.json, "dump", dump)
     else:
-        def rename(*args):
-            raise OSError("injected publication failure")
+        real_rename = Path.rename
+
+        def rename(source, target):
+            if source.name == "output":
+                raise OSError("injected publication failure")
+            return real_rename(source, target)
+
         monkeypatch.setattr(Path, "rename", rename)
     with pytest.raises(ValueError if failure == "serialize" else OSError):
         save_objects_to_json([("organization", records)], output)
@@ -284,8 +289,12 @@ def test_failed_publication_restores_existing_directory_permissions(tmp_path, mo
     output.mkdir()
     output.chmod(0o755)
 
-    def rename(*args):
-        raise OSError("injected publication failure")
+    real_rename = Path.rename
+
+    def rename(source, target):
+        if source.name == "output":
+            raise OSError("injected publication failure")
+        return real_rename(source, target)
 
     monkeypatch.setattr(Path, "rename", rename)
     previous_umask = os.umask(0o077)
@@ -297,3 +306,47 @@ def test_failed_publication_restores_existing_directory_permissions(tmp_path, mo
     assert stat.S_IMODE(output.stat().st_mode) == 0o755
     assert list(output.iterdir()) == []
     assert list(tmp_path.iterdir()) == [output]
+
+
+@pytest.mark.skipif(os.name != "posix", reason="POSIX group ownership semantics")
+def test_publication_preserves_distinct_destination_group(tmp_path, monkeypatch):
+    """Keep a destination group that differs from the writer's primary group."""
+    import grp
+
+    groups = [gid for gid in os.getgroups() if gid != os.getegid()]
+    if os.geteuid() == 0:
+        groups.extend(entry.gr_gid for entry in grp.getgrall() if entry.gr_gid != os.getegid())
+    if not groups:
+        pytest.skip("No alternate group available to this user")
+    output = tmp_path / "out"
+    output.mkdir()
+    os.chown(output, -1, groups[0])
+    output.chmod(0o2750)
+    save_objects_to_json([("organization", [{"id": "one"}])], output)
+    assert output.stat().st_gid == groups[0]
+    assert stat.S_IMODE(output.stat().st_mode) == 0o2750
+
+
+@pytest.mark.skipif(os.name != "posix", reason="POSIX symlink semantics")
+def test_failed_publication_does_not_chmod_replacement_symlink(tmp_path, monkeypatch):
+    """An external symlink installed during failure must never be followed."""
+    output = tmp_path / "out"
+    output.mkdir()
+    output.chmod(0o755)
+    victim = tmp_path / "victim"
+    victim.mkdir()
+    victim.chmod(0o700)
+    real_rename = Path.rename
+
+    def rename(source, target):
+        if source.name == "output":
+            output.symlink_to(victim, target_is_directory=True)
+            raise OSError("injected publication failure")
+        return real_rename(source, target)
+
+    monkeypatch.setattr(Path, "rename", rename)
+    with pytest.raises(OSError, match="injected publication failure"):
+        save_objects_to_json([("organization", [{"id": "one"}])], output)
+    assert output.is_symlink()
+    assert stat.S_IMODE(victim.stat().st_mode) == 0o700
+    assert list(victim.iterdir()) == []

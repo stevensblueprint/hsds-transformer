@@ -49,6 +49,15 @@ def _verify_outputs(staging, filenames):
     return len(filenames)
 
 
+def _copy_directory_access(source, target):
+    """Copy POSIX group and mode onto a directory inside private staging."""
+    metadata = source.stat()
+    if os.name == "posix" and target.stat().st_gid != metadata.st_gid:
+        os.chown(target, -1, metadata.st_gid)
+    # chown can clear special mode bits, so apply the mode last.
+    target.chmod(stat.S_IMODE(metadata.st_mode))
+
+
 def save_objects_to_json(objects_data, output_dir):
     """Preflight, stage and verify all JSON before publishing the directory.
 
@@ -133,17 +142,20 @@ def save_objects_to_json(objects_data, output_dir):
             # and Windows, where rename cannot replace an existing directory.
             existed = destination.exists()
             if existed:
-                destination_mode = stat.S_IMODE(destination.stat().st_mode)
-                staging.chmod(destination_mode)
+                _copy_directory_access(destination, staging)
+                recovery = Path(staging_dir) / "recovery"
+                recovery.mkdir()
+                _copy_directory_access(destination, recovery)
                 destination.rmdir()
             try:
                 staging.rename(destination)
             except OSError:
                 if existed:
                     try:
-                        destination.mkdir()
-                        destination.chmod(destination_mode)
-                    except FileExistsError:
+                        # Rename never follows a replacement symlink. All
+                        # permission changes happened inside private staging.
+                        recovery.rename(destination)
+                    except (FileExistsError, NotADirectoryError):
                         # A concurrent external writer owns whatever appeared.
                         pass
                 raise
