@@ -1,0 +1,4 @@
+interface:
+  display_name: "Regression Test"
+  short_description: "Reproduce bugs with focused behavior tests"
+  default_prompt: "Use $regression-test to help with this Blueprint task."

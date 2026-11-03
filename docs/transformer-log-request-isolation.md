@@ -1,109 +1,81 @@
-# Transformer log: cross-request accumulation (BLU-10 prep)
+# Request-owned transformation state (BLU-10)
 
-Diagnostic note for the regression in
-`tests/test_api_transform_log_isolation.py`. This is not the BLU-10 fix. It
-changes no production code and does not clear the singleton.
+Each API transformation receives its own `TransformerLog` through an async
+FastAPI yield dependency. CSV/JSON collection building and linking receive that
+log explicitly. The dependency clears its entries in `finally`, including on
+validation errors, pipeline errors and cancellation. It stays alive through
+response consumption. The process-wide logger remains only the backwards
+compatible default for library and CLI callers; API requests neither append to
+nor clear it. API calls preserve supplied IDs and do not reset the CLI's legacy
+ID-generation counter. Concurrent CLI ID generation is outside this change.
 
-## Problem
+The existing middleware assigns the request ID to `request.state`; lifecycle
+summaries use the same ID as `X-API-REQUEST-ID`. Summaries contain route, outcome
+(exception class or completed), and entry count, not dataset contents or full
+transformation logs. A completed lifecycle does not prove the client received
+all bytes: a disconnect can be handled by the streaming stack.
 
-`src/lib/transform/logger.py` defines one module-level `transformer_log`.
-`build_collections`, `build_collections_from_json` and `searching_and_assigning`
-all append to it. The CLI calls `transformer_log.clear()` before each run. The
-API (`/transform`, `/transform/stream`) never clears it, and it can't safely
-do so, because concurrent requests share the same object. So in a long-lived
-API process, each request's log holds every earlier request's entries.
+The download response owns its archive and closes the iterator and unlinks the
+file in `finally`, even when sending response headers fails before iteration.
+The asyncio streaming wrapper shields and joins each threadpool read before
+closing its generator, including cancellation while a read is in flight. This
+uses the asyncio backend used by the configured Uvicorn server.
+The iterator's own `finally` remains. Input/output temporary directories and the
+multipart workspace `finally` remain request-local. Abrupt process termination
+and filesystem cleanup failures are not claimed to be recoverable.
 
-## Evidence (2026-10-20, local tree based on `d6a3191`)
+## Verification
 
-The probe sends two sequential `/transform` requests, each with a
-one-organization synthetic CSV dataset (`alpha`, then `beta`), through
-`TestClient` in a fresh process:
+Base: `8cccd0b53e0d1b05e7483d7041816f033fcbebd5` (current main fetched October 27).
+The original PR159 strict-xfail diagnostics were run with `--runxfail` before
+editing production code: **2 failed**, with earlier request markers retained
+by both endpoints. The updated tests remove the xfail and observe request-owned
+logs at disposal, preserving assertions on actual output content.
 
-| Point            | `len(transformer_log.entries)` | `id(transformer_log)` |
-|------------------|-------------------------------:|-----------------------|
-| before requests  | 0                              | same                  |
-| after `alpha`    | 16                             | same                  |
-| after `beta`     | 32                             | same                  |
+`tests/test_api_transform_log_isolation.py` covers both endpoints:
 
-After `beta`, the log still holds `alpha`'s lines: its `Input directory:`
-line and `organization: 1 object(s) from alpha.csv`. Each request adds exactly
-16 entries, and none are dropped. An earlier report saw growth from 25 to 50 at
-`0a719c1` with a larger dataset. That figure is historical and was not rerun.
-The absolute count depends on how many collections the dataset has, so the
-test checks request markers instead of counts.
+- sequential success, exact synthetic organization JSON and empty temp roots;
+- overlapping threaded requests synchronized between building and linking;
+- validation rejection before and after staging/building;
+- malformed ZIP or malformed JSON (the stream route does not accept archives);
+- injected linking, JSON-write and archive-write failures;
+- actual ASGI send errors before response iteration and during body sending,
+  plus task cancellation during body sending and controlled in-flight reads
+  under ASGI 2.0 and 2.4;
+- released log entries, no leftover workspaces/archives, then health and
+  successful transformation recovery;
+- lifecycle diagnostics correlated to response IDs without source markers.
 
-`--runxfail` output from the regression (stream case, run after the transform
-case in the same process):
+Tests use tiny synthetic fixtures and temporary directories. TestClient buffers
+responses; interruption tests therefore drive the ASGI app directly with failed
+send callbacks rather than pretending a closed buffered response is a network
+disconnect. They do not emulate kernel socket timing or process termination.
 
-```
-AssertionError: 2 entries from the first request leaked:
-  ['  organization: 1 object(s) from REQ-ALPHA.csv',
-   '  organization: 1 object(s) from REQ-ALPHA.json']
-```
+Follow-up review of `543bf84bdacda3a9a3a940575eb4dc1a8eb83282` found that
+those six ASGI interruption cases supplied mixed-case HTTPX header names. That
+could bypass the multipart transformation path, so their earlier passing result
+did not establish interrupted-download coverage. The corrected harness lowercases
+ASGI header names and requires a 201 response, an archive containing the exact
+ALPHA organization, a nonempty chunk for body interruption, and execution of the
+failure injection. It also checks ALPHA diagnostics before successful BETA
+recovery. With these assertions added first, all six cases failed on the original
+headers; after header correction all six passed. This was a test coverage defect;
+no production cleanup regression was reproduced.
 
-The `.csv` entry was left by a *different test*. This shows the leak spans the
-whole process, not just one client.
+Use the pinned uv from README with a writable cache:
 
-## Regression contract
-
-- Two parametrized cases (`/transform` CSV, `/transform/stream` JSON). Each
-  sends two requests whose uploaded filenames carry `REQ-ALPHA` / `REQ-BETA`.
-  Uppercase letters and hyphens never appear in temp-dir names, so a marker
-  can only reach the log through the request's own input.
-- `xfail(strict=True, raises=AssertionError)`, linked to BLU-10.
-  - Today: `XFAIL`, which keeps default CI green.
-  - When BLU-10 isolates the log: `XPASS(strict)`, which fails CI and forces the
-    marker to be removed. (This was checked with a simulated per-request
-    reset.)
-  - Preconditions (status 201, own marker present) use `pytest.fail`. A broken
-    request is therefore a real failure and is never absorbed as the expected
-    one. (This was checked by forcing a 413.)
-- When BLU-10 lands, point the assertion at the new seam (below) rather than
-  at the module global.
-
-## Proposed request-state seam (smallest)
-
-The smallest seam is to pass the log in explicitly, and have the request own
-it:
-
-```python
-# lib/transform/collections.py, json_collections.py
-def build_collections(data_directory, log: TransformerLog | None = None): ...
-def build_collections_from_json(data_directory, log: TransformerLog | None = None): ...
-def searching_and_assigning(results, log: TransformerLog | None = None): ...
-#   log = log if log is not None else transformer_log   # CLI default unchanged
-
-# api/app.py, per request
-log = TransformerLog()
-results = build_collections(input_dir, log=log)
-results = searching_and_assigning(results, log=log)
+```sh
+uv run --locked --extra api python -m pytest tests/test_api_transform_log_isolation.py -q
+uv run --locked --extra api python -m pytest tests/ -q
+uv run --locked --extra api ruff check .
+uv build
 ```
 
-- The change touches 3 library functions and 2 endpoints. The CLI keeps the
-  module default (and its existing `clear()`), so CLI behavior does not change.
-- The request owns `log`, and the log is discarded once the response is built.
-  The test can then assert on the per-request log, for example by exposing it
-  through a small helper or a `request.state` attribute. It no longer needs to
-  inspect the global.
-- An explicit parameter is preferred over a `ContextVar`. Only three call
-  sites need it, and an explicit argument stays correct if the pipeline is
-  later moved to a threadpool or a background task.
-- Out of scope here: removing the global entirely, concurrency guarantees, and
-  surfacing the log in the API response.
+## Integration boundaries
 
-## Follow-on cleanup test matrix (for BLU-10)
-
-Each row should assert two things. First, the failing request's log does not
-appear in the next successful request's log. Second, nothing the request
-created under `HSDS_TMP_DIR` is left behind.
-
-| Scenario                | How to trigger                                                    | Expected response | Log isolation        | Temp cleanup                           |
-|-------------------------|-------------------------------------------------------------------|-------------------|----------------------|----------------------------------------|
-| Malformed zip           | non-zip bytes / `BadZipFile`                                      | 422               | no entries leak      | no `hsds-input-*` left                 |
-| Malformed mapping/input | mapping references a missing column (`ValueError`)                | 422               | partial log discarded| input dir removed                      |
-| Transformation failure  | monkeypatch `searching_and_assigning` to raise                    | 500               | partial log discarded| input dir removed                      |
-| Write failure           | monkeypatch `save_objects_to_json` / zip write to raise `OSError` | 500               | partial log discarded| output dir + `*.zip` removed           |
-| Interrupted download    | close the streamed response after the first chunk                 | n/a (client gone) | n/a                  | `_iter_and_cleanup` `finally` runs; zip removed |
-
-The last row records the behavior to test. It makes **no claim** about whether
-the current code leaks on disconnect. That is for BLU-10 to verify.
+The HTTP 201 ZIP success contract and transformed contents are unchanged.
+PR158 owns bounded ZIP extraction; this change leaves extraction policy alone.
+PR160 owns shared writer/CLI/API integration; preserve explicit `log=log` calls,
+request dependency lifetime, and archive ownership when combining those changes.
+PR154 corpus inventory is untouched. No BLU-24 semantic/provenance redesign or
+HSDS version migration is included.
