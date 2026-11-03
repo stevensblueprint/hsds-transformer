@@ -21,6 +21,7 @@ class RouterLoggingMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next) -> Response:
         request_id: str = str(uuid4())
+        request.state.request_id = request_id
         logging_dict: Dict[str, Any] = {
             "X-API-REQUEST-ID": request_id,
         }
