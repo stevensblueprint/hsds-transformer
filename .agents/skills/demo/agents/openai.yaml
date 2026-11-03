@@ -1,0 +1,4 @@
+interface:
+  display_name: "Demo"
+  short_description: "Demonstrate actual behavior with saved evidence"
+  default_prompt: "Use $demo to help with this Blueprint task."

@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-api = importlib.import_module("api.app")
+api = importlib.import_module("src.api.app")
 
 
 def archive_bytes(entries, compression=zipfile.ZIP_STORED):
@@ -124,7 +124,7 @@ def test_nested_valid_upload_preserves_records_and_cleans_workspace(client, tmp_
 
 
 def test_exact_budget_boundary(tmp_path):
-    from api.zip_upload import ZipLimits, extract_zip
+    from src.api.zip_upload import ZipLimits, extract_zip
     with zipfile.ZipFile(io.BytesIO(archive_bytes([("a", b"abcd")]))) as archive:
         extract_zip(archive, tmp_path, ZipLimits(
             max_members=1, max_file_bytes=4, max_total_bytes=4, max_ratio=1))
@@ -139,7 +139,7 @@ def test_duplicate_basename_still_rejected(client, tmp_path):
 
 
 def test_actual_byte_limit_is_checked_before_write(monkeypatch, tmp_path):
-    from api.zip_upload import ZipLimits, extract_zip
+    from src.api.zip_upload import ZipLimits, extract_zip
     from fastapi import HTTPException
 
     with zipfile.ZipFile(io.BytesIO(archive_bytes([("a", b"x")]))) as archive:

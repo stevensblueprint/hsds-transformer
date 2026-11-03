@@ -11,8 +11,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-      - name: Install Requirements
-        run: |
-          pip install -r requirements.txt
+      - name: Install uv
+        run: python -m pip install uv==0.11.21
+      - name: Sync locked dependencies
+        run: uv sync --locked --extra api
       - name: Run unit tests
-        run: python -m pytest tests/ -v
+        run: uv run --locked --extra api python -m pytest tests/ -v
