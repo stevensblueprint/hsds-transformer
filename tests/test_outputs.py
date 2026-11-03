@@ -1,4 +1,6 @@
 import json
+import os
+import stat
 from pathlib import Path
 
 import pytest
@@ -244,4 +246,54 @@ def test_cli_sample_output_and_repeat_refusal(tmp_path, fmt, dataset):
     assert second.exit_code == 1
     assert "not empty" in second.output and "--output-dir" in second.output
     assert {p.name: p.read_bytes() for p in output.iterdir()} == before
+    assert list(tmp_path.iterdir()) == [output]
+
+
+@pytest.mark.skipif(os.name != "posix", reason="POSIX directory permission semantics")
+@pytest.mark.parametrize("existing_mode", [None, 0o755, 0o750, 0o700])
+@pytest.mark.parametrize("umask", [0o022, 0o027, 0o077])
+def test_publication_permissions_and_private_staging(tmp_path, monkeypatch, existing_mode, umask):
+    """Publish with destination/umask permissions, keeping staging private."""
+    output = tmp_path / "out"
+    if existing_mode is not None:
+        output.mkdir()
+        output.chmod(existing_mode)
+    real_verify = outputs._verify_outputs
+
+    def verify(staging, names):
+        assert stat.S_IMODE(staging.parent.stat().st_mode) == 0o700
+        assert staging.parent.parent == tmp_path
+        return real_verify(staging, names)
+
+    monkeypatch.setattr(outputs, "_verify_outputs", verify)
+    previous_umask = os.umask(umask)
+    try:
+        save_objects_to_json([("organization", [{"id": "one"}])], output)
+    finally:
+        os.umask(previous_umask)
+    expected_mode = existing_mode if existing_mode is not None else 0o777 & ~umask
+    assert stat.S_IMODE(output.stat().st_mode) == expected_mode
+    assert json.loads((output / "organization_one.json").read_text()) == {"id": "one"}
+    assert list(tmp_path.iterdir()) == [output]
+
+
+@pytest.mark.skipif(os.name != "posix", reason="POSIX directory permission semantics")
+def test_failed_publication_restores_existing_directory_permissions(tmp_path, monkeypatch):
+    """Restore the original mode even when the process umask is stricter."""
+    output = tmp_path / "out"
+    output.mkdir()
+    output.chmod(0o755)
+
+    def rename(*args):
+        raise OSError("injected publication failure")
+
+    monkeypatch.setattr(Path, "rename", rename)
+    previous_umask = os.umask(0o077)
+    try:
+        with pytest.raises(OSError, match="injected publication failure"):
+            save_objects_to_json([("organization", [{"id": "one"}])], output)
+    finally:
+        os.umask(previous_umask)
+    assert stat.S_IMODE(output.stat().st_mode) == 0o755
+    assert list(output.iterdir()) == []
     assert list(tmp_path.iterdir()) == [output]

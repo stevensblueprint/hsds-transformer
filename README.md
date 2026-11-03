@@ -80,6 +80,10 @@ artifact counts; the API logs those counts and continues to return the same ZIP
 format. Invalid output data returns HTTP 422; filesystem failures remain server
 errors. Both API routes use a fresh destination for each request.
 
+Staging remains private until publication. Published directories preserve an existing
+destination's permissions; new destinations use normal directory-creation permissions
+(subject to the process umask).
+
 Handled failures remove staging and leave earlier output untouched. Publication
 uses a same-filesystem directory rename, with a brief gap when replacing an empty
 destination. A sibling `.DESTINATION.hsds-lock` excludes overlapping transformer

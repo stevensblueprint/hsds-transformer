@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import stat
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
@@ -103,7 +104,10 @@ def save_objects_to_json(objects_data, output_dir):
         with tempfile.TemporaryDirectory(
             prefix=f".{destination.name}.hsds-stage-", dir=destination.parent
         ) as staging_dir:
-            staging = Path(staging_dir)
+            # The private outer directory protects artifacts until publication,
+            # while the inner directory gets normal mkdir permissions/umask.
+            staging = Path(staging_dir) / "output"
+            staging.mkdir()
             written = 0
             for filename, obj_dict in planned_outputs:
                 try:
@@ -129,6 +133,8 @@ def save_objects_to_json(objects_data, output_dir):
             # and Windows, where rename cannot replace an existing directory.
             existed = destination.exists()
             if existed:
+                destination_mode = stat.S_IMODE(destination.stat().st_mode)
+                staging.chmod(destination_mode)
                 destination.rmdir()
             try:
                 staging.rename(destination)
@@ -136,6 +142,7 @@ def save_objects_to_json(objects_data, output_dir):
                 if existed:
                     try:
                         destination.mkdir()
+                        destination.chmod(destination_mode)
                     except FileExistsError:
                         # A concurrent external writer owns whatever appeared.
                         pass
