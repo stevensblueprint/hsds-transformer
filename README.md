@@ -1,5 +1,9 @@
 # HSDS Transformer
 
+Release owners: use the [baseline evidence and rollback checkpoint](docs/baseline-release.md)
+to record an immutable running image and verify recovery before declaring the
+Phase 0 baseline known-good.
+
 ## Development setup
 
 ### Dependency setup
