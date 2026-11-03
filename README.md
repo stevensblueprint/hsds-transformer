@@ -10,6 +10,9 @@ expected responses, verification evidence, and outstanding acceptance gaps.
 
 Use Python 3.13 or newer and uv 0.11.21. Install uv with `python3 -m pip install uv==0.11.21` on macOS/Linux or `python -m pip install uv==0.11.21` on Windows. Run the following from the repository root. `uv` creates `.venv` when needed.
 
+If Windows cannot find `uv` after installation, follow the runbook's
+[Windows uv/PATH fallback](docs/contributor-runbook.md#windows-uv-and-path).
+
 ```bash
 # Core CLI environment
 uv sync --locked --no-default-groups
@@ -142,6 +145,9 @@ If the target output file already exists, the command fails instead of overwriti
 # Start the FastAPI server
 uv run --locked --extra api python -m uvicorn src.api.app:app --reload
 ```
+
+Check `/health` in a second terminal using the [local API runbook](docs/contributor-runbook.md#local-api),
+including [PowerShell startup and `curl.exe` guidance](docs/contributor-runbook.md#windows-local-api-and-health).
 
 ZIP uploads to `POST /transform` are limited to 5 MiB compressed, 1,000 members
 (including directory entries), 20 MiB per expanded file, 50 MiB total expanded

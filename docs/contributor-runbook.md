@@ -2,7 +2,9 @@
 
 This is the canonical forward-path setup and verification sequence. Run commands
 from the repository root in Bash on Linux/macOS. The recorded execution below is
-Linux with Python 3.13; Windows and macOS have not been independently checked.
+Linux with Python 3.13. Windows PowerShell setup and health commands are included
+below; related Windows contributor results and their limits are recorded at the
+end. The complete sequence has not been independently checked on Windows or macOS.
 This is contributor evidence, not a known-good release or deployment procedure.
 
 ## Install and check
@@ -33,6 +35,30 @@ dependency group, **not** a `dev` extra. Plain sync does not install the API.
 See [dependency setup](../README.md#dependency-setup) for core-only/API-only
 variants and the generated pip export. These are alternatives, not extra steps
 in the contributor sequence.
+
+### Windows uv and PATH
+
+In PowerShell, install the pinned uv with the Python interpreter you intend to
+use. If pip reports that its Scripts directory is not on PATH, add the directory
+it names to PATH and open a new terminal, or use `python -m uv` instead of `uv`.
+For a user install on Python 3.13, that directory may be
+`%APPDATA%\Python\Python313\Scripts`; use pip's actual path, not that example
+blindly. The module fallback must use the same `python` that installed uv.
+
+From the repository root:
+
+```powershell
+python -m pip install uv==0.11.21
+python -m uv --version
+python -m uv sync --locked --extra api --python 3.13
+python -m uv run --locked --extra api python --version
+```
+
+Expected: uv 0.11.21 and project Python 3.13.x. This fallback also applies to the
+locked Ruff, pytest, and API commands. The Bash variables and heredocs in later
+sections are not PowerShell syntax. See the Windows results below for two known
+platform-specific pytest failures; successful setup does not imply the full
+Windows suite passes.
 
 ## CSV and JSON CLI
 
@@ -84,6 +110,28 @@ HSDS_TMP_DIR=/tmp/hsds-runbook-api uv run --locked --extra api python -m uvicorn
 
 Use `src.api.app:app`. The historical `api.app:app --app-dir src` command fails
 with package-relative imports. Stop the server with Ctrl-C when finished.
+
+### Windows local API and health
+
+In PowerShell, from the same checkout, start the API with the uv module fallback:
+
+```powershell
+python -m uv run --locked --extra api python -m uvicorn src.api.app:app --host 127.0.0.1 --port 8000
+```
+
+In a second PowerShell terminal, use `curl.exe` explicitly so Windows PowerShell
+cannot substitute its `curl` alias:
+
+```powershell
+curl.exe --fail --silent --show-error http://127.0.0.1:8000/health
+```
+
+Wait for Uvicorn's `Application startup complete` message before checking health.
+Expect HTTP 200 and JSON with `"status":"ok"`; timestamp and uptime vary. Stop the
+server with Ctrl-C. Without `HSDS_TMP_DIR`, this command uses the API's default
+writable temporary directory selection described below.
+
+### API workspace and transformation checks
 
 `HSDS_TMP_DIR` controls the API transformation workspace and response ZIP temp
 files. It is checked for writability and created if possible; an explicitly
@@ -144,6 +192,11 @@ custom transforms; it does not execute uploaded Python.
 Stop the local API first to free port 8000. Compose uses the fixed container name
 `hsds-transformer-api`; do not start it over another contributor's container.
 Use the same checkout and first terminal so `RUNBOOK_TMP` remains set.
+`docker compose up -d` returns before Uvicorn is necessarily ready. Allow startup
+time before checking health. If an early check returns `Empty reply from server`
+or a connection reset, inspect `docker compose logs api`, wait for
+`Application startup complete`, and retry the health check. Persistent errors
+are failures to investigate, not a successful startup.
 
 ```bash
 docker compose config --quiet
@@ -151,7 +204,12 @@ docker compose up --build -d
 curl --fail --retry 15 --retry-connrefused --retry-delay 2 http://127.0.0.1:8000/health
 ```
 
-Then repeat the API curl and ZIP assertion block above against the container.
+For a Windows PowerShell health check after Compose starts, use
+`curl.exe --fail --silent --show-error http://127.0.0.1:8000/health`. The same
+startup wait applies; a running container alone does not prove the API is ready.
+
+Then repeat the API curl and ZIP assertion block above against the container
+using the Bash terminal required by that block.
 Expected results are the same (200 health; 201 ZIP with 10 organizations).
 For diagnostics and teardown:
 
@@ -212,3 +270,20 @@ runbook without declaring that issue or BLU-11 accepted. Reverse transformation
 is partial and non-gating unless a pilot explicitly requires it. A teammate must
 repeat this sequence from a new clone, record exact SHA/tool versions/results
 (including Compose), and resolve any failures before closing the broader issue.
+
+### Related Windows contributor evidence
+
+[Bradley's BLU-29 PR #165](https://github.com/stevensblueprint/hsds-transformer/pull/165)
+reports Windows 11, Python 3.13.2, and uv 0.11.21 verification. Its fresh-clone
+setup, API health, and Compose transform passed at `090c879`; the PR also reports
+a teammate README follow-through at `43c63dd`. After merging main, at `d82d33a`,
+locked sync, Ruff, and local API health passed, but pytest had 222 passes and two
+failures in `tests/test_api_zip_limits.py` (backslash path validation and an
+overlong member path). Compose was not rerun at that revision.
+
+These are contributor-reported results on the named revisions, not a fresh
+Windows run of this canonical runbook or a clean final-head test result. This
+runbook preserves the uv/PATH and health guidance from #165 without duplicating
+its setup sequence across the contributor guides. The Windows failures and a
+complete independent runbook walkthrough remain follow-up work before claiming
+full Windows or BLU-11 acceptance.
