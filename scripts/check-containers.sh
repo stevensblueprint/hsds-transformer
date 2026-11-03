@@ -29,6 +29,11 @@ import os
 path = pathlib.Path(sys.argv[1])
 config = json.loads((path / "source.json").read_text())
 config.pop("name", None)
+# Resolved Compose config embeds project-prefixed network names. Let the
+# isolated smoke project supply them instead of sharing the developer network.
+for network in config.get("networks", {}).values():
+    if not network.get("external", False):
+        network.pop("name", None)
 service = config["services"]["api"]
 service.pop("build", None)
 service.pop("container_name", None)
