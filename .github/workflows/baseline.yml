@@ -1,0 +1,31 @@
+name: Reproducible baseline
+on:
+  push:
+    branches-ignore: [main]
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  baseline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install canonical uv
+        run: python -m pip install uv==0.11.21
+      - name: Check baseline and build tested image
+        run: bash scripts/check-baseline.sh
+      - name: Save tested image
+        run: docker save "hsds-baseline:${{ github.sha }}" -o "$RUNNER_TEMP/baseline-image.tar"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: baseline-image
+          path: ${{ runner.temp }}/baseline-image.tar
+          retention-days: 2
+          if-no-files-found: error
