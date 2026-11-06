@@ -37,7 +37,7 @@ uv run --locked --extra api python -m src.cli.reverse_transform --mapping-dir pa
 ```bash
 # All Platforms
 # Run the FastAPI server locally
-uv run --locked --extra api uvicorn api.app:app --app-dir src --reload
+uv run --locked --extra api uvicorn src.api.app:app --reload
 ```
 ## Coding Style & Naming Conventions
 - Use Python 3.13+ and standard library idioms (project uses `glom` and `click`).
