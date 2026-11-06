@@ -1,49 +1,52 @@
-name: Deploy HSDS Container to ECR
-
+name: Publish HSDS Container to ECR
 on:
-    workflow_dispatch:
-    push:
-        branches:
-            - main
+  workflow_dispatch:
+  push:
+    branches: [main]
 
 permissions:
-    id-token: write
-    contents: read
+  contents: read
 
-env:
-    AWS_REGION: us-east-1
-    AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+defaults:
+  run:
+    shell: bash
 
 jobs:
-    deploy:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
-            - name: Configure AWS credentials (OIDC)
-              uses: aws-actions/configure-aws-credentials@v4
-              with:
-                  role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/github-ecr-deployer-hsds-transformer
-                  aws-region: ${{ env.AWS_REGION }}
-            - name: Login to Amazon ECR
-              id: login-ecr
-              uses: aws-actions/amazon-ecr-login@v1
-            - name: Get commit hash
-              run: echo "COMMIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-            - name: Get timestamp
-              run: echo "TIMESTAMP=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
-            - name: Build, tag, and push image to Amazon ECR
-              env:
-                  ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-                  ECR_REPOSITORY: hsds-transformer
-              run: |
-                  # Build the Docker image
-                  IMAGE_TAG=${ECR_REPOSITORY}-${COMMIT_HASH}-${TIMESTAMP}
-                  echo "Building Docker image with tag: $IMAGE_TAG"
-                  docker build -t $ECR_REPOSITORY:$IMAGE_TAG .
-                  # Tag the locally built image with the ECR registry
-                  docker tag $ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-                  docker tag $ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
-                  # Push the image to ECR
-                  docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-                  docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+  baseline:
+    uses: ./.github/workflows/baseline.yml
+  deploy:
+    # Manual runs may only publish main; all runs must pass their own baseline.
+    if: github.ref == 'refs/heads/main'
+    needs: baseline
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      AWS_REGION: us-east-1
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: baseline-image
+          path: ${{ runner.temp }}
+      - name: Load tested image
+        run: docker load -i "$RUNNER_TEMP/baseline-image.tar"
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/github-ecr-deployer-hsds-transformer
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+      - name: Publish tested image
+        env:
+          IMAGE: ${{ steps.login-ecr.outputs.registry }}/hsds-transformer
+        run: |
+          docker tag "hsds-baseline:${{ github.sha }}" "$IMAGE:${{ github.sha }}"
+          docker tag "hsds-baseline:${{ github.sha }}" "$IMAGE:latest"
+          docker push "$IMAGE:${{ github.sha }}" | tee "$RUNNER_TEMP/push.log"
+          docker push "$IMAGE:latest"
+          echo "Published $IMAGE:${{ github.sha }} from tested commit ${{ github.sha }}" >> "$GITHUB_STEP_SUMMARY"
+          cat "$RUNNER_TEMP/push.log" >> "$GITHUB_STEP_SUMMARY"

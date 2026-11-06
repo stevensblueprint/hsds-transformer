@@ -1,48 +1,44 @@
 name: Build and publish Docker image
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
+  baseline:
+    uses: ./.github/workflows/baseline.yml
   docker:
+    needs: baseline
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Compose smoke test
-        run: |
-          docker compose up --build -d
-          for i in $(seq 1 15); do
-            if curl --fail -s http://localhost:8000/health; then
-              echo "API is healthy"
-              break
-            fi
-            if [ "$i" -eq 15 ]; then
-              echo "API did not become healthy in time"
-              docker compose logs api
-              exit 1
-            fi
-            sleep 2
-          done
-          curl --fail -X POST http://localhost:8000/transform \
-            -F "zip_file=@data/sal_example.zip" \
-            --output "$RUNNER_TEMP/transformed.zip"
-          docker compose down
-
+      - uses: actions/download-artifact@v4
+        with:
+          name: baseline-image
+          path: ${{ runner.temp }}
+      - name: Load tested image
+        run: docker load -i "$RUNNER_TEMP/baseline-image.tar"
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          push: true
-          tags: |
-            ghcr.io/stevensblueprint/openreferral:${{ github.sha }}
-            ghcr.io/stevensblueprint/openreferral:latest
+      - name: Publish tested image
+        env:
+          IMAGE: ghcr.io/stevensblueprint/openreferral
+        run: |
+          docker tag "hsds-baseline:${{ github.sha }}" "$IMAGE:${{ github.sha }}"
+          docker tag "hsds-baseline:${{ github.sha }}" "$IMAGE:latest"
+          docker push "$IMAGE:${{ github.sha }}" | tee "$RUNNER_TEMP/push.log"
+          docker push "$IMAGE:latest"
+          echo "Published $IMAGE:${{ github.sha }} from tested commit ${{ github.sha }}" >> "$GITHUB_STEP_SUMMARY"
+          cat "$RUNNER_TEMP/push.log" >> "$GITHUB_STEP_SUMMARY"
