@@ -238,8 +238,14 @@ Verified 2026-11-03 in a new remote clone at main
 `efff0223a914f2d011e511f29670d93b41801f0c`, then updated to merged main
 `c4669486e582a4b46a73f72e9982498f83898875` and reran sync, lint, all tests,
 CLI/API assertions, and Compose configuration with this documentation patch.
-The Docker build failure below was observed on the initial baseline; no container
-runtime result is claimed for either revision.
+The local Docker build failure below was observed on the initial baseline; no
+local container runtime result is claimed for either revision. Hosted Compose
+smoke passed on [the initial candidate](https://github.com/stevensblueprint/hsds-transformer/actions/runs/41669632246)
+(`710b9f22ecc595e1d7f80e0f96362e54098ca1ce`) and on [the later candidate](https://github.com/stevensblueprint/hsds-transformer/actions/runs/41711734868)
+(`4e6748c3752e62146209dd9e8ba701cc1e5e3da6`). Both built and started the
+container, checked health, transformed the sample ZIP, checked ZIP integrity,
+and tore down the stack. These runs did not perform the complete runbook
+assertions or the independent teammate walkthrough.
 Environment: Linux, CPython 3.13.5, uv 0.11.21, Docker 28.4.0, Compose v2.40.3.
 The sandbox's default Python was 3.12 and uv was 0.12.23, so checks used
 `uvx uv==0.11.21` in place of `uv` with writable `UV_CACHE_DIR`, `UV_TOOL_DIR`,
@@ -259,7 +265,8 @@ walkthrough or evidence for a released image.
 | Historical `api.app` import with `src` on path | FAIL as expected: relative import beyond top-level package |
 | Compose configuration | PASS |
 | Compose image build | FAIL: container DNS could not resolve `files.pythonhosted.org` while downloading urllib3 2.8.0 |
-| Compose runtime health/transform | NOT RUN: blocked by the image build failure |
+| Local Compose runtime health/transform | NOT RUN: blocked by the local image build failure |
+| Hosted Compose runtime smoke | PASS on both candidates linked above; sample ZIP integrity checked |
 | Independent teammate fresh-checkout walkthrough | NOT RUN; still required for BLU-11 acceptance |
 | Windows/macOS; reverse round-trip/pilot behavior | NOT RUN; outside this verified path |
 
