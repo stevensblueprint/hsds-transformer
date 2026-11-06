@@ -24,40 +24,11 @@ The **HSDS Transformer** is a Python-based utility designed to convert custom CS
 
 ## Building and Running
 
-### Environment Setup
-See [README.md#dependency-setup](README.md#dependency-setup) for the pinned uv version, locked core/API/development commands, and generated pip export instructions.
-
-### CLI Usage
-**Transform CSVs to HSDS JSON:**
-
-```bash
-# macOS/Linux (bash/zsh)
-uv run --locked --extra api python3 -m src.cli.main path/to/datadir [-o path/to/outputdir]
-
-# Windows (PowerShell/cmd)
-uv run --locked --extra api python -m src.cli.main path\to\datadir [-o path\to\outputdir]
-```
-
-- `<data_directory>`: Should contain your input CSVs and their mapping CSVs.
-- `-o`: Optional output directory (defaults to `output`).
-
-**Reverse Transform (WIP):**
-
-```bash
-# macOS/Linux (bash/zsh)
-uv run --locked --extra api python3 -m src.cli.reverse_transform --mapping-dir <mapping_dir> --hsds-dir <hsds_json_dir>
-
-# Windows (PowerShell/cmd)
-uv run --locked --extra api python -m src.cli.reverse_transform --mapping-dir <mapping_dir> --hsds-dir <hsds_json_dir>
-```
-
-### API Usage
-```bash
-# All Platforms
-# Start the FastAPI server
-uv run --locked --extra api uvicorn api.app:app --app-dir src --reload
-```
-- Endpoint: `POST /transform` accepts a `.zip` file containing CSVs and mappings and returns a `.zip` of HSDS JSON files.
+Use the [contributor runbook](docs/contributor-runbook.md) as the canonical
+Python 3.13 setup and CLI/API/Compose verification path. Dependency variants and
+pip exports are documented in [README.md#dependency-setup](README.md#dependency-setup).
+The API module is `src.api.app:app`; reverse transformation is partial and
+non-gating for the forward path.
 
 ## Development Conventions
 

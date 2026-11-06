@@ -9,36 +9,12 @@
 
 ## Build, Test, and Development Commands
 
-### Environment Setup
-See [README.md#dependency-setup](README.md#dependency-setup) for the pinned uv version, locked core/API/development commands, and generated pip export instructions.
+Use the [contributor runbook](docs/contributor-runbook.md) as the canonical
+Python 3.13 setup and CLI/API/Compose verification path. Dependency variants and
+pip exports are documented in [README.md#dependency-setup](README.md#dependency-setup).
+The API module is `src.api.app:app`; reverse transformation is partial and
+non-gating for the forward path.
 
-### Running the CLI
-```bash
-# macOS/Linux (bash/zsh)
-# Transform CSVs into HSDS JSON
-uv run --locked --extra api python3 -m src.cli.main path/to/datadir
-uv run --locked --extra api python3 -m src.cli.main path/to/datadir -o path/to/outputdir
-
-# Reverse transform (currently WIP)
-uv run --locked --extra api python3 -m src.cli.reverse_transform --mapping-dir path/to/mappings --hsds-dir path/to/hsds-json --output-dir path/to/output
-```
-
-```bash
-# Windows (PowerShell/cmd)
-# Transform CSVs into HSDS JSON
-uv run --locked --extra api python -m src.cli.main path\to\datadir
-uv run --locked --extra api python -m src.cli.main path\to\datadir -o path\to\outputdir
-
-# Reverse transform (currently WIP)
-uv run --locked --extra api python -m src.cli.reverse_transform --mapping-dir path\to\mappings --hsds-dir path\to\hsds-json --output-dir path\to\output
-```
-
-### Running the API
-```bash
-# All Platforms
-# Run the FastAPI server locally
-uv run --locked --extra api uvicorn api.app:app --app-dir src --reload
-```
 ## Coding Style & Naming Conventions
 - Use Python 3.13+ and standard library idioms (project uses `glom` and `click`).
 - Follow existing module naming and file structure under `src/`.

@@ -8,40 +8,11 @@ The HSDS Transformer converts arbitrary CSV datasets into JSON files compliant w
 
 ## Core Commands
 
-### Environment Setup
-See [README.md#dependency-setup](README.md#dependency-setup) for the pinned uv version, locked core/API/development commands, and generated pip export instructions.
-
-### Running the CLI Transformer
-```bash
-# macOS/Linux (bash/zsh)
-# Transform CSVs to HSDS JSON
-uv run --locked --extra api python3 -m src.cli.main path/to/datadir
-uv run --locked --extra api python3 -m src.cli.main path/to/datadir -o path/to/outputdir
-
-# Reverse transform (WIP - not fully implemented)
-uv run --locked --extra api python3 -m src.cli.reverse_transform --mapping-dir path/to/mappings --hsds-dir path/to/hsds-json --output-dir path/to/output
-```
-
-```bash
-# Windows (PowerShell/cmd)
-# Transform CSVs to HSDS JSON
-uv run --locked --extra api python -m src.cli.main path\to\datadir
-uv run --locked --extra api python -m src.cli.main path\to\datadir -o path\to\outputdir
-
-# Reverse transform (WIP - not fully implemented)
-uv run --locked --extra api python -m src.cli.reverse_transform --mapping-dir path\to\mappings --hsds-dir path\to\hsds-json --output-dir path\to\output
-```
-
-### Running the API
-```bash
-# All Platforms
-# Start FastAPI server
-uv run --locked --extra api uvicorn api.app:app --app-dir src --reload
-
-# API endpoint: POST /transform
-# Accepts: .zip file with CSVs and mapping files
-# Returns: .zip file with HSDS JSON files
-```
+Use the [contributor runbook](docs/contributor-runbook.md) as the canonical
+Python 3.13 setup and CLI/API/Compose verification path. Dependency variants and
+pip exports are documented in [README.md#dependency-setup](README.md#dependency-setup).
+The API module is `src.api.app:app`; reverse transformation is partial and
+non-gating for the forward path.
 
 ## Architecture
 
