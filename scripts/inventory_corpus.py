@@ -15,8 +15,8 @@ Rules this script follows:
     must produce an identical file.
 
 Usage (from the repo root):
-    uv run --locked --extra api --extra dev python scripts/inventory_corpus.py
-    uv run --locked --extra api --extra dev python scripts/inventory_corpus.py --check
+    uv run --locked --extra api python scripts/inventory_corpus.py
+    uv run --locked --extra api python scripts/inventory_corpus.py --check
 """
 
 from __future__ import annotations
@@ -376,7 +376,8 @@ def find_test_references(name: str) -> list[dict]:
             continue
         for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
             if rx.search(line):
-                refs.append({"file": str(path.relative_to(ROOT)), "line": lineno})
+                # as_posix() so the manifest is identical on Windows and Linux/macOS.
+                refs.append({"file": path.relative_to(ROOT).as_posix(), "line": lineno})
     return refs
 
 
@@ -435,7 +436,7 @@ def zip_entry(path: Path, directories: dict[str, dict[str, bytes]]) -> dict:
             members[info.filename] = zf.read(info)
     tops = sorted({Path(n).parts[0] for n in members if len(Path(n).parts) > 1})
     top = tops[0] if len(tops) == 1 and all(len(Path(n).parts) > 1 for n in members) else None
-    flat = {(str(Path(n).relative_to(top)) if top else n): b for n, b in members.items()}
+    flat = {(Path(n).relative_to(top).as_posix() if top else n): b for n, b in members.items()}
     analysis = analyse_files(flat)
 
     # Equivalence with the checked-in directory of the same top-level name

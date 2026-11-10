@@ -1,7 +1,7 @@
 {
   "manifest_version": 1,
   "ticket": "BLU-28 (P1-02a)",
-  "generated_from_commit": "b8f77b9907abb4c1b763244e065fe455e44f0b4c",
+  "generated_from_commit": "b42706d014c17817319b69b27586f2df9ec82894",
   "generator": "scripts/inventory_corpus.py",
   "status_note": "Facts only. 'observed' is current behaviour, not approved expectation. classification/permission/reviewer fields are intentionally unconfirmed.",
   "counts": {
@@ -313,23 +313,16 @@
       "subdirectories": [],
       "observed": {
         "note": "observed behaviour at this commit; NOT an approved expected result",
-        "status": "ok",
+        "status": "error",
         "input_format": "csv",
         "custom_transforms_used": false,
-        "objects_before_linking": {
-          "organization": 2
-        },
-        "objects_before_linking_total": 2,
-        "top_level_objects_after_linking": {
-          "organization": 2
-        },
-        "output_objects_after_linking": 2,
-        "distinct_ids_after_linking": {
-          "organization": 2
-        }
+        "error_type": "ValueError",
+        "error_message": "Invalid custom transform 'normalize_name' for 'organizations.name' (mapping_file=organizations_organization_mapping.csv): No custom transform registry is available; use CLI --transforms"
       },
       "test_references": [],
-      "flags": [],
+      "flags": [
+        "observed_error"
+      ],
       "ticket_notes": [],
       "classification": "unconfirmed",
       "permission_status": "unconfirmed",
@@ -1380,11 +1373,11 @@
       },
       "test_references": [
         {
-          "file": "tests\\test_api_transform.py",
+          "file": "tests/test_api_transform.py",
           "line": 24
         },
         {
-          "file": "tests\\test_transformer.py",
+          "file": "tests/test_transformer.py",
           "line": 12
         }
       ],
@@ -1971,24 +1964,32 @@
       },
       "test_references": [
         {
-          "file": "tests\\test_api_transform.py",
+          "file": "tests/test_api_transform.py",
           "line": 26
         },
         {
-          "file": "tests\\test_api_transform.py",
+          "file": "tests/test_api_transform.py",
           "line": 27
         },
         {
-          "file": "tests\\test_json_collections.py",
+          "file": "tests/test_api_zip_limits.py",
+          "line": 114
+        },
+        {
+          "file": "tests/test_json_collections.py",
           "line": 168
         },
         {
-          "file": "tests\\test_json_collections.py",
+          "file": "tests/test_json_collections.py",
           "line": 169
         },
         {
-          "file": "tests\\test_json_collections.py",
+          "file": "tests/test_json_collections.py",
           "line": 259
+        },
+        {
+          "file": "README.md",
+          "line": 51
         }
       ],
       "flags": [],
@@ -2138,7 +2139,7 @@
       },
       "test_references": [
         {
-          "file": "tests\\test_transformer.py",
+          "file": "tests/test_transformer.py",
           "line": 100
         }
       ],
@@ -2627,24 +2628,24 @@
       },
       "test_references": [
         {
-          "file": "tests\\test_sanity_check.py",
+          "file": "tests/test_sanity_check.py",
           "line": 30
         },
         {
-          "file": "tests\\test_transformer.py",
+          "file": "tests/test_transformer.py",
           "line": 145
         },
         {
-          "file": "tests\\test_transformer.py",
+          "file": "tests/test_transformer.py",
           "line": 155
         },
         {
           "file": "README.md",
-          "line": 87
+          "line": 162
         },
         {
           "file": "README.md",
-          "line": 92
+          "line": 167
         }
       ],
       "flags": [],
@@ -2842,7 +2843,7 @@
       },
       "test_references": [
         {
-          "file": "tests\\test_transformer.py",
+          "file": "tests/test_transformer.py",
           "line": 37
         }
       ],
@@ -2971,11 +2972,11 @@
       },
       "test_references": [
         {
-          "file": "tests\\test_sanity_check.py",
+          "file": "tests/test_sanity_check.py",
           "line": 106
         },
         {
-          "file": "tests\\test_transformer.py",
+          "file": "tests/test_transformer.py",
           "line": 47
         }
       ],
@@ -3076,8 +3077,8 @@
       },
       "test_references": [
         {
-          "file": "tests\\test_custom_transform.py",
-          "line": 17
+          "file": "tests/test_custom_transform.py",
+          "line": 18
         }
       ],
       "flags": [],
@@ -4107,11 +4108,11 @@
       "test_references": [
         {
           "file": "README.md",
-          "line": 156
+          "line": 246
         },
         {
           "file": "README.md",
-          "line": 175
+          "line": 265
         }
       ],
       "flags": [],

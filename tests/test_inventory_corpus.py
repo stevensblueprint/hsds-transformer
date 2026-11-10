@@ -1,6 +1,6 @@
 """Regression tests for scripts/inventory_corpus.py reproducibility.
 
-Two bugs motivated these tests (see BLU-28 review):
+Three bugs motivated these tests (see BLU-28 review):
 
 1. ``generated_from_commit`` recorded the git HEAD at generation time and was
    part of the ``--check`` byte-for-byte comparison, so an unchanged corpus
@@ -12,6 +12,9 @@ Two bugs motivated these tests (see BLU-28 review):
    manifest generated before that cache existed, re-checked after it exists
    (or vice versa), would disagree about a dataset's "subdirectories" even
    though nothing about the corpus itself had changed.
+3. ``find_test_references()`` recorded ``str(path)``, so test file paths used
+   backslashes on Windows and forward slashes elsewhere, and ``--check``
+   failed across platforms with unchanged inputs.
 
 These tests build a minimal synthetic corpus in a temp directory (pointing
 the script's module-level ROOT/DATA/TESTS/DEFAULT_OUT constants at it) so
@@ -109,6 +112,34 @@ def test_check_passes_when_pycache_appears_between_runs(corpus, monkeypatch):
     manifest = json.loads(corpus["out"].read_text(encoding="utf-8"))
     entry = next(e for e in manifest["entries"] if e["id"] == "sample_dataset")
     assert entry["subdirectories"] == []
+
+
+def test_test_reference_paths_use_forward_slashes(corpus, monkeypatch):
+    """Regression for bug 3: test_references recorded str(path), so a manifest
+    generated on Windows had backslashes and --check failed on Linux/macOS with
+    unchanged inputs."""
+    monkeypatch.setattr(inventory_corpus, "git_commit", lambda: "a" * 40)
+    tests_dir = inventory_corpus.TESTS
+    (tests_dir / "test_sample.py").write_text(
+        'DATASET = "data/sample_dataset"\n', encoding="utf-8"
+    )
+
+    assert _run_with_args([]) == 0
+    assert _run_with_args(["--check"]) == 0
+    assert _run_with_args(["--check"]) == 0
+
+    manifest = json.loads(corpus["out"].read_text(encoding="utf-8"))
+    entry = next(e for e in manifest["entries"] if e["id"] == "sample_dataset")
+    assert entry["test_references"] == [{"file": "tests/test_sample.py", "line": 1}]
+
+
+def test_committed_manifest_has_no_os_specific_paths():
+    """The checked-in manifest must not depend on the OS it was generated on."""
+    manifest_path = Path(inventory_corpus.__file__).resolve().parents[1] / "docs" / "corpus" / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    files = [ref["file"] for e in manifest["entries"] for ref in e["test_references"]]
+    assert files
+    assert not [f for f in files if "\\" in f]
 
 
 def test_check_still_catches_real_corpus_changes(corpus, monkeypatch):
