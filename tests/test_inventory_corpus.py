@@ -1,6 +1,6 @@
 """Regression tests for scripts/inventory_corpus.py reproducibility.
 
-Four bugs motivated these tests (see BLU-28 review):
+Five bugs motivated these tests (see BLU-28 review):
 
 1. ``generated_from_commit`` recorded the git HEAD at generation time and was
    part of the ``--check`` byte-for-byte comparison, so an unchanged corpus
@@ -17,6 +17,8 @@ Four bugs motivated these tests (see BLU-28 review):
    failed across platforms with unchanged inputs.
 4. ``build_manifest()`` sorted ``Path`` objects, which compare
    case-insensitively on Windows only, so entry order differed by platform.
+5. ``build_manifest()`` read each directory in ``iterdir()`` order, which is
+   filesystem-specific, so ``similar_directory_sources`` differed by platform.
 
 These tests build a minimal synthetic corpus in a temp directory (pointing
 the script's module-level ROOT/DATA/TESTS/DEFAULT_OUT constants at it) so
@@ -147,6 +149,24 @@ def test_entry_order_is_case_sensitive_on_every_platform(corpus, monkeypatch):
 
     manifest = json.loads(corpus["out"].read_text(encoding="utf-8"))
     assert [e["id"] for e in manifest["entries"]] == ["Zeta", "alpha", "sample_dataset"]
+
+
+def test_check_passes_when_filesystem_lists_files_in_another_order(corpus, monkeypatch):
+    """Regression for bug 5: iterdir() order differs between filesystems (NTFS is
+    alphabetical, ext4 is not), which reordered similar_directory_sources."""
+    monkeypatch.setattr(inventory_corpus, "git_commit", lambda: "a" * 40)
+    header_a = ",".join(f"a{i}" for i in range(10))
+    header_b = ",".join(f"b{i}" for i in range(10))
+    for name in ("one", "two"):
+        (corpus["data"] / name).mkdir()
+        (corpus["data"] / name / "a.csv").write_text(header_a + "\n", encoding="utf-8")
+        (corpus["data"] / name / "b.csv").write_text(header_b + "\n", encoding="utf-8")
+
+    assert _run_with_args([]) == 0
+
+    original_iterdir = Path.iterdir
+    monkeypatch.setattr(Path, "iterdir", lambda self: iter(reversed(list(original_iterdir(self)))))
+    assert _run_with_args(["--check"]) == 0
 
 
 def test_committed_manifest_has_no_os_specific_paths():

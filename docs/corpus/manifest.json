@@ -1,7 +1,7 @@
 {
   "manifest_version": 1,
   "ticket": "BLU-28 (P1-02a)",
-  "generated_from_commit": "64128e881ac39c062c9beacf45f9b12b62ad7f9f",
+  "generated_from_commit": "b47e6579f50579457c8d112713a0b2e50ce6b1ce",
   "generator": "scripts/inventory_corpus.py",
   "status_note": "Facts only. 'observed' is current behaviour, not approved expectation. classification/permission/reviewer fields are intentionally unconfirmed.",
   "counts": {

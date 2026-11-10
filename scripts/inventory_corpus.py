@@ -590,7 +590,10 @@ def build_manifest() -> dict:
                   key=lambda p: p.name)
     zips = sorted((p for p in DATA.iterdir() if p.is_file() and p.suffix == ".zip"),
                   key=lambda p: p.name)
-    dir_files = {d.name: {p.name: p.read_bytes() for p in d.iterdir() if p.is_file()} for d in dirs}
+    # iterdir() order is filesystem-specific; sort so similar_sources() is stable.
+    dir_files = {d.name: {p.name: p.read_bytes()
+                          for p in sorted(d.iterdir(), key=lambda p: p.name) if p.is_file()}
+                 for d in dirs}
     entries = [directory_entry(d) for d in dirs] + [zip_entry(z, dir_files) for z in zips]
     return {
         "manifest_version": 1,
