@@ -1,5 +1,9 @@
 # HSDS Transformer
 
+Release owners: use the [baseline evidence and rollback checkpoint](docs/baseline-release.md)
+to record an immutable running image and verify recovery before declaring the
+Phase 0 baseline known-good.
+
 ## Development setup
 
 ### Dependency setup
@@ -26,6 +30,54 @@ uv export --locked --format requirements.txt --extra api --no-default-groups --g
 For pip-only environments, install the generated export with `python -m pip install -r requirements.txt`.
 
 The locked core and API runtime was audited with `pip-audit==2.10.1` on 2026-10-11. The audit found no known vulnerabilities, so there are no advisory IDs or affected package paths to report. Tests still emit a Starlette deprecation warning for using `httpx` with `TestClient`; it is not a vulnerability finding and remains in place.
+
+## Reproducible publication baseline
+
+With Python 3.13, uv 0.11.21, Bash, and Docker with Compose v2 available, run:
+
+```bash
+bash scripts/check-baseline.sh
+```
+
+This is the local and CI baseline command. It checks the locked environment,
+installed dependency compatibility, pinned Ruff, the full pytest suite, and the
+generated requirements export (ignoring its command header). It builds the wheel
+and sdist, installs each in a fresh environment with locked dependencies, and
+checks API health and a JSON CLI transformation from outside the checkout with
+`PYTHONPATH` removed. It then builds one image and checks Docker health plus a
+representative HTTP transformation directly and through the resolved Compose
+service configuration. The Compose check isolates container names and host ports
+and substitutes that tested image for the service's build configuration. Both HTTP
+checks inspect the returned ZIP and `data/json_test` organization ID/name. These
+are startup/transport checks, not full corpus validation or release certification.
+Temporary environments and containers are cleaned on success and failure; the
+local `hsds-baseline:<commit>` image remains available for inspection.
+
+`.github/workflows/baseline.yml` runs for branch pushes and pull requests,
+including contributor PRs, with read-only repository permissions and no registry
+credentials. Existing lint, unit, and Docker smoke workflows remain to preserve
+existing check names. Each main-branch publisher calls the same reusable baseline
+at its own commit and depends on its success. Failed or cancelled checks prevent
+publication. The gate uploads the tested image as a two-day Actions artifact;
+the dependent job downloads it from the same workflow run and publishes it
+without rebuilding. Fork PRs may require GitHub's normal maintainer approval to
+start CI. No branch-protection changes are part of this gate.
+
+GHCR remains the existing GitHub-hosted image destination; ECR remains the AWS
+image destination. Retaining both preserves the current integrations; no claim
+is made about which downstream service consumes either image. `deploy.yml` only
+publishes an image, not a running service. Its manual publication is restricted
+to main and must run the gate too. Both destinations use the full source commit
+tag plus `latest`; ECR replaces its former short-SHA/timestamp tag with the full
+SHA. Images carry the OCI revision label, and each publication's job summary
+records the source commit, destination, and push digest. Failures remain visible
+in the workflow/job logs. No image is published by PR or branch checks.
+
+The two publishers run independent copies of the gate; they do not depend on one
+another. Mutable base-image tags and platform packages mean this is a repeatable
+validation procedure, not a promise of byte-identical builds or identical
+GHCR/ECR digests. A successful check also does not prove deployment health,
+vulnerability absence, or a known-good release.
 
 ## Running the command line tool
 
@@ -152,6 +204,23 @@ If the target output file already exists, the command fails instead of overwriti
 # Start the FastAPI server
 uv run --locked --extra api uvicorn api.app:app --app-dir src --reload
 ```
+
+ZIP uploads to `POST /transform` are limited to 5 MiB compressed, 1,000 members
+(including directory entries), 20 MiB per expanded file, 50 MiB total expanded
+bytes, and a 100:1 expanded/compressed ratio per member. These provisional
+budgets bound disk use and extraction work: the total is ten times the upload
+cap, individual files cannot consume the whole budget, and the member cap
+bounds archive entries. They are conservative service defaults, not measured
+production capacity. Split larger datasets; for highly compressible data, use
+stored compression (subject to the 5 MiB upload cap).
+
+Metadata is checked before extraction, and streamed bytes are checked before
+writing beyond a budget. Budget violations return **413**; invalid paths,
+encrypted entries, unsupported compression, conflicting paths, and corrupt
+entries return **422**. Only regular files/directories with stored or deflated
+compression are accepted. Absolute paths, parent traversal, backslashes, and
+link entries are rejected. Failed extraction removes the request workspace and
+creates no response ZIP. Normal nested folders remain supported.
 
 Successful transformations from both `POST /transform` (CSV or JSON ZIP uploads)
 and `POST /transform/stream` (JSON multipart uploads) return **201 Created** with

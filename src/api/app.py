@@ -1,3 +1,4 @@
+import asyncio
 import io
 import logging
 import shutil
@@ -7,15 +8,19 @@ import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 
-from fastapi import FastAPI, File, Form, HTTPException, Response, UploadFile
+import anyio
+
+from fastapi import Depends, Request, FastAPI, File, Form, HTTPException, Response, UploadFile
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 
+from ..lib.transform.logger import TransformerLog
 from .logger import configure_logger
 from .middleware import RouterLoggingMiddleware
 from .model import HealthResponse
 from .tempdir import get_writable_temp_dir
+from .zip_upload import ZipLimits, extract_zip, validate_zip_budget
 from .utils import (
     UploadSizeLimitError,
     UploadValidationError,
@@ -39,6 +44,61 @@ def _iter_and_cleanup(path: Path):
         path.unlink(missing_ok=True)
 
 
+class CleanupStreamingResponse(StreamingResponse):
+    """Own the archive even if sending fails before the iterator starts."""
+
+    def __init__(self, path: Path, **kwargs):
+        self.path = path
+        self.file_iterator = _iter_and_cleanup(path)
+        super().__init__(self._chunks(), **kwargs)
+
+    async def _chunks(self):
+        exhausted = object()
+        while True:
+            # Shield the worker from task cancellation, then join it before the
+            # response closes the generator. A cancelled await alone does not
+            # stop a thread that is currently reading the archive.
+            read = asyncio.create_task(
+                anyio.to_thread.run_sync(next, self.file_iterator, exhausted)
+            )
+            try:
+                chunk = await asyncio.shield(read)
+            finally:
+                with anyio.CancelScope(shield=True):
+                    while not read.done():
+                        try:
+                            await asyncio.shield(read)
+                        except asyncio.CancelledError:
+                            continue
+            if chunk is exhausted:
+                break
+            yield chunk
+
+    async def __call__(self, scope, receive, send):
+        try:
+            await super().__call__(scope, receive, send)
+        finally:
+            self.file_iterator.close()
+            self.path.unlink(missing_ok=True)
+
+
+async def request_transform_log(request: Request):
+    """Keep transformation diagnostics local and release them on every exit."""
+    log = TransformerLog()
+    outcome = "completed"
+    try:
+        yield log
+    except BaseException as exc:
+        outcome = type(exc).__name__
+        raise
+    finally:
+        logging.getLogger("hsds.api").info(
+            "Transformation lifecycle request_id=%s path=%s outcome=%s entries=%d",
+            request.state.request_id, request.url.path, outcome, len(log.entries),
+        )
+        log.clear()
+
+
 app = FastAPI(title="HSDS Transformer API", version="0.1.0")
 APP_START_MONOTONIC = time.monotonic()
 MAX_MULTIPART_UPLOAD_BYTES = 50 * 1024 * 1024
@@ -47,6 +107,7 @@ origins = ["http://localhost:5173", "https://hsds.sitblueprint.com"]
 
 # Temporary upload limit. Change this later once the real production limit is decided.
 MAX_UPLOAD_SIZE_BYTES = 5 * 1024 * 1024
+ZIP_LIMITS = ZipLimits()
 
 # Adding CORS middleware
 app.add_middleware(
@@ -89,6 +150,7 @@ async def health(response: Response) -> HealthResponse:
     response_class=StreamingResponse,
 )
 async def transform(
+    log: TransformerLog = Depends(request_transform_log),
     zip_file: UploadFile = File(
         ..., description="Zip file containing input data and mapping files"
     ),
@@ -128,8 +190,9 @@ async def transform(
                 raise HTTPException(
                     status_code=422, detail="Zip file contains no files"
                 )
+            validate_zip_budget(zf, ZIP_LIMITS)
             validate_no_duplicate_filenames(zf)
-    except zipfile.BadZipFile:
+    except (zipfile.BadZipFile, NotImplementedError, UnicodeDecodeError):
         raise HTTPException(status_code=422, detail="Invalid zip file")
 
     try:
@@ -140,7 +203,7 @@ async def transform(
     # Unzip into a temp directory
     with tempfile.TemporaryDirectory(dir=temp_root, prefix="hsds-input-") as input_dir:
         with zipfile.ZipFile(io.BytesIO(content), "r") as zf:
-            zf.extractall(input_dir)
+            extract_zip(zf, Path(input_dir), ZIP_LIMITS)
 
         # Handle case where zip creates a single top-level folder
         extracted_items = list(Path(input_dir).iterdir())
@@ -155,13 +218,13 @@ async def transform(
         # Run the transformer: build collections, then link parents/children
         try:
             if input_format == "json":
-                results = build_collections_from_json(str(input_dir))
+                results = build_collections_from_json(str(input_dir), log=log)
             else:
-                results = build_collections(input_dir)
+                results = build_collections(input_dir, log=log)
         except ValueError as e:
             raise HTTPException(status_code=422, detail=str(e))
 
-        results = searching_and_assigning(results)
+        results = searching_and_assigning(results, log=log)
 
         # Write each object to JSON files in another temp dir, then zip and return
         with tempfile.TemporaryDirectory(
@@ -182,13 +245,13 @@ async def transform(
                         if p.is_file():
                             arcname = p.relative_to(output_dir)
                             out_zip.write(p, arcname)
-                return StreamingResponse(
-                    _iter_and_cleanup(zip_path),
+                return CleanupStreamingResponse(
+                    zip_path,
                     status_code=201,
                     media_type="application/zip",
                     headers={"Content-Disposition": "attachment; filename=transformed.zip"},
                 )
-            except Exception:
+            except BaseException:
                 zip_path.unlink(missing_ok=True)
                 raise
 
@@ -205,6 +268,7 @@ async def transform(
     response_class=StreamingResponse,
 )
 async def transform_stream(
+    log: TransformerLog = Depends(request_transform_log),
     files: list[UploadFile] = File(
         ...,
         description="Repeated files parts containing source JSON and *_mapping.json",
@@ -229,11 +293,11 @@ async def transform_stream(
         validate_json_transform_files(str(input_dir))
         
         try:
-            results = build_collections_from_json(str(input_dir))
+            results = build_collections_from_json(str(input_dir), log=log)
         except ValueError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
 
-        results = searching_and_assigning(results)
+        results = searching_and_assigning(results, log=log)
         try:
             save_objects_to_json(results, output_dir)
         except ValueError as exc:
@@ -252,13 +316,13 @@ async def transform_stream(
             # Clean up workspace now; zip file lives outside it
             shutil.rmtree(workspace_dir, ignore_errors=True)
 
-            return StreamingResponse(
-                _iter_and_cleanup(zip_path),
+            return CleanupStreamingResponse(
+                zip_path,
                 status_code=201,
                 media_type="application/zip",
                 headers={"Content-Disposition": "attachment; filename=transformed.zip"},
             )
-        except Exception:
+        except BaseException:
             zip_path.unlink(missing_ok=True)
             raise
     except UploadSizeLimitError as exc:
