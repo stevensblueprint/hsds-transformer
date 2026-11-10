@@ -1,7 +1,7 @@
 {
   "manifest_version": 1,
   "ticket": "BLU-28 (P1-02a)",
-  "generated_from_commit": "b47e6579f50579457c8d112713a0b2e50ce6b1ce",
+  "generated_from_commit": "7ff53887b0b8d1fff0519b4abc919770b4d94546",
   "generator": "scripts/inventory_corpus.py",
   "status_note": "Facts only. 'observed' is current behaviour, not approved expectation. classification/permission/reviewer fields are intentionally unconfirmed.",
   "counts": {
@@ -1989,7 +1989,7 @@
         },
         {
           "file": "README.md",
-          "line": 51
+          "line": 53
         }
       ],
       "flags": [],
@@ -2641,11 +2641,11 @@
         },
         {
           "file": "README.md",
-          "line": 162
+          "line": 164
         },
         {
           "file": "README.md",
-          "line": 167
+          "line": 169
         }
       ],
       "flags": [],
@@ -4108,11 +4108,11 @@
       "test_references": [
         {
           "file": "README.md",
-          "line": 246
+          "line": 258
         },
         {
           "file": "README.md",
-          "line": 265
+          "line": 277
         }
       ],
       "flags": [],
