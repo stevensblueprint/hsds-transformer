@@ -1,6 +1,6 @@
 """Regression tests for scripts/inventory_corpus.py reproducibility.
 
-Three bugs motivated these tests (see BLU-28 review):
+Four bugs motivated these tests (see BLU-28 review):
 
 1. ``generated_from_commit`` recorded the git HEAD at generation time and was
    part of the ``--check`` byte-for-byte comparison, so an unchanged corpus
@@ -15,6 +15,8 @@ Three bugs motivated these tests (see BLU-28 review):
 3. ``find_test_references()`` recorded ``str(path)``, so test file paths used
    backslashes on Windows and forward slashes elsewhere, and ``--check``
    failed across platforms with unchanged inputs.
+4. ``build_manifest()`` sorted ``Path`` objects, which compare
+   case-insensitively on Windows only, so entry order differed by platform.
 
 These tests build a minimal synthetic corpus in a temp directory (pointing
 the script's module-level ROOT/DATA/TESTS/DEFAULT_OUT constants at it) so
@@ -131,6 +133,20 @@ def test_test_reference_paths_use_forward_slashes(corpus, monkeypatch):
     manifest = json.loads(corpus["out"].read_text(encoding="utf-8"))
     entry = next(e for e in manifest["entries"] if e["id"] == "sample_dataset")
     assert entry["test_references"] == [{"file": "tests/test_sample.py", "line": 1}]
+
+
+def test_entry_order_is_case_sensitive_on_every_platform(corpus, monkeypatch):
+    """Regression for bug 4: sorting Path objects is case-insensitive on
+    Windows only, so entry order differed between platforms."""
+    monkeypatch.setattr(inventory_corpus, "git_commit", lambda: "a" * 40)
+    for name in ("alpha", "Zeta"):
+        (corpus["data"] / name).mkdir()
+        (corpus["data"] / name / "people.csv").write_text("name\nAda\n", encoding="utf-8")
+
+    assert _run_with_args([]) == 0
+
+    manifest = json.loads(corpus["out"].read_text(encoding="utf-8"))
+    assert [e["id"] for e in manifest["entries"]] == ["Zeta", "alpha", "sample_dataset"]
 
 
 def test_committed_manifest_has_no_os_specific_paths():

@@ -1,7 +1,7 @@
 {
   "manifest_version": 1,
   "ticket": "BLU-28 (P1-02a)",
-  "generated_from_commit": "b42706d014c17817319b69b27586f2df9ec82894",
+  "generated_from_commit": "48ccf668400778a6775001b3a1eb5689b9fcbfa2",
   "generator": "scripts/inventory_corpus.py",
   "status_note": "Facts only. 'observed' is current behaviour, not approved expectation. classification/permission/reviewer fields are intentionally unconfirmed.",
   "counts": {
@@ -248,6 +248,124 @@
     }
   ],
   "entries": [
+    {
+      "id": "HSD_example",
+      "kind": "directory",
+      "path": "data/HSD_example",
+      "source_files": [
+        {
+          "name": "HSD_provider.csv",
+          "format": "csv",
+          "bytes": 946301,
+          "sha256": "19f4e24f36580e9667c0eb7246163e0e4a11f44c72fbfbafa4bd67b2cab1e1ce",
+          "bom": false,
+          "utf8_valid": true,
+          "columns": [
+            "entity_id",
+            "organization_name",
+            "address_record_id",
+            "address_type",
+            "address_line_1",
+            "city",
+            "county",
+            "state",
+            "postal_code",
+            "phone",
+            "primary_license",
+            "npi",
+            "hoursoperation",
+            "primary_taxonomy_id",
+            "taxonomies",
+            "accessibility",
+            "behavioral_health_services",
+            "caresettings",
+            "languages_spoken",
+            "fees",
+            "population_served",
+            "gbp_id",
+            "hash_value",
+            "source",
+            "created_at",
+            "upsert_reason",
+            "job_id",
+            "processing_date",
+            "processing_status"
+          ],
+          "column_count": 29,
+          "data_rows": 2592,
+          "blank_rows": 0,
+          "rows_with_column_count_mismatch": 2592,
+          "row_length_minus_header_length": {
+            "1": 2592
+          }
+        }
+      ],
+      "mapping_files": [
+        {
+          "format": "csv",
+          "bytes": 889,
+          "sha256": "ee2e52131781326f096f877977b2b9c4d1b8f69207b4cf9c72705170fe2ecb69",
+          "bom": false,
+          "utf8_valid": true,
+          "header_row": [
+            "path",
+            "input_files_field"
+          ],
+          "header_layout": "path_first",
+          "header_matches_template_exactly": true,
+          "extra_header_columns": [],
+          "mapping_row_count": 9,
+          "filter_row_interpreted_as_filter": true,
+          "filter_column": "id",
+          "referenced_input_field_count": 9,
+          "referenced_fields_missing_from_source": [],
+          "col0_values_found_in_source_columns": 0,
+          "col1_values_found_in_source_columns": 9,
+          "filter_column_in_source": false,
+          "filter_matching_rows": null,
+          "name": "HSD_provider_organization_mapping.csv",
+          "object_type": "organization",
+          "expected_source": "HSD_provider.csv",
+          "source_found": true
+        }
+      ],
+      "other_files": [],
+      "sources_without_mapping": [],
+      "mappings_without_source": [],
+      "subdirectories": [],
+      "observed": {
+        "note": "observed behaviour at this commit; NOT an approved expected result",
+        "status": "ok",
+        "input_format": "csv",
+        "custom_transforms_used": false,
+        "objects_before_linking": {
+          "organization": 0
+        },
+        "objects_before_linking_total": 0,
+        "top_level_objects_after_linking": {
+          "organization": 0
+        },
+        "output_objects_after_linking": 0,
+        "distinct_ids_after_linking": {
+          "organization": 0
+        }
+      },
+      "test_references": [],
+      "flags": [
+        "filter_column_not_in_source",
+        "filter_matches_no_source_rows",
+        "observed_zero_output_objects",
+        "rows_longer_than_header"
+      ],
+      "ticket_notes": [
+        "ticket: layout mismatch; first mapping row consumed as a filter"
+      ],
+      "classification": "unconfirmed",
+      "permission_status": "unconfirmed",
+      "intended_purpose": "unconfirmed",
+      "responsible_reviewer": null,
+      "approved_expected_results": null
+    },
     {
       "id": "custom_transform_manual_test",
       "kind": "directory",
@@ -998,124 +1116,6 @@
       "test_references": [],
       "flags": [],
       "ticket_notes": [],
-      "classification": "unconfirmed",
-      "permission_status": "unconfirmed",
-      "intended_purpose": "unconfirmed",
-      "responsible_reviewer": null,
-      "approved_expected_results": null
-    },
-    {
-      "id": "HSD_example",
-      "kind": "directory",
-      "path": "data/HSD_example",
-      "source_files": [
-        {
-          "name": "HSD_provider.csv",
-          "format": "csv",
-          "bytes": 946301,
-          "sha256": "19f4e24f36580e9667c0eb7246163e0e4a11f44c72fbfbafa4bd67b2cab1e1ce",
-          "bom": false,
-          "utf8_valid": true,
-          "columns": [
-            "entity_id",
-            "organization_name",
-            "address_record_id",
-            "address_type",
-            "address_line_1",
-            "city",
-            "county",
-            "state",
-            "postal_code",
-            "phone",
-            "primary_license",
-            "npi",
-            "hoursoperation",
-            "primary_taxonomy_id",
-            "taxonomies",
-            "accessibility",
-            "behavioral_health_services",
-            "caresettings",
-            "languages_spoken",
-            "fees",
-            "population_served",
-            "gbp_id",
-            "hash_value",
-            "source",
-            "created_at",
-            "upsert_reason",
-            "job_id",
-            "processing_date",
-            "processing_status"
-          ],
-          "column_count": 29,
-          "data_rows": 2592,
-          "blank_rows": 0,
-          "rows_with_column_count_mismatch": 2592,
-          "row_length_minus_header_length": {
-            "1": 2592
-          }
-        }
-      ],
-      "mapping_files": [
-        {
-          "format": "csv",
-          "bytes": 889,
-          "sha256": "ee2e52131781326f096f877977b2b9c4d1b8f69207b4cf9c72705170fe2ecb69",
-          "bom": false,
-          "utf8_valid": true,
-          "header_row": [
-            "path",
-            "input_files_field"
-          ],
-          "header_layout": "path_first",
-          "header_matches_template_exactly": true,
-          "extra_header_columns": [],
-          "mapping_row_count": 9,
-          "filter_row_interpreted_as_filter": true,
-          "filter_column": "id",
-          "referenced_input_field_count": 9,
-          "referenced_fields_missing_from_source": [],
-          "col0_values_found_in_source_columns": 0,
-          "col1_values_found_in_source_columns": 9,
-          "filter_column_in_source": false,
-          "filter_matching_rows": null,
-          "name": "HSD_provider_organization_mapping.csv",
-          "object_type": "organization",
-          "expected_source": "HSD_provider.csv",
-          "source_found": true
-        }
-      ],
-      "other_files": [],
-      "sources_without_mapping": [],
-      "mappings_without_source": [],
-      "subdirectories": [],
-      "observed": {
-        "note": "observed behaviour at this commit; NOT an approved expected result",
-        "status": "ok",
-        "input_format": "csv",
-        "custom_transforms_used": false,
-        "objects_before_linking": {
-          "organization": 0
-        },
-        "objects_before_linking_total": 0,
-        "top_level_objects_after_linking": {
-          "organization": 0
-        },
-        "output_objects_after_linking": 0,
-        "distinct_ids_after_linking": {
-          "organization": 0
-        }
-      },
-      "test_references": [],
-      "flags": [
-        "filter_column_not_in_source",
-        "filter_matches_no_source_rows",
-        "observed_zero_output_objects",
-        "rows_longer_than_header"
-      ],
-      "ticket_notes": [
-        "ticket: layout mismatch; first mapping row consumed as a filter"
-      ],
       "classification": "unconfirmed",
       "permission_status": "unconfirmed",
       "intended_purpose": "unconfirmed",

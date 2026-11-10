@@ -370,7 +370,7 @@ def find_test_references(name: str) -> list[dict]:
     ]
     rx = re.compile("|".join(patterns))
     refs = []
-    candidates = sorted(TESTS.glob("*.py")) + [ROOT / "README.md"]
+    candidates = sorted(TESTS.glob("*.py"), key=lambda p: p.name) + [ROOT / "README.md"]
     for path in candidates:
         if not path.exists():
             continue
@@ -395,7 +395,8 @@ def blank_review_fields() -> dict:
 
 
 def directory_entry(path: Path) -> dict:
-    files = {p.name: p.read_bytes() for p in sorted(path.iterdir()) if p.is_file()}
+    files = {p.name: p.read_bytes() for p in sorted(path.iterdir(), key=lambda p: p.name)
+             if p.is_file()}
     # Enumerate subdirectories before observe() runs: observe() dynamically
     # imports transforms.py (if present), which can cause Python to create a
     # __pycache__ directory here as a side effect. That cache is excluded via
@@ -583,8 +584,12 @@ def git_commit() -> str:
 
 
 def build_manifest() -> dict:
-    dirs = sorted(p for p in DATA.iterdir() if p.is_dir() and _is_inventoried_dir(p.name))
-    zips = sorted(p for p in DATA.iterdir() if p.is_file() and p.suffix == ".zip")
+    # Sort by name string: Path ordering is case-insensitive on Windows but not
+    # on Linux/macOS, which would change entry order between platforms.
+    dirs = sorted((p for p in DATA.iterdir() if p.is_dir() and _is_inventoried_dir(p.name)),
+                  key=lambda p: p.name)
+    zips = sorted((p for p in DATA.iterdir() if p.is_file() and p.suffix == ".zip"),
+                  key=lambda p: p.name)
     dir_files = {d.name: {p.name: p.read_bytes() for p in d.iterdir() if p.is_file()} for d in dirs}
     entries = [directory_entry(d) for d in dirs] + [zip_entry(z, dir_files) for z in zips]
     return {
