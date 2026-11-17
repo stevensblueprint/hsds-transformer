@@ -11,7 +11,7 @@ import sys
 
 @click.command()
 @click.argument('data_dictionary', type=click.Path(exists=True, file_okay=False, dir_okay=True, readable=True))
-@click.option('--output-dir', '-o', default='output', help='Output directory for JSON files')
+@click.option('--output-dir', '-o', default='output', help='New or empty output directory for JSON files')
 @click.option('--generate-ids', default=None, help='Generate new IDs using the provided organization name/id')
 @click.option('--input-format', '-f', type=click.Choice(['csv', 'json'], case_sensitive=False), default='csv', help='Input data format (csv or json)')
 @click.option(
@@ -48,11 +48,15 @@ def main(data_dictionary, output_dir, generate_ids, transforms, input_format):
         results = searching_and_assigning(results, requestor_identifier=generate_ids) # Links and cleans up, passes transformer_id
 
         # Save individual JSON files
-        save_objects_to_json(results, output_dir)
+        summary = save_objects_to_json(results, output_dir)
 
         # Log output summary
         transformer_log.section("Output")
         transformer_log.log(f"JSON files saved to: {output_dir}")
+        transformer_log.log(
+            f"Artifacts: expected={summary.expected}, written={summary.written}, "
+            f"verified={summary.verified}"
+        )
 
         # Print the log instead of results
         click.echo(transformer_log.get_log())
