@@ -1,0 +1,3 @@
+# Keep sample data byte-for-byte as committed on every OS so the BLU-28
+# corpus manifest (sizes, hashes, ZIP equivalence) is reproducible.
+data/** -text
